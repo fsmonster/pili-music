@@ -1,0 +1,59 @@
+<template>
+  <div class="app-container">
+    <!-- 左侧导航栏 -->
+    <Sidebar class="sidebar" />
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 顶部栏 -->
+      <Header />
+
+      <!-- 内容区 -->
+      <slot name="main"></slot>
+    </div>
+
+    <!-- 底部播放控制栏 -->
+    <Player class="player" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import Sidebar from './Sidebar.vue';
+import Header from './Header.vue';
+import Player from './Player.vue';
+</script>
+
+<style lang="scss" scoped>
+.app-container {
+  height: 100vh;
+  display: grid;
+  grid-template-areas:
+    "sidebar main"
+    "player player";
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: 1fr auto;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  border-right: 1px solid var(--el-border-color-light);
+}
+
+.main-content {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--el-bg-color);
+
+  :deep(.content) {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+.player {
+  grid-area: player;
+  border-top: 1px solid var(--el-border-color-light);
+}
+</style>

@@ -1,0 +1,60 @@
+// 颜色变量
+$primary-color: #00aeec;
+$secondary-color: #fc8bab;
+$text-color: #18191c;
+$text-color-secondary: #61666d;
+$background-color: #f5f7fa;
+$border-color: #e4e7ed;
+$dark-background: #18191c;
+$dark-secondary: #232427;
+
+// 间距
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// 布局尺寸
+$sidebar-width: 240px;
+$player-height: 90px;
+$header-height: 64px;
+
+// 字体大小
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+
+// 圆角
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 16px;
+
+// 阴影
+$box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+$box-shadow-hover: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
+
+// 混合器
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin transition-all {
+  transition: all 0.3s ease;
+}

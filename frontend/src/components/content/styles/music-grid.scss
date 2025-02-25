@@ -1,0 +1,84 @@
+@import '@/styles/mixins';
+
+.music-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.music-item {
+  cursor: pointer;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+
+    .play-overlay {
+      opacity: 1;
+    }
+  }
+
+  .cover {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; 
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: var(--el-fill-color-lighter);
+
+    img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .play-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+
+      i {
+        font-size: 36px;
+        color: white;
+      }
+    }
+  }
+
+  .info {
+    margin-top: 8px;
+    padding: 0 4px;
+
+    .title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--el-text-color-primary);
+      margin-bottom: 4px;
+      @include text-ellipsis;
+    }
+
+    .artist,
+    .creator,
+    .count {
+      font-size: 12px;
+      color: var(--el-text-color-secondary);
+      @include text-ellipsis;
+    }
+  }
+}
+
+@mixin text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

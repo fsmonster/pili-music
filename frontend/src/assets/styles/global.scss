@@ -1,0 +1,80 @@
+@use './variables.scss' as *;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: $text-color;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Element Plus 主题覆盖
+.el-menu {
+  --el-menu-hover-bg-color: #{$primary-color}10;
+  --el-menu-active-color: #{$primary-color};
+  
+  .el-menu-item {
+    &.is-active {
+      color: $primary-color;
+      
+      i {
+        color: $primary-color;
+      }
+    }
+  }
+}
+
+.el-button {
+  &--primary {
+    --el-button-bg-color: #{$primary-color};
+    --el-button-border-color: #{$primary-color};
+    --el-button-hover-bg-color: #{$secondary-color};
+    --el-button-hover-border-color: #{$secondary-color};
+  }
+}
+
+// 通用样式类
+.text-ellipsis {
+  @include text-ellipsis;
+}
+
+.flex-center {
+  @include flex-center;
+}
+
+.flex-between {
+  @include flex-between;
+}
+
+.hover-shadow {
+  @include transition-all;
+  
+  &:hover {
+    box-shadow: $box-shadow-hover;
+  }
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #909399;
+  border-radius: 3px;
+  
+  &:hover {
+    background: #606266;
+  }
+}
