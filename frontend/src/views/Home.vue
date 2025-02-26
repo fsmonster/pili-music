@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import Layout from '../components/layout/Layout.vue';
+import Layout from '../layout/Layout.vue';
 import RecentlyPlayed from '../components/content/views/RecentlyPlayed.vue';
 import Favorites from '../components/content/views/Favorites.vue';
 import Subscriptions from '../components/content/views/Subscriptions.vue';

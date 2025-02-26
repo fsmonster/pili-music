@@ -4,7 +4,12 @@
       <i class="ri-folder-2-line"></i>
     </template>
     <div class="music-grid">
-      <div v-for="item in favorites" :key="item.id" class="music-item">
+      <div 
+        v-for="item in favorites" 
+        :key="item.id" 
+        class="music-item"
+        @click="goToPlaylist(item.id)"
+      >
         <div class="cover">
           <img :src="item.cover" :alt="item.title">
           <div class="play-overlay">
@@ -42,6 +47,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import ContentSection from '../common/ContentSection.vue';
 import defaultCover from '@/assets/image/default_cover.avif';
 
@@ -70,6 +76,13 @@ const allFavorites = ref([
 const favorites = ref(allFavorites.value);
 const checkedFavorites = ref(allFavorites.value.map(f => f.id));
 const showManageDialog = ref(false);
+
+const router = useRouter();
+
+// 跳转到播放列表
+const goToPlaylist = (id: number) => {
+  router.push('/playlist');
+};
 
 // 保存收藏夹显示设置
 const saveFavoritesSettings = () => {

@@ -18,10 +18,10 @@ const router = createRouter({
       component: () => import('../views/Login.vue')
     },
     {
-      path: '/playlists',
-      name: 'playlists',
-      component: () => import('../views/Playlists.vue')
-    }
+      path: '/playlist',
+      name: 'playlist',
+      component: () => import('../views/Playlist.vue')
+    },
   ]
 });
 
