@@ -31,7 +31,7 @@ app.use(limiter);
 
 // 路由
 app.use('/api', authRoutes);
-app.use('/api', favoriteRoutes); // 注册收藏夹路由
+app.use('/api/favorite', favoriteRoutes); // 注册收藏夹路由
 
 // B站API代理
 const biliProxy = createProxyMiddleware({

@@ -1,100 +1,226 @@
-const Router = require('@koa/router');
-const axios = require('axios');
+import express from 'express';
+import axios from 'axios';
 
-const router = new Router({ prefix: '/api/favorite' });
+const router = express.Router();
 
 /**
- * 获取用户收藏夹列表
- * @param {number} up_mid - 用户UID
- * @returns {Array} 收藏夹列表
+ * @route   GET /api/favorite/list
+ * @desc    获取用户收藏夹列表
+ * @access  Private - 需要SESSDATA
  */
-router.get('/list', async (ctx) => {
-  const { up_mid } = ctx.query;
-  if (!up_mid) {
-    ctx.status = 400;
-    ctx.body = { code: 400, message: '缺少必要参数：up_mid' };
-    return;
-  }
-
+router.get('/list', async (req, res) => {
   try {
-    const response = await axios.get(`https://api.bilibili.com/x/v3/fav/folder/created/list-all`, {
-      params: { up_mid },
+    const { SESSDATA } = req.cookies;
+    if (!SESSDATA) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未登录或登录已过期' 
+      });
+    }
+
+    // 调用B站API获取收藏夹列表
+    const response = await axios.get('https://api.bilibili.com/x/v3/fav/folder/created/list-all', {
+      params: {
+        up_mid: req.query.up_mid || '',
+        jsonp: 'jsonp'
+      },
       headers: {
-        'Cookie': `SESSDATA=${ctx.cookies.get('SESSDATA')}`,
-        'User-Agent': 'Mozilla/5.0',
-        'Referer': 'https://www.bilibili.com'
+        Cookie: `SESSDATA=${SESSDATA}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
 
-    ctx.body = response.data;
+    res.json(response.data);
   } catch (error) {
     console.error('获取收藏夹列表失败:', error);
-    ctx.status = 500;
-    ctx.body = { code: 500, message: '获取收藏夹列表失败' };
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取收藏夹列表失败' 
+    });
   }
 });
 
 /**
- * 获取收藏夹内容
- * @param {number} media_id - 收藏夹ID
- * @param {number} pn - 页码
- * @param {number} ps - 每页数量
- * @returns {Array} 收藏夹内容列表
+ * @route   GET /api/favorite/resource/list
+ * @desc    获取收藏夹内容列表
+ * @access  Private - 需要SESSDATA
  */
-router.get('/content', async (ctx) => {
-  const { media_id, pn = 1, ps = 20 } = ctx.query;
-  if (!media_id) {
-    ctx.status = 400;
-    ctx.body = { code: 400, message: '缺少必要参数：media_id' };
-    return;
-  }
-
+router.get('/resource/list', async (req, res) => {
   try {
-    const response = await axios.get(`https://api.bilibili.com/x/v3/fav/resource/list`, {
-      params: { media_id, pn, ps },
+    const { SESSDATA } = req.cookies;
+    if (!SESSDATA) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未登录或登录已过期' 
+      });
+    }
+
+    const { media_id, pn = 1, ps = 20 } = req.query;
+    if (!media_id) {
+      return res.status(400).json({ 
+        code: 400, 
+        message: '缺少必要参数media_id' 
+      });
+    }
+
+    // 调用B站API获取收藏夹内容
+    const response = await axios.get('https://api.bilibili.com/x/v3/fav/resource/list', {
+      params: {
+        media_id,
+        pn,
+        ps,
+        keyword: req.query.keyword || '',
+        order: req.query.order || 'mtime',
+        type: req.query.type || 0,
+        tid: req.query.tid || 0,
+        jsonp: 'jsonp'
+      },
       headers: {
-        'Cookie': `SESSDATA=${ctx.cookies.get('SESSDATA')}`,
-        'User-Agent': 'Mozilla/5.0',
-        'Referer': 'https://www.bilibili.com'
+        Cookie: `SESSDATA=${SESSDATA}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
 
-    ctx.body = response.data;
+    res.json(response.data);
   } catch (error) {
-    console.error('获取收藏夹内容失败:', error);
-    ctx.status = 500;
-    ctx.body = { code: 500, message: '获取收藏夹内容失败' };
+    console.error('获取收藏夹内容列表失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取收藏夹内容列表失败' 
+    });
   }
 });
+
+/**
+ * @route   GET /api/favorite/resource/ids
+ * @desc    获取收藏夹全部内容的id
+ * @access  Private - 需要SESSDATA
+ */
+router.get('/resource/ids', async (req, res) => {
+  try {
+    const { SESSDATA } = req.cookies;
+    if (!SESSDATA) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未登录或登录已过期' 
+      });
+    }
+
+    const { media_id } = req.query;
+    if (!media_id) {
+      return res.status(400).json({ 
+        code: 400, 
+        message: '缺少必要参数media_id' 
+      });
+    }
+
+    // 调用B站API获取收藏夹内所有资源的id
+    const response = await axios.get('https://api.bilibili.com/x/v3/fav/resource/ids', {
+      params: {
+        media_id,
+        jsonp: 'jsonp'
+      },
+      headers: {
+        Cookie: `SESSDATA=${SESSDATA}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('获取收藏夹资源ID列表失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取收藏夹资源ID列表失败' 
+    });
+  }
+});
+
+/**
+ * @describe 查看视频分p信息， avid/bvid转cid，cid表示当前分p
+ * @route   GET /api/favorite/player/pagelist
+ * @param {string} bvid - 视频bvid
+ * @param {number} aid - 视频aid
+ * @returns {Object} 视频分p信息
+ */
+router.get('/player/pagelist', async (req, res) => {
+  try {
+    const {
+      aid,
+      bvid,
+    } = req.query;
+    console.log(aid, bvid);
+    
+    if(!aid && !bvid) {
+      return res.status(400).json({ 
+        code: 400, 
+        message: '缺少必要参数：aid 或 bvid' 
+      });
+    }
+    let xid = aid?'aid':'bvid';
+    let id = aid || bvid;
+      // 调用B站API获取视频信息
+    const response = await axios.get('https://api.bilibili.com/x/player/pagelist', {
+      params: {
+        [xid]: id,
+      },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('获取视频分P列表失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取视频分P列表失败' 
+    });
+  }
+});
+
 
 /**
  * 获取视频cid信息
  * @param {number} aid - 视频aid
- * @returns {Object} 视频信息，包含cid
+ * @returns {Object} 视频信息
  */
-router.get('/video/info', async (ctx) => {
-  const { aid } = ctx.query;
-  if (!aid) {
-    ctx.status = 400;
-    ctx.body = { code: 400, message: '缺少必要参数：aid' };
-    return;
-  }
-
+router.get('/video/info', async (req, res) => {
   try {
-    const response = await axios.get(`https://api.bilibili.com/x/web-interface/view`, {
-      params: { aid },
+    const { SESSDATA } = req.cookies;
+    if (!SESSDATA) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未登录或登录已过期' 
+      });
+    }
+
+    const { aid } = req.query;
+    if (!aid) {
+      return res.status(400).json({ 
+        code: 400, 
+        message: '缺少必要参数：aid' 
+      });
+    }
+
+    // 调用B站API获取视频信息
+    const response = await axios.get('https://api.bilibili.com/x/web-interface/view', {
+      params: {
+        aid,
+        jsonp: 'jsonp'
+      },
       headers: {
-        'Cookie': `SESSDATA=${ctx.cookies.get('SESSDATA')}`,
-        'User-Agent': 'Mozilla/5.0',
-        'Referer': 'https://www.bilibili.com'
+        Cookie: `SESSDATA=${SESSDATA}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
 
-    ctx.body = response.data;
+    res.json(response.data);
   } catch (error) {
     console.error('获取视频信息失败:', error);
-    ctx.status = 500;
-    ctx.body = { code: 500, message: '获取视频信息失败' };
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取视频信息失败' 
+    });
   }
 });
 
@@ -104,36 +230,48 @@ router.get('/video/info', async (ctx) => {
  * @param {number} cid - 视频cid
  * @returns {Object} 音频流信息
  */
-router.get('/audio/url', async (ctx) => {
-  const { aid, cid } = ctx.query;
-  if (!aid || !cid) {
-    ctx.status = 400;
-    ctx.body = { code: 400, message: '缺少必要参数：aid 或 cid' };
-    return;
-  }
-
+router.get('/audio/url', async (req, res) => {
   try {
-    const response = await axios.get(`https://api.bilibili.com/x/player/playurl`, {
+    const { SESSDATA } = req.cookies;
+    if (!SESSDATA) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未登录或登录已过期' 
+      });
+    }
+
+    const { aid, cid } = req.query;
+    if (!aid || !cid) {
+      return res.status(400).json({ 
+        code: 400, 
+        message: '缺少必要参数：aid 或 cid' 
+      });
+    }
+
+    // 调用B站API获取音频流信息
+    const response = await axios.get('https://api.bilibili.com/x/player/playurl', {
       params: {
         aid,
         cid,
         fnval: 16, // 获取DASH格式
         fnver: 0,
-        fourk: 1
+        fourk: 1,
+        jsonp: 'jsonp'
       },
       headers: {
-        'Cookie': `SESSDATA=${ctx.cookies.get('SESSDATA')}`,
-        'User-Agent': 'Mozilla/5.0',
-        'Referer': 'https://www.bilibili.com'
+        Cookie: `SESSDATA=${SESSDATA}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
 
-    ctx.body = response.data;
+    res.json(response.data);
   } catch (error) {
     console.error('获取音频流URL失败:', error);
-    ctx.status = 500;
-    ctx.body = { code: 500, message: '获取音频流URL失败' };
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取音频流URL失败' 
+    });
   }
 });
 
-module.exports = router;
+export default router;
