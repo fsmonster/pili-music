@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { processBiliImageUrl } from '../utils/processBiliImageUrl';
 
 /**
  * B站用户信息接口（仅保留必要字段）
@@ -22,22 +23,6 @@ interface UserState {
     username: string  // 用户名
     uid: number      // 用户ID
   } | null
-}
-
-/**
- * 处理B站图片URL，将原始URL转换为本地代理URL
- * @param url B站原始图片URL
- * @returns 处理后的本地代理URL
- */
-function processBiliImageUrl(url: string): string {
-  if (!url) return '';
-  // 已经是代理URL则直接返回
-  if (url.startsWith('/biliimg/')) return url;
-  // 提取域名编号（i0、i1、i2等）
-  const match = url.match(/https:\/\/(i[0-2])\.hdslb\.com\/(.*)/);
-  if (!match) return url;
-  // 转换为本地代理URL
-  return `/biliimg/${match[1]}/${match[2]}`;
 }
 
 /**

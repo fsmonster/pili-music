@@ -69,6 +69,16 @@ export default defineConfig({
         headers: {
           'Referer': 'https://www.bilibili.com'
         }
+      },
+      // 代理 B站图片请求 - archive.biliimg.com
+      '^/biliimg/archive/.*': {
+        target: 'https://archive.biliimg.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/biliimg\/archive/, ''),
+        headers: {
+          'Referer': 'https://www.bilibili.com'
+        }
       }
     }
   }

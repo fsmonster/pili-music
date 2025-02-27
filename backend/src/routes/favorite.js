@@ -158,7 +158,7 @@ router.get('/player/pagelist', async (req, res) => {
       });
     }
     let xid = aid?'aid':'bvid';
-    let id = aid || bvid;
+    let id = aid ?? bvid;
       // 调用B站API获取视频信息
     const response = await axios.get('https://api.bilibili.com/x/player/pagelist', {
       params: {
@@ -270,6 +270,85 @@ router.get('/audio/url', async (req, res) => {
     res.status(500).json({ 
       code: 500, 
       message: '获取音频流URL失败' 
+    });
+  }
+});
+
+/**
+ * @route   GET /api/favorite/collected/list
+ * @desc    获取用户订阅的合集列表
+ * @access  Private - 需要SESSDATA
+ */
+router.get('/collected/list', async (req, res) => {
+  
+  try {
+    const { SESSDATA } = req.cookies;
+    if (!SESSDATA) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未登录或登录已过期' 
+      });
+    }
+
+    const { pn = 1, ps = 20, up_mid='' } = req.query;
+
+    // 调用B站API获取订阅合集列表
+    const response = await axios.get('https://api.bilibili.com/x/v3/fav/folder/collected/list', {
+      params: {
+        pn,
+        ps,
+        up_mid,
+        platform:'web'
+      },
+      headers: {
+        Cookie: `SESSDATA=${SESSDATA}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('获取订阅合集列表失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取订阅合集列表失败' 
+    });
+  }
+});
+
+/**
+ * @route   GET /api/favorite/season/content
+ * @desc    获取指定合集的内容列表
+ */
+router.get('/season/content', async (req, res) => {
+  try {
+    const { season_id, pn = 1, ps = 40 } = req.query;
+    if (!season_id) {
+      return res.status(400).json({ 
+        code: 400, 
+        message: '缺少必要参数：season_id' 
+      });
+    }
+
+    // 调用B站API获取合集内容
+    const response = await axios.get('https://api.bilibili.com/x/space/fav/season/list', {
+      params: {
+        season_id,
+        pn,
+        ps,
+        jsonp: 'jsonp'
+      },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('获取合集内容列表失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取合集内容列表失败' 
     });
   }
 });

@@ -5,35 +5,54 @@
         <!-- 播放列表头部 -->
         <div class="playlist-header">
           <div class="cover">
-            <img :src="playlist.cover" :alt="playlist.title">
+            <img 
+              :src="favoriteStore.currentFavorite?.cover" 
+              :alt="favoriteStore.currentFavorite?.title"
+            >
           </div>
           <div class="info">
-            <h1>{{ playlist.title }}</h1>
-            <p>{{ playlist.description }}</p>
+            <h1>{{ favoriteStore.currentFavorite?.title }}</h1>
+            <p>{{ favoriteStore.currentFavorite?.media_count }}个内容</p>
           </div>
         </div>
 
         <!-- 播放列表内容 -->
         <div class="playlist-content">
           <div class="controls">
-            <button class="play-all">
+            <button 
+              class="play-all" 
+              @click="handlePlayAll"
+              :disabled="!favoriteStore.currentItems.length"
+            >
               <i class="ri-play-fill"></i>
               播放全部
             </button>
           </div>
 
           <!-- 歌曲列表 -->
-          <div class="song-list">
-            <div v-for="(song, index) in songs" :key="song.id" class="song-item">
+          <div v-if="favoriteStore.loading" class="loading">
+            加载中...
+          </div>
+          <div v-else-if="favoriteStore.error" class="error">
+            {{ favoriteStore.error }}
+          </div>
+          <div v-else class="song-list">
+            <div 
+              v-for="(item, index) in favoriteStore.currentItems" 
+              :key="item.id" 
+              class="song-item"
+              :class="{ active: playlistStore.currentTrack?.id === item.id }"
+              @click="handlePlay(item)"
+            >
               <span class="index">{{ index + 1 }}</span>
               <div class="song-info">
-                <img :src="song.cover" :alt="song.title" class="song-cover">
+                <img :src="item.cover" :alt="item.title" class="song-cover">
                 <div class="song-text">
-                  <span class="title">{{ song.title }}</span>
-                  <span class="artist">{{ song.uploader }}</span>
+                  <span class="title">{{ item.title }}</span>
+                  <span class="artist">{{ item.upper.name }}</span>
                 </div>
               </div>
-              <span class="duration">{{ formatDuration(song.duration) }}</span>
+              <span class="duration">{{ formatDuration(item.duration) }}</span>
             </div>
           </div>
         </div>
@@ -43,43 +62,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import Layout from '../layout/Layout.vue';
-import defaultCover from '@/assets/image/default_cover.avif';
-import musicCover from '@/assets/image/music_cover.jpg';
-import likedSongs from '@/assets/image/liked-songs-300.jpg';
+import { useFavoriteStore } from '@/stores/favorite';
+import { usePlaylistStore } from '@/stores/playlist';
+import type { FavoriteItem } from '@/types/types';
 
-// 假数据
-const playlist = ref({
-  title: '测试播放列表',
-  description: '这是一个测试播放列表的描述',
-  cover: likedSongs,
-  id: '1'
-});
-
-const songs = ref([
-  {
-    id: '1',
-    title: '测试歌曲1',
-    uploader: '测试上传者1',
-    duration: 180,
-    cover: defaultCover
-  },
-  {
-    id: '2',
-    title: '测试歌曲2',
-    uploader: '测试上传者2',
-    duration: 240,
-    cover: musicCover
-  },
-  {
-    id: '3',
-    title: '测试歌曲3',
-    uploader: '测试上传者3',
-    duration: 200,
-    cover: defaultCover
-  }
-]);
+const route = useRoute();
+const favoriteStore = useFavoriteStore();
+const playlistStore = usePlaylistStore();
 
 // 格式化时长
 const formatDuration = (seconds: number) => {
@@ -87,6 +79,27 @@ const formatDuration = (seconds: number) => {
   const remainingSeconds = seconds % 60;
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
+
+// 播放全部
+const handlePlayAll = () => {
+  if (favoriteStore.currentItems.length > 0) {
+    playlistStore.setPlaylist(favoriteStore.currentItems);
+    playlistStore.play(favoriteStore.currentItems[0]);
+  }
+};
+
+// 播放单曲
+const handlePlay = (item: FavoriteItem) => {
+  playlistStore.setPlaylist(favoriteStore.currentItems);
+  playlistStore.play(item);
+};
+
+onMounted(async () => {
+  const id = route.query.id as string;
+  if (id) {
+    await favoriteStore.fetchFavoriteContent(id);
+  }
+});
 </script>
 
 <style scoped>
@@ -152,8 +165,13 @@ const formatDuration = (seconds: number) => {
   transition: transform 0.2s;
 }
 
-.play-all:hover {
+.play-all:not(:disabled):hover {
   transform: scale(1.04);
+}
+
+.play-all:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .play-all i {
@@ -171,10 +189,15 @@ const formatDuration = (seconds: number) => {
   padding: 8px;
   border-radius: 4px;
   transition: background-color 0.2s;
+  cursor: pointer;
 }
 
 .song-item:hover {
   background-color: var(--color-background-hover);
+}
+
+.song-item.active {
+  background-color: var(--color-background-active);
 }
 
 .index {
@@ -215,5 +238,17 @@ const formatDuration = (seconds: number) => {
 .duration {
   color: var(--color-text-secondary);
   margin-left: 16px;
+}
+
+.loading {
+  text-align: center;
+  padding: 24px;
+  color: var(--color-text-secondary);
+}
+
+.error {
+  text-align: center;
+  padding: 24px;
+  color: var(--color-error);
 }
 </style>
