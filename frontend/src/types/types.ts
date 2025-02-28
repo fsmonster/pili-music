@@ -28,7 +28,7 @@ export interface Favorite {
 // 收藏夹内容响应
 export interface FavoriteContentResponse {
   info: FavoriteInfo;
-  medias: FavoriteItem[];
+  medias: MediaItem[];
 }
 
 // 收藏夹详细信息
@@ -40,8 +40,8 @@ export interface FavoriteInfo extends Favorite {
   };
 }
 
-// 收藏内容类型
-export interface FavoriteItem {
+// 歌曲内容类型
+export interface MediaItem {
   id: number;           // 视频avid
   type: number;         // 类型
   title: string;        // 标题

@@ -5,15 +5,15 @@
     </template>
     <div class="music-grid">
       <div 
-        v-for="item in favoriteStore.seasons" 
+        v-for="item in seasonStore.seasons" 
         :key="item.id" 
         class="music-item"
         @click="goToPlaylist(item.id)"
       >
         <div class="cover">
-          <el-skeleton v-if="favoriteStore.loading || !item.cover" :rows="1" animated>
+          <el-skeleton v-if="seasonStore.loading || !item.cover" :rows="1" animated>
           </el-skeleton>
-          <img v-else :src="processBiliImageUrl(item.cover)" :alt="item.title">
+          <img v-else :src="processResourceUrl(item.cover)" :alt="item.title">
         </div>
         <div class="info">
           <div class="title">{{ item.title }}</div>
@@ -22,7 +22,7 @@
       </div>
 
       <!-- 无订阅时的提示 -->
-      <div v-if="!favoriteStore.seasons.length && !favoriteStore.loading" class="empty-tip">
+      <div v-if="!seasonStore.seasons.length && !seasonStore.loading" class="empty-tip">
         <p>还没有订阅的合集</p>
       </div>
     </div>
@@ -38,9 +38,9 @@
       <div class="subscriptions-manage">
         <el-checkbox-group v-model="checkedSeasons">
           <el-checkbox 
-            v-for="item in favoriteStore.allSeasons" 
+            v-for="item in seasonStore.allSeasons" 
             :key="item.id" 
-            :label="item.id"
+            :value="item.id"
           >
             {{ item.title }}
             <span class="count">({{ item.media_count }}个内容)</span>
@@ -59,12 +59,12 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import ContentSection from '../common/ContentSection.vue';
-import { useFavoriteStore } from '@/stores/favorite';
-import { processBiliImageUrl } from '@/utils/processBiliImageUrl';
+import ContentSection from './ContentSection.vue';
+import { useSeasonStore } from '@/stores';
+import { processResourceUrl } from '@/utils/processResoureUrl';
 
 const router = useRouter();
-const favoriteStore = useFavoriteStore();
+const seasonStore = useSeasonStore();
 
 // 对话框显示状态
 const showManageDialog = ref(false);
@@ -73,12 +73,12 @@ const checkedSeasons = ref<number[]>([]);
 
 // 跳转到播放列表
 const goToPlaylist = (id: number) => {
-  router.push(`/playlist/${id}`);
+  router.push(`/playlist/${id}/season`);
 };
 
 // 打开管理对话框时，初始化选中状态
 const initManageDialog = () => {
-  checkedSeasons.value = [...favoriteStore.displaySeasonIds] 
+  checkedSeasons.value = [...seasonStore.displaySeasonIds] 
 };
 
 // 取消管理
@@ -90,19 +90,20 @@ const cancelManage = () => {
 
 // 保存订阅合集显示设置
 const saveSubscriptionsSettings = async () => {
-  favoriteStore.updateSeasonSettings(checkedSeasons.value);
+  seasonStore.updateSeasonSettings(checkedSeasons.value);
   showManageDialog.value = false;
   ElMessage.success('设置已保存');
 };
 
 // 监听对话框打开
 const onDialogOpen = () => {
+  console.log('dialog open');  
   initManageDialog();
 };
 
 onMounted(async () => {
   // 获取订阅合集列表
-  await favoriteStore.fetchSeasons();
+  await seasonStore.fetchSeasons();
 });
 
 // 监听对话框
@@ -112,7 +113,7 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@import '../styles/music-grid.scss';
+@import './styles/music-grid.scss';
 
 .empty-tip {
   display: flex;

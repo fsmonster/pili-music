@@ -79,6 +79,16 @@ export default defineConfig({
         headers: {
           'Referer': 'https://www.bilibili.com'
         }
+      },
+      // 代理 B站音频请求 - mcdn.bilivideo.cn:4483
+      '^/biliaudio/.*': {
+        target: 'https://mcdn.bilivideo.cn:4483',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/biliaudio/, ''),
+        headers: {
+          'Referer': 'https://www.bilibili.com'
+        }
       }
     }
   }

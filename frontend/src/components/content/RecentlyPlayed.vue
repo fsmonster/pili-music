@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import ContentSection from '../common/ContentSection.vue';
+import ContentSection from './ContentSection.vue';
 import defaultCover from '@/assets/image/default_cover.avif';
 // 假数据
 const recentlyPlayed = ref([
@@ -48,5 +48,5 @@ const recentlyPlayed = ref([
 </script>
 
 <style lang="scss" scoped>
-@import '../styles/music-grid.scss';
+@import './styles/music-grid.scss';
 </style>

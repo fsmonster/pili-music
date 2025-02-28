@@ -10,7 +10,7 @@
       <div class="actions">
         <slot name="actions">
           <template v-if="showManage">
-            <el-button type="text" @click="$emit('manage')">
+            <el-button @click="$emit('manage')">
               <i class="ri-settings-3-line"></i>
               管理
             </el-button>

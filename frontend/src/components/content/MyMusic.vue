@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import ContentSection from '../common/ContentSection.vue';
+import ContentSection from './ContentSection.vue';
 import defaultCover from '@/assets/image/default_cover.avif';
 import loveCover from '@/assets/image/love.avif';
 
@@ -131,5 +131,5 @@ const saveNewPlaylist = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '../styles/music-grid.scss';
+@use './styles/music-grid.scss';
 </style>

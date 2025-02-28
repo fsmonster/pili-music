@@ -1,127 +1,188 @@
 <template>
   <Layout>
     <template #main>
-      <div class="playlist">
-        <!-- 播放列表头部 -->
-        <div class="playlist-header">
-          <div class="cover">
-            <img 
-              :src="favoriteStore.currentFavorite?.cover" 
-              :alt="favoriteStore.currentFavorite?.title"
-            >
-          </div>
-          <div class="info">
-            <h1>{{ favoriteStore.currentFavorite?.title }}</h1>
-            <p>{{ favoriteStore.currentFavorite?.media_count }}个内容</p>
-          </div>
-        </div>
-
-        <!-- 播放列表内容 -->
-        <div class="playlist-content">
-          <div class="controls">
-            <button 
-              class="play-all" 
-              @click="handlePlayAll"
-              :disabled="!favoriteStore.currentItems.length"
-            >
-              <i class="ri-play-fill"></i>
-              播放全部
-            </button>
-          </div>
-
-          <!-- 歌曲列表 -->
-          <div v-if="favoriteStore.loading" class="loading">
-            加载中...
-          </div>
-          <div v-else-if="favoriteStore.error" class="error">
-            {{ favoriteStore.error }}
-          </div>
-          <div v-else class="song-list">
-            <div 
-              v-for="(item, index) in favoriteStore.currentItems" 
-              :key="item.id" 
-              class="song-item"
-              :class="{ active: playlistStore.currentTrack?.id === item.id }"
-              @click="handlePlay(item)"
-            >
-              <span class="index">{{ index + 1 }}</span>
-              <div class="song-info">
-                <img :src="item.cover" :alt="item.title" class="song-cover">
-                <div class="song-text">
-                  <span class="title">{{ item.title }}</span>
-                  <span class="artist">{{ item.upper.name }}</span>
-                </div>
-              </div>
-              <span class="duration">{{ formatDuration(item.duration) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <MediaList />
     </template>
   </Layout>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { computed, onMounted, ref, onBeforeMount } from 'vue';
 import { useRoute } from 'vue-router';
+// import { usePlaylistStore } from '../stores/playlist';
+import { useFavoriteStore } from '../stores/favorite';
+import { useSeasonStore } from '../stores/season';
+// import type { MediaItem } from '../types/types';
 import Layout from '../layout/Layout.vue';
-import { useFavoriteStore } from '@/stores/favorite';
-import { usePlaylistStore } from '@/stores/playlist';
-import type { FavoriteItem } from '@/types/types';
+import MediaList from '../components/list/MediaList.vue';
 
 const route = useRoute();
+// const playlistStore = usePlaylistStore();
 const favoriteStore = useFavoriteStore();
-const playlistStore = usePlaylistStore();
+const seasonStore = useSeasonStore();
 
-// 格式化时长
-const formatDuration = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
+// // 根据路由类型获取当前store
+// const currentStore = computed(() => {
+//   switch (route.params.type) {
+//     case 'favorite':
+//       return favoriteStore;
+//     case 'season':
+//       return seasonStore;
+//     default:
+//       return favoriteStore;
+//   }
+// });
 
-// 播放全部
-const handlePlayAll = () => {
-  if (favoriteStore.currentItems.length > 0) {
-    playlistStore.setPlaylist(favoriteStore.currentItems);
-    playlistStore.play(favoriteStore.currentItems[0]);
+// // 当前内容信息
+// const currentInfo = computed(() => {
+//   switch (route.params.type) {
+//     case 'favorite':
+//       return favoriteStore.currentFavorite;
+//     case 'season':
+//       return seasonStore.currentSeason;
+//     default:
+//       return null;
+//   }
+// });
+
+// // 排序选项
+// const sortOptions = [
+//   { label: '最新添加', value: 'desc' },
+//   { label: '最早添加', value: 'asc' }
+// ];
+
+// 表格最大高度
+const tableMaxHeight = ref(500);
+
+// 计算表格高度
+function calculateTableHeight() {
+  // 获取视窗高度
+  const windowHeight = window.innerHeight;
+  // 减去其他元素的高度（头部、控制栏、分页等）
+  // 预留 padding 和其他元素的空间
+  tableMaxHeight.value = windowHeight - 400; // 根据实际情况调整
+}
+
+// 监听窗口大小变化
+function handleResize() {
+  calculateTableHeight();
+}
+
+onBeforeMount(() => {
+  calculateTableHeight();
+  window.addEventListener('resize', handleResize);
+});
+
+// // 格式化时长
+// function formatDuration(seconds: number) {
+//   const minutes = Math.floor(seconds / 60);
+//   const remainingSeconds = seconds % 60;
+//   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+// }
+
+// // 播放全部
+// function handlePlayAll() {
+//   if (currentStore.value.items.length > 0) {
+//     playlistStore.setPlaylist(currentStore.value.items);
+//     playlistStore.play(currentStore.value.items[0]);
+//   }
+// }
+
+// // 播放单曲
+// function handlePlay(item: MediaItem) {
+//   playlistStore.setPlaylist([item]);
+//   playlistStore.play(item);
+// }
+
+// 加载内容
+async function loadContent() {
+  const { type, id } = route.params;
+  
+  if (!id) return;
+  
+  switch (type) {
+    case 'favorite':
+      await favoriteStore.fetchFavoriteContent(id.toString());
+      break;
+    case 'season':
+      await seasonStore.fetchSeasonContent(id.toString());
+      break;
   }
-};
+}
 
-// 播放单曲
-const handlePlay = (item: FavoriteItem) => {
-  playlistStore.setPlaylist(favoriteStore.currentItems);
-  playlistStore.play(item);
-};
+// // 刷新内容
+// function refreshContent() {
+//   loadContent();
+// }
 
-onMounted(async () => {
-  const id = route.query.id as string;
-  if (id) {
-    await favoriteStore.fetchFavoriteContent(id);
-  }
+// // 搜索处理
+// function handleSearch() {
+//   currentStore.value.setPage(1);
+// }
+
+// // 排序处理
+// function handleSort() {
+//   currentStore.value.setPage(1);
+// }
+
+// // 分页处理
+// function handlePageChange(page: number) {
+//   currentStore.value.setPage(page);
+// }
+
+// function handleSizeChange(size: number) {
+//   currentStore.value.setPageSize(size);
+// }
+
+onMounted(() => {
+  loadContent();
 });
 </script>
 
 <style scoped>
-.playlist {
-  padding: 24px;
-  color: var(--color-text);
+.playlist-container {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.playlist-scroll {
+  flex: 1;
   overflow-y: auto;
+  padding: 20px;
+}
+
+/* 滚动条样式 */
+.playlist-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.playlist-scroll::-webkit-scrollbar-thumb {
+  background: var(--el-border-color-darker);
+  border-radius: 3px;
+}
+
+.playlist-scroll::-webkit-scrollbar-track {
+  background: var(--el-border-color-light);
+  border-radius: 3px;
 }
 
 .playlist-header {
+  margin-bottom: 20px;
+}
+
+.playlist-header-inner {
   display: flex;
-  gap: 24px;
-  margin-bottom: 32px;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .cover {
-  width: 232px;
-  height: 232px;
+  width: 200px;
+  height: 200px;
   overflow: hidden;
   border-radius: 8px;
-  box-shadow: 0 4px 60px rgba(0, 0, 0, .5);
 }
 
 .cover img {
@@ -133,122 +194,131 @@ onMounted(async () => {
 .info {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .info h1 {
-  font-size: 96px;
-  line-height: 96px;
-  margin-bottom: 8px;
-}
-
-.info p {
-  color: var(--color-text-secondary);
-  font-size: 16px;
-}
-
-.controls {
-  margin: 24px 0;
-}
-
-.play-all {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  border: none;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s;
-}
-
-.play-all:not(:disabled):hover {
-  transform: scale(1.04);
-}
-
-.play-all:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.play-all i {
+  margin: 0 0 10px 0;
   font-size: 24px;
 }
 
-.song-list {
-  display: flex;
-  flex-direction: column;
+.info p {
+  margin: 0;
+  color: #666;
 }
 
-.song-item {
+.playlist-content {
+  flex: 1;
+  overflow: visible;
+  position: relative;
+}
+
+.controls-sticky {
+  position: sticky;
+  top: 0;
+  background: var(--el-bg-color);
+  padding: 20px 0;
+  margin: -20px 0;
+  z-index: 2;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.right {
+  display: flex;
+  gap: 10px;
+}
+
+.play-all {
   display: flex;
   align-items: center;
-  padding: 8px;
+  gap: 5px;
+  padding: 8px 16px;
+  border: none;
   border-radius: 4px;
-  transition: background-color 0.2s;
+  background-color: var(--el-color-primary);
+  color: white;
   cursor: pointer;
 }
 
-.song-item:hover {
-  background-color: var(--color-background-hover);
+.play-all:disabled {
+  background-color: var(--el-color-primary-light-5);
+  cursor: not-allowed;
 }
 
-.song-item.active {
-  background-color: var(--color-background-active);
+:deep(.el-table) {
+  border: none;
 }
 
-.index {
-  width: 40px;
-  color: var(--color-text-secondary);
-  text-align: center;
+:deep(.el-table__inner-wrapper) {
+  border: none;
 }
 
-.song-info {
-  flex: 1;
+:deep(.el-table__header-wrapper) {
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+:deep(.el-table__body-wrapper) {
+  overflow-y: visible;
+}
+
+.media-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-.song-cover {
-  width: 40px;
+.media-cover {
+  width: 60px;
   height: 40px;
-  border-radius: 4px;
   object-fit: cover;
+  border-radius: 4px;
 }
 
-.song-text {
+.media-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pagination {
+  margin-top: 20px;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
 }
 
-.title {
-  font-weight: 400;
-  color: var(--color-text);
+/* 固定表头样式 */
+:deep(.el-table--scrollable-y) .el-table__fixed-header-wrapper {
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
-.artist {
-  font-size: 14px;
-  color: var(--color-text-secondary);
+:deep(.el-table__fixed-header-wrapper) {
+  z-index: 1;
 }
 
-.duration {
-  color: var(--color-text-secondary);
-  margin-left: 16px;
+/* 表格滚动条样式 */
+:deep(.el-table__body-wrapper::-webkit-scrollbar) {
+  width: 6px;
 }
 
-.loading {
-  text-align: center;
-  padding: 24px;
-  color: var(--color-text-secondary);
+:deep(.el-table__body-wrapper::-webkit-scrollbar-thumb) {
+  background: var(--el-border-color-darker);
+  border-radius: 3px;
 }
 
-.error {
-  text-align: center;
-  padding: 24px;
-  color: var(--color-error);
+:deep(.el-table__body-wrapper::-webkit-scrollbar-track) {
+  background: var(--el-border-color-light);
+  border-radius: 3px;
+}
+
+:deep(.el-table__row) {
+  cursor: pointer;
 }
 </style>

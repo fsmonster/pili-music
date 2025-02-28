@@ -8,6 +8,8 @@ import rateLimit from 'express-rate-limit';
 
 import authRoutes from './routes/auth.js';
 import favoriteRoutes from './routes/favorite.js'; // 新增收藏夹路由
+import seasonRoutes from './routes/season.js'; // 新增合集路由
+import infoRoutes from './routes/info.js'; // 新增视频信息路由
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +34,8 @@ app.use(limiter);
 // 路由
 app.use('/api', authRoutes);
 app.use('/api/favorite', favoriteRoutes); // 注册收藏夹路由
+app.use('/api/season', seasonRoutes); // 注册合集路由
+app.use('/api/info', infoRoutes); // 注册视频信息路由
 
 // B站API代理
 const biliProxy = createProxyMiddleware({

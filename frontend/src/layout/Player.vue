@@ -125,7 +125,7 @@ function skipNext() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 8px 24px;
   background-color: var(--el-bg-color-overlay);
   border-top: 1px solid var(--el-border-color-light);
 
@@ -163,7 +163,7 @@ function skipNext() {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    // gap: 8px;
 
     .control-buttons {
       display: flex;
@@ -182,6 +182,7 @@ function skipNext() {
 
         &.play-btn {
           font-size: 40px;
+          line-height: 1;
           color: var(--el-color-primary);
 
           &:hover {

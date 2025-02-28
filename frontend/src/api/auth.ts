@@ -6,29 +6,6 @@ import type {
     APIResponse 
 } from '../types/auth';
 
-// 创建 axios 实例
-// const http = axios.create({
-//     baseURL: '/api',
-//     timeout: 10000,
-//     withCredentials: true, // 允许跨域携带 cookie
-// });
-
-/**
- * 统一处理请求错误
- */
-// http.interceptors.response.use(
-//     response => {
-//         console.log('API Response:', response);
-//         return response;  // 返回完整响应
-//     },
-//     error => {
-//         console.error('API Error:', error);
-//         const message = error.response?.data?.message || error.message;
-//         ElMessage.error(message);
-//         return Promise.reject(error);
-//     }
-// );
-
 /**
  * 认证相关 API
  */

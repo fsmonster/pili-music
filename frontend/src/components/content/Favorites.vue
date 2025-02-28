@@ -11,9 +11,8 @@
         @click="goToPlaylist(item.id)"
       >
         <div class="cover">
-            <el-skeleton v-if="favoriteStore.loading || !item.cover" :rows="1" animated>
-            </el-skeleton>
-            <img v-else :src="item.cover" :alt="item.title">
+          <el-skeleton v-if="!item.cover" :rows="1" animated />
+          <img v-else :src="processResourceUrl(item.cover)" :alt="item.title">
         </div>
         <div class="info">
           <div class="title">{{ item.title }}</div>
@@ -33,13 +32,14 @@
       title="管理收藏夹" 
       width="500px"
       :close-on-click-modal="false"
+      @open="initManageDialog"
     >
       <div class="favorites-manage">
         <el-checkbox-group v-model="checkedFavorites">
           <el-checkbox 
             v-for="item in favoriteStore.allFavorites" 
             :key="item.id" 
-            :label="item.id"
+            :value="item.id"
           >
             {{ item.title }}
             <span class="count">({{ item.media_count }}个内容)</span>
@@ -55,11 +55,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import ContentSection from '../common/ContentSection.vue';
-import { useFavoriteStore } from '@/stores/favorite';
+import ContentSection from './ContentSection.vue';
+import { useFavoriteStore } from '@/stores';
+import { processResourceUrl } from '@/utils/processResoureUrl';
 
 const router = useRouter();
 const favoriteStore = useFavoriteStore();
@@ -71,7 +72,7 @@ const checkedFavorites = ref<number[]>([]);
 
 // 跳转到播放列表
 const goToPlaylist = (id: number) => {
-  router.push(`/playlist/${id}`);
+  router.push(`/playlist/${id}/favorite`);
 };
 
 // 打开管理对话框时，初始化选中状态
@@ -88,17 +89,9 @@ const cancelManage = () => {
 
 // 保存收藏夹显示设置
 const saveFavoritesSettings = async () => {
-  favoriteStore.updateDisplaySettings(checkedFavorites.value);
+  await favoriteStore.updateDisplaySettings(checkedFavorites.value);
   showManageDialog.value = false;
-  
-  // 如果有新选中的收藏夹，需要重新获取列表以加载封面
-  await favoriteStore.fetchFavorites();
   ElMessage.success('设置已保存');
-};
-
-// 监听对话框打开
-const onDialogOpen = () => {
-  initManageDialog();
 };
 
 onMounted(async () => {
@@ -106,41 +99,52 @@ onMounted(async () => {
   await favoriteStore.fetchFavorites();
 });
 
-// 监听对话框
-defineExpose({
-  onDialogOpen
+watch(checkedFavorites, async (newVal) => {
+  // 更新显示设置并获取详细信息
+  await favoriteStore.updateDisplaySettings(newVal);
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../styles/music-grid.scss';
-
-.empty-tip {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  color: var(--el-text-color-secondary);
-
-  p {
-    margin: 0 0 16px;
-  }
-}
+@use './styles/music-grid.scss';
 
 .favorites-manage {
   max-height: 400px;
   overflow-y: auto;
   padding: 0 20px;
 
+  :deep(.el-checkbox-group) {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
   :deep(.el-checkbox) {
-    display: block;
-    margin-bottom: 12px;
+    height: auto;
+    margin-right: 0;
     
-    .count {
-      color: var(--el-text-color-secondary);
-      font-size: 12px;
-      margin-left: 4px;
+    .el-checkbox__label {
+      white-space: normal;
+      line-height: 1.4;
     }
+  }
+
+  .count {
+    color: var(--el-text-color-secondary);
+    margin-left: 4px;
+  }
+}
+
+.empty-tip {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: var(--el-text-color-secondary);
+  
+  i {
+    margin: 0 4px;
   }
 }
 </style>

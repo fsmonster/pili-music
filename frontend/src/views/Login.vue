@@ -26,7 +26,7 @@
   import { onMounted, watch,onUnmounted } from 'vue';
   import { useRouter } from 'vue-router';
   import { Lock } from '@element-plus/icons-vue';
-  import { useAuthStore } from '../stores/auth';
+  import { useAuthStore } from '../stores';
   import { QRCodeStatus } from '../types/auth';
   import QRCode from '../components/auth/QRCode.vue';
   import { ElMessage } from 'element-plus';

@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import * as playlistApi from '../api/playlist';
-import type { FavoriteItem } from '../types/types';
+import type { MediaItem } from '../types/types';
 
 export const usePlaylistStore = defineStore('playlist', () => {
   // 状态
-  const currentTrack = ref<FavoriteItem | null>(null);
-  const playlist = ref<FavoriteItem[]>([]);
+  const currentTrack = ref<MediaItem | null>(null);
+  const playlist = ref<MediaItem[]>([]);
   const loading = ref(false);
   const error = ref<string>('');
   const audioUrl = ref<string>('');
@@ -19,29 +19,29 @@ export const usePlaylistStore = defineStore('playlist', () => {
   });
 
   // 设置播放列表
-  function setPlaylist(items: FavoriteItem[]) {
+  function setPlaylist(items: MediaItem[]) {
     playlist.value = items;
   }
 
   // 播放指定曲目
-  async function play(track: FavoriteItem) {
+  async function play(track: MediaItem) {
     try {
       loading.value = true;
       error.value = '';
-      
       // 如果没有cid，先获取视频信息
       if (!track.cid) {
         const res = await playlistApi.getVideoInfo(track.id.toString());
         track.cid = res.data.data.pages[0]?.cid;
-      }
-
+      }    
       // 获取音频URL
       if (track.cid) {
+        console.log('store: 获取音频URL');
         const res = await playlistApi.getAudioUrl({
-          aid: track.id.toString(),
+          avid: track.id.toString(),
           cid: track.cid.toString()
-        });
-        audioUrl.value = res.data.data.dash?.audio?.[0]?.baseUrl || '';
+        });       
+        audioUrl.value = res.url || '';
+        console.log(`😀store: 获取音频URL响应:${res.url}`);        
         currentTrack.value = track;
       }
     } catch (err: any) {

@@ -46,14 +46,15 @@ import Player from './Player.vue';
   overflow: hidden;
   background-color: var(--el-bg-color);
 
-  :deep(.content) {
-    flex: 1;
-    overflow-y: auto;
+  :deep(> *) {
+    height: fit-content;
+    overflow: hidden;
   }
 }
 
 .player {
   grid-area: player;
+  height: 72px;
   border-top: 1px solid var(--el-border-color-light);
 }
 </style>

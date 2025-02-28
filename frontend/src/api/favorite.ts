@@ -15,7 +15,17 @@ export async function getFavoriteList(up_mid?: number) {
 }
 
 /**
- * 获取收藏夹内容
+ * 获取收藏夹-信息
+ * @param media_id 收藏夹mlid
+ */
+export async function getFavoriteInfo(media_id: string | number) {
+  return request.get('/favorite/folder/info', {
+    params: { media_id }
+  });
+}
+
+/**
+ * 获取收藏夹-内容
  * @param media_id 收藏夹mlid
  */
 export async function getFavoriteContent(media_id: string | number, params?: {
@@ -31,24 +41,11 @@ export async function getFavoriteContent(media_id: string | number, params?: {
       media_id,
       ...params
     }
-  });
+  }).then(res => res.data);
 }
 
 /**
- * 获取订阅合集列表
- */
-export async function getSeasonList(params?: {
-  pn?: number;  // 页码
-  ps?: number;  // 每页项数
-  up_mid?: number;  // 用户UID
-}) {
-  return request.get<ApiResponse>('/favorite/collected/list', {
-    params
-  });
-}
-
-/**
- * 获取收藏夹资源ID列表
+ * 获取收藏夹内容明细列表
  * @param media_id 收藏夹mlid
  */
 export async function getFavoriteIds(media_id: string | number) {
@@ -56,3 +53,4 @@ export async function getFavoriteIds(media_id: string | number) {
     params: { media_id }
   });
 }
+

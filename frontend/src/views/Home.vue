@@ -3,9 +3,9 @@
     <template #main>
       <div class="home-content">
         <RecentlyPlayed />
+        <MyMusic />
         <Favorites />
         <Subscriptions />
-        <MyMusic />
       </div>
     </template>
   </Layout>
@@ -13,10 +13,10 @@
 
 <script setup lang="ts">
 import Layout from '../layout/Layout.vue';
-import RecentlyPlayed from '../components/content/views/RecentlyPlayed.vue';
-import Favorites from '../components/content/views/Favorites.vue';
-import Subscriptions from '../components/content/views/Subscriptions.vue';
-import MyMusic from '../components/content/views/MyMusic.vue';
+import RecentlyPlayed from '../components/content/RecentlyPlayed.vue';
+import Favorites from '../components/content/Favorites.vue';
+import Subscriptions from '../components/content/Subscriptions.vue';
+import MyMusic from '../components/content/MyMusic.vue';
 </script>
 
 <style lang="scss" scoped>
