@@ -8,7 +8,7 @@ import type { ApiResponse } from '../types/types';
  * 获取视频信息
  */
 export async function getVideoInfo(aid: string) {
-  return request.get<ApiResponse>('/info/video/info', {
+  return request.get('/info/video/info', {
     params: { aid }
   });
 }
@@ -17,10 +17,12 @@ export async function getVideoInfo(aid: string) {
  * 获取音频URL
  */
 export async function getAudioUrl(params: {
-  avid: string;
-  cid: string;
+  avid: number;
+  cid: number;
 }) {
   return request.get('/info/audio/url', {
     params
-  }).then(res => res.data);
+  }).then(res =>{   
+    return res.data.data[1].backupUrl[0];
+  });
 }

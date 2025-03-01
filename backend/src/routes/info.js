@@ -132,8 +132,10 @@ try {
     });
 
     res.json({
-    code: response.data.code,
-    url: response.data.data.dash.audio[0]
+      code: response.data.code,
+      message: response.data.message,
+      ttl: response.data.ttl,
+      data: response.data.data.dash.audio
     });
 } catch (error) {
     console.error('获取音频流URL失败:', error);

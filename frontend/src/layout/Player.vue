@@ -3,41 +3,44 @@
     <!-- 左侧：当前播放信息 -->
     <div class="now-playing">
       <img 
-        :src="currentTrack?.cover || defaultCover" 
-        :alt="currentTrack?.title || '封面'" 
+        :src="store.currentItem ? processResourceUrl(store.currentItem.cover) : defaultCover" 
+        :alt="store.currentItem?.title || '封面'" 
       />
       <div class="track-info">
-        <div class="track-name">{{ currentTrack?.title || '未在播放 (｡•́︿•̀｡)' }}</div>
-        <div class="artist">{{ currentTrack?.artist || '点击播放你喜欢的音乐吧～' }}</div>
+        <div class="track-name">{{ store.currentItem?.title || '未在播放 (｡•́︿•̀｡)' }}</div>
+        <div class="artist">{{ store.currentItem?.upper?.name || '点击播放你喜欢的音乐吧～' }}</div>
       </div>
     </div>
 
     <!-- 中间：播放控制 -->
     <div class="player-controls">
       <div class="control-buttons">
+        <i class="ri-repeat-line" @click="togglePlayMode"></i>
+        <i class="ri-skip-back-fill" @click="store.prev"></i>
         <i 
-          :class="[
-            playMode === 'sequence' ? 'ri-repeat-line' : 
-            playMode === 'shuffle' ? 'ri-shuffle-line' : 
-            'ri-repeat-one-line'
-          ]"
-          @click="togglePlayMode"
-        ></i>
-        <i class="ri-skip-back-fill" @click="skipPrevious"></i>
-        <i 
-          :class="[isPlaying ? 'ri-pause-circle-fill' : 'ri-play-circle-fill']" 
           class="play-btn"
-          @click="togglePlay"
+          :class="[
+            store.playing ? 'ri-pause-circle-fill' : 'ri-play-circle-fill',
+            { 'is-loading': store.loading }
+          ]"
+          @click="store.toggle"
         ></i>
-        <i class="ri-skip-forward-fill" @click="skipNext"></i>
+        <i class="ri-skip-forward-fill" @click="store.next"></i>
         <i class="ri-heart-line"></i>
       </div>
       <div class="progress-bar">
-        <span class="time">{{ formattedCurrentTime }}</span>
-        <div class="progress" @click="setProgress">
-          <div class="progress-inner" :style="{ width: `${progress}%` }"></div>
+        <span class="time">{{ formatTime(store.currentTime) }}</span>
+        <div 
+          class="progress" 
+          @click="handleProgressClick"
+          ref="progressRef"
+        >
+          <div 
+            class="progress-inner" 
+            :style="{ width: `${progress}%` }"
+          ></div>
         </div>
-        <span class="time">{{ formattedDuration }}</span>
+        <span class="time">{{ formatTime(store.duration) }}</span>
       </div>
     </div>
 
@@ -53,49 +56,39 @@
 </template>
 
 <script setup lang="ts">
-import defaultCover from '@/assets/image/music_cover.jpg';
 import { ref, computed } from 'vue';
+import defaultCover from '@/assets/image/music_cover.jpg';
+import { usePlayerStore } from '../stores/player';
+import { processResourceUrl } from '../utils/processResoureUrl';
 
-// 播放状态
-const isPlaying = ref(false);
-const currentTime = ref(0);
-const duration = ref(0);
+const store = usePlayerStore();
+const progressRef = ref<HTMLElement | null>(null);
 const volume = ref(1);
-const currentTrack = ref<{
-  title: string;
-  artist: string;
-  cover: string;
-} | null>(null);
 
-// 播放模式
-const playMode = ref<'sequence' | 'shuffle' | 'repeat'>('sequence');
-
-// 计算属性
-const formattedCurrentTime = computed(() => formatTime(currentTime.value));
-const formattedDuration = computed(() => formatTime(duration.value));
-const progress = computed(() => (currentTime.value / duration.value) * 100 || 0);
+// 播放进度
+const progress = computed(() => {
+  if (!store.duration) return 0;
+  return (store.currentTime / store.duration) * 100;
+});
 
 // 格式化时间
-function formatTime(seconds: number): string {
+function formatTime(seconds: number) {
+  if (!seconds) return '00:00';
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-// 播放控制方法
-function togglePlay() {
-  isPlaying.value = !isPlaying.value;
-  // TODO: 实际的音频播放控制
-}
-
-function setProgress(event: MouseEvent) {
-  const progressBar = event.currentTarget as HTMLElement;
-  const rect = progressBar.getBoundingClientRect();
+// 进度条点击
+function handleProgressClick(event: MouseEvent) {
+  if (!progressRef.value || !store.duration) return;
+  
+  const rect = progressRef.value.getBoundingClientRect();
   const percent = (event.clientX - rect.left) / rect.width;
-  currentTime.value = percent * duration.value;
-  // TODO: 设置实际的音频播放进度
+  store.seek(percent * store.duration);
 }
 
+// 音量控制
 function setVolume(event: MouseEvent) {
   const volumeBar = event.currentTarget as HTMLElement;
   const rect = volumeBar.getBoundingClientRect();
@@ -104,19 +97,9 @@ function setVolume(event: MouseEvent) {
   // TODO: 设置实际的音频音量
 }
 
+// 播放模式切换
 function togglePlayMode() {
-  const modes: Array<'sequence' | 'shuffle' | 'repeat'> = ['sequence', 'shuffle', 'repeat'];
-  const currentIndex = modes.indexOf(playMode.value);
-  playMode.value = modes[(currentIndex + 1) % modes.length];
-}
-
-// 播放控制
-function skipPrevious() {
-  // TODO: 上一首
-}
-
-function skipNext() {
-  // TODO: 下一首
+  // TODO: 实现播放模式切换
 }
 </script>
 
@@ -163,12 +146,12 @@ function skipNext() {
     display: flex;
     flex-direction: column;
     align-items: center;
-    // gap: 8px;
 
     .control-buttons {
       display: flex;
       align-items: center;
       gap: 24px;
+      margin-bottom: 8px;
 
       i {
         font-size: 24px;
@@ -188,6 +171,11 @@ function skipNext() {
           &:hover {
             transform: scale(1.05);
           }
+
+          &.is-loading {
+            opacity: 0.7;
+            cursor: wait;
+          }
         }
       }
     }
@@ -202,13 +190,12 @@ function skipNext() {
         font-size: 12px;
         color: var(--el-text-color-secondary);
         width: 45px;
-        text-align: center;
       }
 
       .progress {
         flex: 1;
         height: 4px;
-        background-color: var(--el-fill-color-lighter);
+        background-color: var(--el-border-color);
         border-radius: 2px;
         cursor: pointer;
         position: relative;
@@ -218,7 +205,6 @@ function skipNext() {
           left: 0;
           top: 0;
           height: 100%;
-          width: 30%;
           background-color: var(--el-color-primary);
           border-radius: 2px;
         }
@@ -235,17 +221,15 @@ function skipNext() {
   }
 
   .player-options {
-    width: 300px;
+    width: 200px;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 16px;
+    gap: 8px;
 
     i {
       font-size: 20px;
       cursor: pointer;
       color: var(--el-text-color-regular);
-      transition: all 0.3s;
 
       &:hover {
         color: var(--el-text-color-primary);
@@ -253,9 +237,9 @@ function skipNext() {
     }
 
     .volume-slider {
-      width: 100px;
+      width: 80px;
       height: 4px;
-      background-color: var(--el-fill-color-lighter);
+      background-color: var(--el-border-color);
       border-radius: 2px;
       cursor: pointer;
       position: relative;
@@ -265,14 +249,13 @@ function skipNext() {
         left: 0;
         top: 0;
         height: 100%;
-        width: 50%;
         background-color: var(--el-color-primary);
         border-radius: 2px;
       }
 
       &:hover {
         height: 6px;
-        
+
         .volume-progress {
           height: 100%;
         }

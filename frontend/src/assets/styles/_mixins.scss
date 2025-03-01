@@ -1,11 +1,15 @@
-// 文本省略
+/**
+ * 文本省略
+ */
 @mixin text-ellipsis {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-// 多行文本省略
+/**
+ * 多行文本省略
+ */
 @mixin text-ellipsis-multi($lines: 2) {
   display: -webkit-box;
   -webkit-box-orient: vertical;

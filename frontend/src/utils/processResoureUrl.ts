@@ -32,14 +32,16 @@ function processBiliImageUrlOthers(url: string): string {
 }
 
 /**
- * 处理B站音频流URL，将原始URL转换为本地代理URL
+ * 处理B站音频流URL，将原始URL转换为后端代理URL
  * @param url B站音频流的原始URL
- * @returns 处理后的本地代理URL
+ * @returns 处理后的后端代理URL
  */
 function processBiliAudioUrl(url: string): string {
-    const match = url.match(/^https?:\/\/([\w\-]+)\.mcdn\.bilivideo\.cn:4483\/upgcxcode\/(.*)/);
-    if (!match) return url;
-    return `/biliaudio/${match[1]}/${match[2]}`;
+    // 检查URL是否有效
+    if (!url) return '';
+    
+    // 将完整的原始URL作为参数传递给后端代理接口
+    return `/api/play/url?url=${encodeURIComponent(url)}`;
 }
 
 /**
@@ -50,7 +52,7 @@ function processBiliAudioUrl(url: string): string {
 export function processResourceUrl(url: string): string {
     if (!url) return '';
     // 已经是代理URL则直接返回
-    if (url.startsWith('/biliimg/') || url.startsWith('/biliaudio/')) return url;
+    if (url.startsWith('/biliimg/') || url.startsWith('/api/audio/')) return url;
 
     // 根据不同类型的URL分开处理
     if (url.startsWith('https://i') && url.includes('.hdslb.com')) {
@@ -59,7 +61,8 @@ export function processResourceUrl(url: string): string {
     if (url.startsWith('https://archive.biliimg.com')) {
         return processBiliImageUrlArchive(url);
     }
-    if (url.includes('.mcdn.bilivideo.cn:4483')) {
+    // 处理所有 bilivideo.cn 域名的音频URL
+    if (url.includes('.bilivideo.cn') || url.includes('.bilivideo.com')) {
         return processBiliAudioUrl(url);
     }
     return processBiliImageUrlOthers(url);

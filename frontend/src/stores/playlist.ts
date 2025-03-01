@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import * as playlistApi from '../api/playlist';
+import * as playlistApi from '../api/audio';
 import type { MediaItem } from '../types/types';
 
 export const usePlaylistStore = defineStore('playlist', () => {
@@ -23,48 +23,48 @@ export const usePlaylistStore = defineStore('playlist', () => {
     playlist.value = items;
   }
 
-  // 播放指定曲目
-  async function play(track: MediaItem) {
-    try {
-      loading.value = true;
-      error.value = '';
-      // 如果没有cid，先获取视频信息
-      if (!track.cid) {
-        const res = await playlistApi.getVideoInfo(track.id.toString());
-        track.cid = res.data.data.pages[0]?.cid;
-      }    
-      // 获取音频URL
-      if (track.cid) {
-        console.log('store: 获取音频URL');
-        const res = await playlistApi.getAudioUrl({
-          avid: track.id.toString(),
-          cid: track.cid.toString()
-        });       
-        audioUrl.value = res.url || '';
-        console.log(`😀store: 获取音频URL响应:${res.url}`);        
-        currentTrack.value = track;
-      }
-    } catch (err: any) {
-      error.value = err.message || '获取音频失败';
-      console.error('获取音频失败:', err);
-    } finally {
-      loading.value = false;
-    }
-  }
+  // // 播放指定曲目
+  // async function play(track: MediaItem) {
+  //   try {
+  //     loading.value = true;
+  //     error.value = '';
+  //     // 如果没有cid，先获取视频信息
+  //     if (!track.cid) {
+  //       const res = await playlistApi.getVideoInfo(track.id.toString());
+  //       track.cid = res.data.data.pages[0]?.cid;
+  //     }    
+  //     // 获取音频URL
+  //     if (track.cid) {
+  //       console.log('store: 获取音频URL');
+  //       const res = await playlistApi.getAudioUrl({
+  //         avid: track.id,
+  //         cid: track.cid
+  //       });       
+  //       audioUrl.value = res || '';
+  //       console.log(`😀store: 获取音频URL响应:${res}`);        
+  //       currentTrack.value = track;
+  //     }
+  //   } catch (err: any) {
+  //     error.value = err.message || '获取音频失败';
+  //     console.error('获取音频失败:', err);
+  //   } finally {
+  //     loading.value = false;
+  //   }
+  // }
 
-  // 播放下一曲
-  async function playNext() {
-    if (currentIndex.value < playlist.value.length - 1) {
-      await play(playlist.value[currentIndex.value + 1]);
-    }
-  }
+  // // 播放下一曲
+  // async function playNext() {
+  //   if (currentIndex.value < playlist.value.length - 1) {
+  //     await play(playlist.value[currentIndex.value + 1]);
+  //   }
+  // }
 
-  // 播放上一曲
-  async function playPrevious() {
-    if (currentIndex.value > 0) {
-      await play(playlist.value[currentIndex.value - 1]);
-    }
-  }
+  // // 播放上一曲
+  // async function playPrevious() {
+  //   if (currentIndex.value > 0) {
+  //     await play(playlist.value[currentIndex.value - 1]);
+  //   }
+  // }
 
   // 重置状态
   function reset() {
@@ -87,9 +87,9 @@ export const usePlaylistStore = defineStore('playlist', () => {
     currentIndex,
     // 方法
     setPlaylist,
-    play,
-    playNext,
-    playPrevious,
+    // play,
+    // playNext,
+    // playPrevious,
     reset
   };
 });

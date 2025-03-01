@@ -17,9 +17,14 @@
           >
           <div class="media-text">
             <div class="media-title">{{ row.title }}</div>
-            <div class="media-subtitle">{{ row.upper?.name }}</div>
           </div>
         </div>
+      </template>
+    </el-table-column>
+
+    <el-table-column label="up" min-width="50">
+      <template #default="{ row }">
+        {{ row.upper?.name }}
       </template>
     </el-table-column>
 

@@ -51,6 +51,7 @@ import { useRoute } from 'vue-router';
 import { usePlaylistStore } from '../../stores/playlist';
 import { useFavoriteStore } from '../../stores/favorite';
 import { useSeasonStore } from '../../stores/season';
+import { usePlayerStore } from '../../stores/player';
 import ListHeader from './ListHeader.vue';
 import ListControls from './ListControls.vue';
 import MediaTable from './MediaTable.vue';
@@ -66,6 +67,7 @@ const props = defineProps<{
 
 const route = useRoute();
 const playlistStore = usePlaylistStore();
+const playerStore = usePlayerStore();
 
 // 根据路由类型获取当前store
 const store = computed(() => {
@@ -98,15 +100,15 @@ const info = computed(() => {
 // 播放全部
 function handlePlayAll() {
   if (store.value.items.length > 0) {
-    playlistStore.setPlaylist(store.value.items);
-    playlistStore.play(store.value.items[0]);
+    playerStore.setPlaylist(store.value.items);
+    playerStore.play(store.value.items[0]);
   }
 }
 
 // 播放单曲
 function handlePlay(item: MediaItem) {
-  playlistStore.setPlaylist([item]);
-  playlistStore.play(item);
+  playerStore.setPlaylist([item]);
+  playerStore.play(item);
 }
 
 // 加载内容
