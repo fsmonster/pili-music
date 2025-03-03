@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, onBeforeMount } from 'vue';
+import { onMounted, ref, onBeforeMount } from 'vue';
 import { useRoute } from 'vue-router';
 // import { usePlaylistStore } from '../stores/playlist';
 import { useFavoriteStore } from '../stores/favorite';
@@ -20,36 +20,6 @@ const route = useRoute();
 // const playlistStore = usePlaylistStore();
 const favoriteStore = useFavoriteStore();
 const seasonStore = useSeasonStore();
-
-// // 根据路由类型获取当前store
-// const currentStore = computed(() => {
-//   switch (route.params.type) {
-//     case 'favorite':
-//       return favoriteStore;
-//     case 'season':
-//       return seasonStore;
-//     default:
-//       return favoriteStore;
-//   }
-// });
-
-// // 当前内容信息
-// const currentInfo = computed(() => {
-//   switch (route.params.type) {
-//     case 'favorite':
-//       return favoriteStore.currentFavorite;
-//     case 'season':
-//       return seasonStore.currentSeason;
-//     default:
-//       return null;
-//   }
-// });
-
-// // 排序选项
-// const sortOptions = [
-//   { label: '最新添加', value: 'desc' },
-//   { label: '最早添加', value: 'asc' }
-// ];
 
 // 表格最大高度
 const tableMaxHeight = ref(500);
@@ -73,27 +43,6 @@ onBeforeMount(() => {
   window.addEventListener('resize', handleResize);
 });
 
-// // 格式化时长
-// function formatDuration(seconds: number) {
-//   const minutes = Math.floor(seconds / 60);
-//   const remainingSeconds = seconds % 60;
-//   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-// }
-
-// // 播放全部
-// function handlePlayAll() {
-//   if (currentStore.value.items.length > 0) {
-//     playlistStore.setPlaylist(currentStore.value.items);
-//     playlistStore.play(currentStore.value.items[0]);
-//   }
-// }
-
-// // 播放单曲
-// function handlePlay(item: MediaItem) {
-//   playlistStore.setPlaylist([item]);
-//   playlistStore.play(item);
-// }
-
 // 加载内容
 async function loadContent() {
   const { type, id } = route.params;
@@ -102,37 +51,13 @@ async function loadContent() {
   
   switch (type) {
     case 'favorite':
-      await favoriteStore.fetchFavoriteContent(id.toString());
+      await favoriteStore.fetchFavoriteContent(Number(id));
       break;
     case 'season':
-      await seasonStore.fetchSeasonContent(id.toString());
+      await seasonStore.fetchSeasonContent(Number(id));
       break;
   }
 }
-
-// // 刷新内容
-// function refreshContent() {
-//   loadContent();
-// }
-
-// // 搜索处理
-// function handleSearch() {
-//   currentStore.value.setPage(1);
-// }
-
-// // 排序处理
-// function handleSort() {
-//   currentStore.value.setPage(1);
-// }
-
-// // 分页处理
-// function handlePageChange(page: number) {
-//   currentStore.value.setPage(page);
-// }
-
-// function handleSizeChange(size: number) {
-//   currentStore.value.setPageSize(size);
-// }
 
 onMounted(() => {
   loadContent();

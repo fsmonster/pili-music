@@ -55,7 +55,7 @@ import { usePlayerStore } from '../../stores/player';
 import ListHeader from './ListHeader.vue';
 import ListControls from './ListControls.vue';
 import MediaTable from './MediaTable.vue';
-import type { MediaItem } from '../../types/types';
+import type { MediaItem } from '../../types';
 
 /**
  * Props
@@ -107,7 +107,9 @@ function handlePlayAll() {
 
 // 播放单曲
 function handlePlay(item: MediaItem) {
-  playerStore.setPlaylist([item]);
+  // console.log("playlist:",store.value.paginatedItems);  
+  // console.log("current item:",item);  
+  playerStore.setPlaylist(store.value.paginatedItems);
   playerStore.play(item);
 }
 

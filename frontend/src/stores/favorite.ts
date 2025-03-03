@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import * as favoriteApi from '../api/favorite';
-import type { Favorite } from '../types/types';
+import type { Favorite, FavoriteInfo } from '../types';
 import { useUserStore } from './user';
 import { createBaseListStore } from './base/baseList';
 
@@ -21,11 +21,11 @@ export const useFavoriteStore = defineStore('favorite', () => {
   const uid = computed(() => userStore.uid);
 
   // 计算属性：当前显示的收藏夹
-  const favorites = computed(() => 
+  const favorites = computed(() =>
     allFavorites.value.filter(f => displayFavoriteIds.value.includes(f.id))
   );
 
-  // 更新收藏夹显示设置并获取详细信息
+  // 更新收藏夹显示设置 并获取详细信息
   const updateDisplaySettings = async (ids: number[]) => {
     displayFavoriteIds.value = ids;
     
@@ -35,28 +35,20 @@ export const useFavoriteStore = defineStore('favorite', () => {
     );
     
     if (newIds.length > 0) {
-      try {
         baseList.loading.value = true;
         
-        // 获取收藏夹详细信息
+        // 获取收藏夹 - 详细信息(主要是 cover)
         const updatedFavorites = await Promise.all(
           newIds.map(async (id) => {
-            try {
-              const favorite = allFavorites.value.find(f => f.id === id);
-              if (!favorite) return null;
-              
-              const infoRes = await favoriteApi.getFavoriteInfo(id);
-              const folderInfo = infoRes.data.data;
-              
-              return {
-                ...favorite,
-                ...folderInfo,
-                cover: folderInfo.cover || ''
-              };
-            } catch (err) {
-              console.error('获取收藏夹信息失败:', err);
-              return null;
-            }
+
+            const favorite = allFavorites.value.find(f => f.id === id);
+            if (!favorite) return null;
+            
+            const folderInfo: FavoriteInfo | null = await favoriteApi.getFavoriteInfo(id);
+            return {
+              ...favorite,
+              ...folderInfo
+            };
           })
         );
         
@@ -64,13 +56,9 @@ export const useFavoriteStore = defineStore('favorite', () => {
         allFavorites.value = allFavorites.value.map(favorite => {
           const updated = updatedFavorites.find(f => f?.id === favorite.id);
           return updated || favorite;
-        });
+        });      
         
-      } catch (err) {
-        console.error('更新收藏夹信息失败:', err);
-      } finally {
         baseList.loading.value = false;
-      }
     }
   };
 
@@ -81,48 +69,44 @@ export const useFavoriteStore = defineStore('favorite', () => {
       return;
     }
 
-    try {
-      baseList.loading.value = true;
-      baseList.error.value = '';
-      
-      // 获取收藏夹列表基本信息
-      const res = await favoriteApi.getFavoriteList(uid.value);
-      allFavorites.value = res.data.data.list || [];
-      
-      // 如果有已选择的收藏夹，获取它们的详细信息
-      if (displayFavoriteIds.value.length > 0) {
-        await updateDisplaySettings(displayFavoriteIds.value);
-      }
-      
-    } catch (err: any) {
-      baseList.error.value = err.message || '获取收藏夹列表失败';
-      console.error('获取收藏夹列表失败:', err);
-    } finally {
-      baseList.loading.value = false;
+    baseList.loading.value = true;
+    baseList.error.value = '';
+
+    // 获取收藏夹列表基本信息（不包含封面）
+    const favoriteList = await favoriteApi.getFavoriteList(uid.value);
+
+    // 合并原有收藏夹的 cover 信息
+    allFavorites.value = favoriteList.map(newFav => {
+      const oldFav = allFavorites.value.find(f => f.id === newFav.id);
+      return oldFav && oldFav.cover ? { ...newFav, cover: oldFav.cover } : newFav;
+    });
+
+    // 只请求 cover 为空的收藏夹信息
+    const needUpdateIds = allFavorites.value
+      .filter(f => displayFavoriteIds.value.includes(f.id) && !f.cover)
+      .map(f => f.id);
+
+    if (needUpdateIds.length > 0) {
+      await updateDisplaySettings(needUpdateIds);
     }
+    
+    baseList.loading.value = false;
   };
 
   // 获取收藏夹内容
-  const fetchFavoriteContent = async (mediaId: string) => {
-    try {
+  const fetchFavoriteContent = async (mediaId: number) => {
       baseList.loading.value = true;
       baseList.error.value = '';
       
-      const res = await favoriteApi.getFavoriteContent(mediaId);
-      const items = res.data.medias || [];
+      const items = await favoriteApi.getFavoriteContent(mediaId);
       
       // 设置当前收藏夹
-      currentFavorite.value = allFavorites.value.find(f => f.id.toString() === mediaId) || null;
+      currentFavorite.value = allFavorites.value.find(f => f.id === mediaId) || null;
       
       // 更新列表数据
       baseList.setItems(items);
       
-    } catch (err: any) {
-      baseList.error.value = err.message || '获取收藏夹内容失败';
-      console.error('获取收藏夹内容失败:', err);
-    } finally {
       baseList.loading.value = false;
-    }
   };
 
   // 重置状态

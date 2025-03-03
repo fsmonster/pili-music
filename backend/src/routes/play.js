@@ -13,9 +13,7 @@ router.get('/url', async (req, res) => {
     return res.status(400).json({ error: '缺少音频URL参数' });
   }
 
-  try {
-    console.log('❤❤❤获取音频流:', url);
-    
+  try {    
     const audioStreamResponse = await axios.get(url, {
       responseType: 'stream',
       headers: {

@@ -48,5 +48,5 @@ const recentlyPlayed = ref([
 </script>
 
 <style lang="scss" scoped>
-@import './styles/music-grid.scss';
+@use './styles/music-grid.scss';
 </style>

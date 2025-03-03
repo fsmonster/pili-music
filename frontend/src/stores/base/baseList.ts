@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import type { MediaItem } from '../../types/types';
+import type { MediaItem } from '../../types';
 
 /**
  * 基础列表Store

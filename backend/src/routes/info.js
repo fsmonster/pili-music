@@ -53,45 +53,45 @@ router.get('/player/pagelist', async (req, res) => {
  * @param {number} aid - 视频aid
  * @returns {Object} 视频信息
  */
-router.get('/video/info', async (req, res) => {
-try {
-    const { SESSDATA } = req.cookies;
-    if (!SESSDATA) {
-    return res.status(401).json({ 
-        code: 401, 
-        message: '未登录或登录已过期' 
-    });
-    }
+// router.get('/video/info', async (req, res) => {
+// try {
+//     const { SESSDATA } = req.cookies;
+//     if (!SESSDATA) {
+//     return res.status(401).json({ 
+//         code: 401, 
+//         message: '未登录或登录已过期' 
+//     });
+//     }
 
-    const { aid } = req.query;
-    if (!aid) {
-    return res.status(400).json({ 
-        code: 400, 
-        message: '缺少必要参数：aid' 
-    });
-    }
+//     const { aid } = req.query;
+//     if (!aid) {
+//     return res.status(400).json({ 
+//         code: 400, 
+//         message: '缺少必要参数：aid' 
+//     });
+//     }
 
-    // 调用B站API获取视频信息
-    const response = await axios.get('https://api.bilibili.com/x/web-interface/view', {
-    params: {
-        aid,
-        jsonp: 'jsonp'
-    },
-    headers: {
-        Cookie: `SESSDATA=${SESSDATA}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    });
+//     // 调用B站API获取视频信息
+//     const response = await axios.get('https://api.bilibili.com/x/web-interface/view', {
+//     params: {
+//         aid,
+//         jsonp: 'jsonp'
+//     },
+//     headers: {
+//         Cookie: `SESSDATA=${SESSDATA}`,
+//         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+//     }
+//     });
 
-    res.json(response.data);
-} catch (error) {
-    console.error('获取视频信息失败:', error);
-    res.status(500).json({ 
-    code: 500, 
-    message: '获取视频信息失败' 
-    });
-}
-});
+//     res.json(response.data);
+// } catch (error) {
+//     console.error('获取视频信息失败:', error);
+//     res.status(500).json({ 
+//     code: 500, 
+//     message: '获取视频信息失败' 
+//     });
+// }
+// });
 
 /**
  * @desc 获取音频流URL

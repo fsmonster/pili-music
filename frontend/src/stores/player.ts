@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { MediaItem } from '../types/types';
+import type { MediaItem } from '../types';
 import { getVideoInfo,getAudioUrl } from '../api/audio';
 import { processResourceUrl } from '../utils/processResoureUrl';
 
@@ -70,32 +70,25 @@ export const usePlayerStore = defineStore('player', () => {
       } else {
         // 如果不在列表中，添加到列表并播放
         playlist.value = [item];
-        currentIndex.value = 0;
+        currentIndex.value = 0;            
       }
     }
 
     if (currentItem.value) {
       loading.value = true;
-      try {
         // 获取播放地址
-        const cid = (await getVideoInfo(currentItem.value.id.toString())).data.data.cid;     
+        const cid = await getVideoInfo(currentItem.value.id);   
         const url = await getAudioUrl({
           avid: currentItem.value.id,
-          cid: cid
-        });
-        console.log('🙄 store: 获取到音频URL', url);        
+          cid,
+        });      
         if (url) {
           // 使用 processResourceUrl 处理 URL，通过后端代理
           const processedUrl = processResourceUrl(url);
           audio.src = processedUrl;
-          // audio.src = url;
           initAudioEvents();
           await audio.play();
         }
-      } catch (error) {
-        console.error('获取播放地址失败', error);
-        loading.value = false;
-      }
     }
   }
 
@@ -115,9 +108,8 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 下一曲
   function next() {
-    if (playlist.value.length === 0) return;
-    
-    currentIndex.value = (currentIndex.value + 1) % playlist.value.length;
+    if (playlist.value.length === 0) return;    
+    currentIndex.value = (currentIndex.value + 1) % playlist.value.length;    
     play();
   }
 
@@ -137,6 +129,11 @@ export const usePlayerStore = defineStore('player', () => {
     if (time >= 0 && time <= duration.value) {
       audio.currentTime = time;
     }
+  }
+
+  // 设置音量
+  function setVolume(volume: number) {
+    audio.volume = volume;
   }
 
   // 初始化事件监听
@@ -159,5 +156,6 @@ export const usePlayerStore = defineStore('player', () => {
     prev,
     seek,
     setPlaylist,
+    setVolume,
   };
 });

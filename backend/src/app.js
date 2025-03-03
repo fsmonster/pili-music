@@ -33,7 +33,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // 路由
-app.use('/api', authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/favorite', favoriteRoutes); // 注册收藏夹路由
 app.use('/api/season', seasonRoutes); // 注册合集路由
 app.use('/api/info', infoRoutes); // 注册视频信息路由

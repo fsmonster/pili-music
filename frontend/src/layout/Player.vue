@@ -3,33 +3,33 @@
     <!-- 左侧：当前播放信息 -->
     <div class="now-playing">
       <img 
-        :src="store.currentItem ? processResourceUrl(store.currentItem.cover) : defaultCover" 
-        :alt="store.currentItem?.title || '封面'" 
+        :src="playStore.currentItem ? processResourceUrl(playStore.currentItem.cover) : defaultCover" 
+        :alt="playStore.currentItem?.title || '封面'" 
       />
       <div class="track-info">
-        <div class="track-name">{{ store.currentItem?.title || '未在播放 (｡•́︿•̀｡)' }}</div>
-        <div class="artist">{{ store.currentItem?.upper?.name || '点击播放你喜欢的音乐吧～' }}</div>
+        <div class="track-name">{{ playStore.currentItem?.title || '未在播放 (｡•́︿•̀｡)' }}</div>
+        <div class="artist">{{ playStore.currentItem?.upper?.name || '点击播放你喜欢的音乐吧～' }}</div>
       </div>
     </div>
 
     <!-- 中间：播放控制 -->
     <div class="player-controls">
       <div class="control-buttons">
-        <i class="ri-repeat-line" @click="togglePlayMode"></i>
-        <i class="ri-skip-back-fill" @click="store.prev"></i>
+        <i class="ri-repeat-line" @click="playStore.toggle"></i>
+        <i class="ri-skip-back-fill" @click="playStore.prev"></i>
         <i 
           class="play-btn"
           :class="[
-            store.playing ? 'ri-pause-circle-fill' : 'ri-play-circle-fill',
-            { 'is-loading': store.loading }
+            playStore.playing ? 'ri-pause-circle-fill' : 'ri-play-circle-fill',
+            { 'is-loading': playStore.loading }
           ]"
-          @click="store.toggle"
+          @click="playStore.toggle"
         ></i>
-        <i class="ri-skip-forward-fill" @click="store.next"></i>
+        <i class="ri-skip-forward-fill" @click="playStore.next"></i>
         <i class="ri-heart-line"></i>
       </div>
       <div class="progress-bar">
-        <span class="time">{{ formatTime(store.currentTime) }}</span>
+        <span class="time">{{ formatTime(playStore.currentTime) }}</span>
         <div 
           class="progress" 
           @click="handleProgressClick"
@@ -40,7 +40,7 @@
             :style="{ width: `${progress}%` }"
           ></div>
         </div>
-        <span class="time">{{ formatTime(store.duration) }}</span>
+        <span class="time">{{ formatTime(playStore.duration) }}</span>
       </div>
     </div>
 
@@ -58,17 +58,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import defaultCover from '@/assets/image/music_cover.jpg';
-import { usePlayerStore } from '../stores/player';
+import { usePlayerStore } from '../stores';
 import { processResourceUrl } from '../utils/processResoureUrl';
 
-const store = usePlayerStore();
+const playStore = usePlayerStore();
 const progressRef = ref<HTMLElement | null>(null);
 const volume = ref(1);
 
 // 播放进度
 const progress = computed(() => {
-  if (!store.duration) return 0;
-  return (store.currentTime / store.duration) * 100;
+  if (!playStore.duration) return 0;
+  return (playStore.currentTime / playStore.duration) * 100;
 });
 
 // 格式化时间
@@ -81,11 +81,11 @@ function formatTime(seconds: number) {
 
 // 进度条点击
 function handleProgressClick(event: MouseEvent) {
-  if (!progressRef.value || !store.duration) return;
+  if (!progressRef.value || !playStore.duration) return;
   
   const rect = progressRef.value.getBoundingClientRect();
   const percent = (event.clientX - rect.left) / rect.width;
-  store.seek(percent * store.duration);
+  playStore.seek(percent * playStore.duration);
 }
 
 // 音量控制
@@ -94,12 +94,7 @@ function setVolume(event: MouseEvent) {
   const rect = volumeBar.getBoundingClientRect();
   const percent = (event.clientX - rect.left) / rect.width;
   volume.value = Math.max(0, Math.min(1, percent));
-  // TODO: 设置实际的音频音量
-}
-
-// 播放模式切换
-function togglePlayMode() {
-  // TODO: 实现播放模式切换
+  playStore.setVolume(volume.value);
 }
 </script>
 

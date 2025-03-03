@@ -3,8 +3,8 @@ import type {
     QRCodeGenerateData, 
     QRCodeStatusData, 
     UserInfo, 
-    APIResponse 
-} from '../types/auth';
+    ApiResponse 
+} from '../types';
 
 /**
  * 认证相关 API
@@ -14,44 +14,50 @@ export const authApi = {
      * 获取登录二维码
      */
     async getQRCode() {
-        if (import.meta.env.DEV) {
-            console.log('🔑 调用 getQRCode API');
+        try {
+            const res = await request.get<ApiResponse<QRCodeGenerateData>>('/auth/qrcode');
+            if(res.data.code !== 0) {
+                throw new Error(res.data.message || '获取登录二维码失败');
+            }
+            return res.data.data;
+        } catch (error) {
+            console.error('获取登录二维码失败:', error);
+            throw error;
         }
-        const response = await request.get<APIResponse<QRCodeGenerateData>>('/qrcode');
-        if (import.meta.env.DEV) {
-            console.log('✅ getQRCode response:', response.data);
-        }
-        return response.data;
     },
 
     /**
      * 检查二维码状态
      * @param qrcode_key 二维码密钥
      */
-    async checkQRCodeStatus(qrcode_key: string) {
-        if (import.meta.env.DEV) {
-            console.log('🔍 调用 checkQRCodeStatus API');
+    async checkQRCodeStatus(qrcode_key: string): Promise<QRCodeStatusData> {
+        try {
+            const response = await request.get<ApiResponse<QRCodeStatusData>>('/auth/qrcode/status', {
+                params: { qrcode_key }
+            });
+            if (response.data.code !== 0) {
+                throw new Error(`二维码状态请求失败: ${response.data.message}`);
+            }
+            return response.data.data;
+        } catch (error) {
+            console.error('检查二维码状态失败:', error);
+            throw error;
         }
-        const response = await request.get<APIResponse<QRCodeStatusData>>('/qrcode/status', {
-            params: { qrcode_key }
-        });
-        if (import.meta.env.DEV) {
-            console.log('✅ checkQRCodeStatus response:', response.data);
-        }
-        return response.data;
     },
 
     /**
      * 获取用户信息
      */
-    async getUserInfo() {
-        if (import.meta.env.DEV) {
-            console.log('👤 调用 getUserInfo API');
+    async getUserInfo(){
+        try {
+            const response = await request.get<ApiResponse<UserInfo>>('/auth/user/info');
+            if(response.data.code !== 0) {
+                throw new Error(response.data.message || '获取用户信息失败');
+            }
+            return response.data.data;
+        } catch (error) {
+            console.error('获取用户信息失败:', error);
+            throw error;
         }
-        const response = await request.get<APIResponse<UserInfo>>('/user/info');
-        if (import.meta.env.DEV) {
-            console.log('✅ getUserInfo response:', response.data);
-        }
-        return response.data;
     }
 };

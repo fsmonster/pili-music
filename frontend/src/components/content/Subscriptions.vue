@@ -113,7 +113,7 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@import './styles/music-grid.scss';
+@use './styles/music-grid.scss';
 
 .empty-tip {
   display: flex;

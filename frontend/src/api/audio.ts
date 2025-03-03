@@ -2,15 +2,26 @@
  * 播放列表相关API
  */
 import request from '../utils/request';
-import type { ApiResponse } from '../types/types';
+import type { ApiResponse, VideoInfo } from '../types';
 
 /**
- * 获取视频信息
+ * @desc 获取视频信息
+ * @param aid 视频avid
+ * @returns 视频cid
  */
-export async function getVideoInfo(aid: string) {
-  return request.get('/info/video/info', {
-    params: { aid }
-  });
+export async function getVideoInfo(aid: number): Promise<number> {
+  try {
+    const res = await request.get<ApiResponse<VideoInfo[]>>('/info/player/pagelist', {
+      params: { aid }
+    });
+    if(res.data.code !== 0) {
+      throw new Error(res.data.message || '获取视频信息失败');
+    }
+    return res.data.data[0].cid;
+  } catch (error) {
+    console.error('获取视频信息失败:', error);
+    throw error;
+  }
 }
 
 /**

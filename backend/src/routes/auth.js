@@ -3,7 +3,12 @@ import axios from 'axios';
 
 const router = express.Router();
 
-// 获取二维码
+/**
+ * @desc 获取二维码
+ * @route GET /api/auth/qrcode
+ * @access Public
+ * @returns {Object} 二维码数据
+ */
 router.get('/qrcode', async (req, res) => {
   try {
     const response = await axios.get('https://passport.bilibili.com/x/passport-login/web/qrcode/generate');
@@ -14,7 +19,13 @@ router.get('/qrcode', async (req, res) => {
   }
 });
 
-// 查询扫码状态
+/**
+ * @desc 查询扫码状态
+ * @route GET /api/auth/qrcode/status
+ * @access Public
+ * @param {string} qrcode_key - 二维码 key
+ * @returns {Object} 登录状态
+ */
 router.get('/qrcode/status', async (req, res) => {
   const { qrcode_key } = req.query;
   if (!qrcode_key) {
@@ -49,7 +60,12 @@ router.get('/qrcode/status', async (req, res) => {
   }
 });
 
-// 获取用户信息
+/**
+ * @desc 获取用户信息
+ * @route GET /api/auth/user/info
+ * @access Private
+ * @returns {Object} 用户信息
+ */
 router.get('/user/info', async (req, res) => {
   // 从请求中获取 SESSDATA
   const sessdata = req.cookies.SESSDATA;

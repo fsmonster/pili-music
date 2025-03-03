@@ -50,7 +50,7 @@
 
 <script setup lang="ts">
 import { processResourceUrl } from '../../utils/processResoureUrl';
-import type { MediaItem } from '../../types/types';
+import type { MediaItem } from '../../types';
 
 // 格式化时长
 function formatDuration(seconds: number) {
