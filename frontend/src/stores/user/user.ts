@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { processResourceUrl } from '../utils/processResoureUrl';
-import type { BiliUserInfo, UserState } from '../types/user';
+import { processResourceUrl } from '../../utils/processResoureUrl';
+import type { BiliUserInfo, UserState } from '../../types/user';
 
 /**
  * 用户状态管理

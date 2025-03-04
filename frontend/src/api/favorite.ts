@@ -44,25 +44,30 @@ export async function getFavoriteInfo(media_id: string | number): Promise<Favori
 /**
  * 获取收藏夹 - 信息 + 内容列表
  * @param media_id 收藏夹mlid
- * @param params 参数
- * @returns 
+ * @param offset 偏移量，从第几条开始获取
+ * @param ps 每页数量，默认20
+ * @param order 排序方式
+ * @returns 媒体列表
  */
-export async function getFavoriteContent(media_id: number, params?: {
-  pn?: number;  // 页码
-  ps: number;  // 每页项数
-  order?: 'mtime' | 'view' | 'pubtime';  // 排序方式
-}): Promise<MediaItem[]> {
+export async function getFavoriteContent(
+  media_id: number, 
+  offset: number = 0, 
+  ps: number = 20, 
+  order: 'mtime' | 'view' | 'pubtime' = 'mtime'
+): Promise<MediaItem[]> {
   try {
     const res = await request.get<ApiResponse<FavoriteContentResponse>>('/favorite/resource/list', {
       params: {
         media_id,
-        ...params
+        pn: Math.floor(offset / ps) + 1, // 计算页码
+        ps,
+        order
       }
     });
-    return res.data.data.medias;
+    return res.data.data.medias || [];
   } catch (error) {
     console.error('获取收藏夹内容失败:', error);
-    throw error;
+    return [];
   }
 }
 
@@ -75,4 +80,3 @@ export async function getFavoriteContent(media_id: number, params?: {
 //     params: { media_id }
 //   });
 // }
-

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { useAuthStore } from '../stores/auth';
+import { useAuthStore } from '../stores/user/auth';
 
 /**
  * 路由配置
@@ -20,7 +20,7 @@ const router = createRouter({
     {
       path: '/playlist/:id/:type',
       name: 'playlist',
-      component: () => import('../views/Playlist.vue')
+      component: () => import('../views/Songlist.vue')
     },
   ]
 });

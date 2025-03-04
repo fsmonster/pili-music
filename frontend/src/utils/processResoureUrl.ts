@@ -21,6 +21,17 @@ function processBiliImageUrlArchive(url: string): string {
 }
 
 /**
+ * 处理B站 s1.hdslb.com 域名的图片URL，将原始URL转换为本地代理URL
+ * @param url B站 s1.hdslb.com 域名的原始图片URL
+ * @returns 处理后的本地代理URL
+ */
+function processBiliImageUrlS1(url: string): string {
+    const match = url.match(/^https?:\/\/s1\.hdslb\.com\/(.*)/);
+    if (!match) return url;
+    return `/biliimg/s1/${match[1]}`;
+}
+
+/**
  * 处理B站其它域名的图片URL，将原始URL转换为本地代理URL
  * @param url B站其它域名的原始图片URL
  * @returns 处理后的本地代理URL
@@ -60,6 +71,10 @@ export function processResourceUrl(url: string): string {
     }
     if (url.startsWith('https://archive.biliimg.com')) {
         return processBiliImageUrlArchive(url);
+    }
+    // https://s1.hdslb.com/bfs/templar/york-static/viedeo_material_default.png
+    if (url.startsWith('https://s1.hdslb.com/bfs/templar')) {
+        return processBiliImageUrlS1(url);
     }
     // 处理所有 bilivideo.cn 域名的音频URL
     if (url.includes('.bilivideo.cn') || url.includes('.bilivideo.com')) {

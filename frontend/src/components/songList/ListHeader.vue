@@ -3,8 +3,12 @@
   <div class="playlist-header">
     <div class="playlist-header-inner">
       <div class="cover">
+        <div v-if="!cover" class="skeleton">
+          <el-skeleton :rows="3" animated />
+        </div>
         <img 
-          :src="processResourceUrl(cover || '')" 
+          v-else 
+          :src="processResourceUrl(cover)" 
           :alt="title"
         >
       </div>
@@ -26,7 +30,7 @@ defineProps<{
 }>();
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .playlist-header {
   margin-bottom: 20px;
 }
@@ -42,6 +46,10 @@ defineProps<{
   height: 200px;
   overflow: hidden;
   border-radius: 8px;
+  background-color: rgb(64 158 255 / 4%);
+  .skeleton {
+    padding: 10px; 
+  }
 }
 
 .cover img {

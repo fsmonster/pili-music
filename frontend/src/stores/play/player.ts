@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { MediaItem } from '../types';
-import { getVideoInfo,getAudioUrl } from '../api/audio';
-import { processResourceUrl } from '../utils/processResoureUrl';
+import type { MediaItem } from '../../types';
+import { getVideoInfo,getAudioUrl } from '../../api';
+import { processResourceUrl } from '../../utils';
 
 export const usePlayerStore = defineStore('player', () => {
   // 音频实例
@@ -13,6 +13,7 @@ export const usePlayerStore = defineStore('player', () => {
   const currentTime = ref(0);
   const duration = ref(0);
   const loading = ref(false);
+  const volume = ref(1);
 
   // 播放列表
   const playlist = ref<MediaItem[]>([]);
@@ -86,7 +87,6 @@ export const usePlayerStore = defineStore('player', () => {
           // 使用 processResourceUrl 处理 URL，通过后端代理
           const processedUrl = processResourceUrl(url);
           audio.src = processedUrl;
-          initAudioEvents();
           await audio.play();
         }
     }
@@ -127,13 +127,13 @@ export const usePlayerStore = defineStore('player', () => {
   // 跳转到指定时间
   function seek(time: number) {
     if (time >= 0 && time <= duration.value) {
-      audio.currentTime = time;
+      audio.currentTime = time;   
     }
   }
 
   // 设置音量
-  function setVolume(volume: number) {
-    audio.volume = volume;
+  function setVolume() {
+    audio.volume = volume.value;
   }
 
   // 初始化事件监听
@@ -145,6 +145,7 @@ export const usePlayerStore = defineStore('player', () => {
     currentTime,
     duration,
     loading,
+    volume,
     playlist,
     currentItem,
     

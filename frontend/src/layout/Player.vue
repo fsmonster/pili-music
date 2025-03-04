@@ -7,7 +7,7 @@
         :alt="playStore.currentItem?.title || '封面'" 
       />
       <div class="track-info">
-        <div class="track-name">{{ playStore.currentItem?.title || '未在播放 (｡•́︿•̀｡)' }}</div>
+        <div class="track-name">{{ playStore.currentItem?.title || '未在播放' }}</div>
         <div class="artist">{{ playStore.currentItem?.upper?.name || '点击播放你喜欢的音乐吧～' }}</div>
       </div>
     </div>
@@ -46,9 +46,9 @@
 
     <!-- 右侧：音量控制等 -->
     <div class="player-options">
-      <i :class="[volume === 0 ? 'ri-volume-mute-line' : 'ri-volume-up-line']"></i>
+      <i :class="[playStore.volume === 0 ? 'ri-volume-mute-line' : 'ri-volume-up-line']"></i>
       <div class="volume-slider" @click="setVolume">
-        <div class="volume-progress" :style="{ width: `${volume * 100}%` }"></div>
+        <div class="volume-progress" :style="{ width: `${playStore.volume * 100}%` }"></div>
       </div>
       <i class="ri-playlist-line"></i>
     </div>
@@ -63,7 +63,7 @@ import { processResourceUrl } from '../utils/processResoureUrl';
 
 const playStore = usePlayerStore();
 const progressRef = ref<HTMLElement | null>(null);
-const volume = ref(1);
+// const volume = ref(1);
 
 // 播放进度
 const progress = computed(() => {
@@ -82,7 +82,7 @@ function formatTime(seconds: number) {
 // 进度条点击
 function handleProgressClick(event: MouseEvent) {
   if (!progressRef.value || !playStore.duration) return;
-  
+
   const rect = progressRef.value.getBoundingClientRect();
   const percent = (event.clientX - rect.left) / rect.width;
   playStore.seek(percent * playStore.duration);
@@ -93,12 +93,13 @@ function setVolume(event: MouseEvent) {
   const volumeBar = event.currentTarget as HTMLElement;
   const rect = volumeBar.getBoundingClientRect();
   const percent = (event.clientX - rect.left) / rect.width;
-  volume.value = Math.max(0, Math.min(1, percent));
-  playStore.setVolume(volume.value);
+  playStore.volume = Math.max(0, Math.min(1, percent));
+  playStore.setVolume();
 }
 </script>
 
 <style lang="scss" scoped>
+@use '../assets/styles/mixins.scss';
 .player-bar {
   display: flex;
   align-items: center;
@@ -126,6 +127,7 @@ function setVolume(event: MouseEvent) {
         font-weight: 500;
         margin-bottom: 4px;
         color: var(--el-text-color-primary);
+        @include mixins.text-ellipsis-multi(2);
       }
 
       .artist {

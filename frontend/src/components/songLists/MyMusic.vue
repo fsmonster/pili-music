@@ -15,6 +15,19 @@
     
     <!-- 歌单列表 -->
     <div class="music-grid">
+      <!-- 最近播放 -->
+      <div class="music-item">
+        <div class="cover">
+          <img :src="loveCover" alt="最近播放">
+          <div class="play-overlay">
+            <i class="ri-play-circle-fill"></i>
+          </div>
+        </div>
+        <div class="info">
+          <div class="title">最近播放</div>
+          <div class="count">{{ likedSongs.length }}首歌曲</div>
+        </div>
+      </div>
       <!-- 我喜欢的音乐 -->
       <div class="music-item">
         <div class="cover">
@@ -93,12 +106,6 @@ const playlists = ref([
     id: 1,
     title: '我的日语歌单',
     count: 25,
-    cover: defaultCover,
-  },
-  {
-    id: 2,
-    title: '动漫音乐精选',
-    count: 18,
     cover: defaultCover,
   },
 ]);

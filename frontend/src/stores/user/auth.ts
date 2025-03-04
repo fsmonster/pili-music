@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { QRCodeStatusData, UserInfo } from '../types';
-import { QRCodeStatus } from '../types';
-import { authApi } from '../api/auth';
+import type { QRCodeStatusData, UserInfo } from '../../types';
+import { QRCodeStatus } from '../../types';
+import { authApi } from '../../api/auth';
 import { useUserStore } from './user';
 
 /**

@@ -1,4 +1,6 @@
-// 音频流信息
+/**
+ * @desc 音频流信息
+ */
 export interface AudioStream {
     id: number;
     baseUrl: string;

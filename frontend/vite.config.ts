@@ -80,6 +80,16 @@ export default defineConfig({
           'Referer': 'https://www.bilibili.com'
         }
       },
+      // 代理 B站图片请求 - s1.hdslb.com
+      '^/biliimg/s1/.*': {
+        target: 'https://s1.hdslb.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/biliimg\/s1/, ''),
+        headers: {
+          'Referer': 'https://www.bilibili.com'
+        }
+      }
     }
   }
 })

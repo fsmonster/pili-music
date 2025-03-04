@@ -11,7 +11,7 @@
         @click="goToPlaylist(item.id)"
       >
         <div class="cover">
-          <el-skeleton v-if="!item.cover" :rows="1" animated />
+          <el-skeleton v-if="favoriteStore.loading || !item.cover" :rows="1" animated />
           <img v-else :src="processResourceUrl(item.cover)" :alt="item.title">
         </div>
         <div class="info">

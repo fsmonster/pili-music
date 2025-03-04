@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { MediaItem } from '../types';
+import type { MediaItem } from '../../types';
 
+/**
+ * @desc 播放列表状态管理
+ */
 export const usePlaylistStore = defineStore('playlist', () => {
   // 状态
   const currentTrack = ref<MediaItem | null>(null);
@@ -33,9 +36,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
 
   return {
     // 状态
-    currentTrack,
     playlist,
-    loading,
     error,
     audioUrl,
     // 计算属性

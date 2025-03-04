@@ -25,12 +25,15 @@ export async function getSeasonList(params: {
   
   /**
    * @desc 获取当前订阅 - 内容明细列表
-   * @param media_id 订阅合集ID
-   * @param pn 页码
-   * @param ps 获得项数
+   * @param season_id 订阅合集ID
+   * @param pn 页码 (B站API不支持分页，但保留参数以保持接口一致性)
+   * @param ps 获得项数 (B站API不支持分页，但保留参数以保持接口一致性)
+   * @returns 返回合集中的所有媒体项
    */
   export async function getSeasonDetail(season_id: string | number, pn?: number, ps?: number): Promise<MediaItem[]> {
     try {
+      // 注意：虽然我们传递了pn和ps参数，但B站API会返回所有内容
+      // 前端将负责处理分页逻辑
       const res = await request.get<ApiResponse<SeasonContentResponse>>('/season/season/list', {
         params: { 
           season_id,
@@ -44,4 +47,3 @@ export async function getSeasonList(params: {
     throw error;
   }
 }
-  

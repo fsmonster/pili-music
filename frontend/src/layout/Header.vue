@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/user';
+import { useUserStore } from '@/stores/user/user';
 import defaultAvatar from '@/assets/image/default_avatar.png';
 
 const router = useRouter();

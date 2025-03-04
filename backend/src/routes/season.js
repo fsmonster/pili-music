@@ -19,7 +19,7 @@ router.get('/collected/list', async (req, res) => {
         });
       }
   
-      const { pn = 1, ps = 20, up_mid='' } = req.query;
+      const { pn , ps , up_mid='' } = req.query;
   
       // 调用B站API获取订阅合集列表
       const response = await axios.get('https://api.bilibili.com/x/v3/fav/folder/collected/list', {
@@ -51,7 +51,7 @@ router.get('/collected/list', async (req, res) => {
  */
 router.get('/season/list', async (req, res) => {
 try {
-    const { season_id, pn = 1, ps = 40 } = req.query;
+    const { season_id, pn, ps } = req.query;
     if (!season_id) {
     return res.status(400).json({ 
         code: 400, 

@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { Lock } from '@element-plus/icons-vue';
-import { useAuthStore } from '../../stores/auth';
+import { useAuthStore } from '../../stores/user/auth';
 import { QRCodeStatus } from '../../types/auth';
 import QRCode from './QRCode.vue';
 

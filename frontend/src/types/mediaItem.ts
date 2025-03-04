@@ -1,4 +1,6 @@
-// 歌曲内容类型
+/**
+ * @desc 媒体列表项类型 - 用于显示歌单列表
+ */
 export interface MediaItem {
     id: number;           // 视频avid
     type: number;         // 类型
