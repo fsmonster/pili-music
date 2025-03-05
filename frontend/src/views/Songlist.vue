@@ -15,10 +15,8 @@
             <!-- 控制栏 -->
             <ListControls
               :disabled="!store.items.length"
-              @update:search="handleSearch"
               @update:sort="handleSort"
               @play-all="handlePlayAll"
-              @search="handleSearch"
               @sort="handleSort"
             />
 
@@ -67,6 +65,21 @@ const playerStore = usePlayerStore();
 
 const { type, id } = route.params;
 
+// 判断 store 类型
+function isFavoriteStore(type: string | string[], _store: any): _store is ReturnType<typeof useFavoriteStore> {
+  if (type == 'favorite') {
+    return true;
+  }
+  return false;
+}
+
+function isSeasonStore(type: string | string[], _store: any): _store is ReturnType<typeof useSeasonStore> {
+  if (type == 'season') {
+    return true;
+  }
+  return false;
+}
+
 // 滚动容器引用
 const scrollRef = ref<HTMLElement | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
@@ -75,28 +88,24 @@ const containerRef = ref<HTMLElement | null>(null);
  * @desc 根据路由类型获取当前store
  */
 const store = computed(() => {
-  switch (route.params.type) {
-    case 'favorite':
-      return useFavoriteStore();
-    case 'season':
-      return useSeasonStore();
-    default:
-      return useFavoriteStore();
+  if (type == 'favorite') {
+    return useFavoriteStore();
+  } else if (type == 'season') {
+    return useSeasonStore();
   }
+  return useFavoriteStore();
 });
 
 /**
  * @desc 获取当前内容信息
  */
 const currentInfo = computed(() => {
-  switch (route.params.type) {
-    case 'favorite':
-      return store.value.currentFavorite;
-    case 'season':
-      return store.value.currentSeason;
-    default:
-      return null;
+  if (isFavoriteStore(type, store.value)) {
+    return store.value.currentFavorite;
+  } else if (isSeasonStore(type, store.value)) {
+    return store.value.currentSeason;
   }
+  return null;
 });
 
 /**
@@ -104,15 +113,10 @@ const currentInfo = computed(() => {
  */
 async function loadContent() {  
   if (!id) return;
-  
-  switch (type) {
-    case 'favorite':
+  if (isFavoriteStore(type, store.value))
       await store.value.fetchFavoriteContent(Number(id));
-      break;
-    case 'season':
+  if (isSeasonStore(type, store.value))
       await store.value.fetchSeasonContent(Number(id));
-      break;
-  }
 }
 
 // 添加一个标志位，防止连续触发加载
@@ -130,13 +134,11 @@ async function loadMoreContent() {
   // 记录当前滚动位置
   const scrollPosition = scrollRef.value?.scrollTop || 0;
   
-  switch (type) {
-    case 'favorite':
+  if (isFavoriteStore(type, store.value)) {
       await store.value.loadMoreFavoriteContent();
-      break;
-    case 'season':
+
+  } else if (isSeasonStore(type, store.value)) {
       await store.value.loadMoreSeasonContent?.();
-      break;
   }
   
   // 使用 nextTick 确保 DOM 更新后再恢复滚动位置
@@ -191,17 +193,18 @@ function handlePlay(item: MediaItem) {
 /**
  * @desc 搜索处理
  */
-function handleSearch(value: string) {
-  store.value.searchKeyword = value;
-  // 重新加载数据
-  loadContent();
-}
+// function handleSearch(value: string) {
+//   store.value.searchKeyword = value;
+//   // 重新加载数据
+//   loadContent();
+// }
 
 /**
  * @desc 排序处理
  */
-function handleSort(value: string) {
-  store.value.sortOrder = value;
+function handleSort(value: 'desc' | 'asc') {
+  // store.value.sortOrder = value;
+  console.log(value);  
   // 重新加载数据
   loadContent();
 }
@@ -230,6 +233,7 @@ onBeforeMount(() => {
 
 onMounted(() => {
   loadContent();
+  console.log(route.params);
 });
 
 onUnmounted(() => {
@@ -237,140 +241,60 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .playlist-container {
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
+  .playlist-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    .playlist-content {
+      flex: 1;
+      overflow: visible;
+      position: relative;
+      /* 加载更多样式 */
+      .loading-more {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px 0;
+        color: var(--el-text-color-secondary);
+      }
 
-.playlist-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-}
+      .loading-more .el-icon {
+        margin-right: 5px;
+      }
+      .no-more {
+        text-align: center;
+        padding: 20px 0;
+        color: var(--el-text-color-secondary);
+        font-size: 14px;
+      }
 
-/* 滚动条样式 */
-.playlist-scroll::-webkit-scrollbar {
-  width: 6px;
-}
+      .empty-data {
+        text-align: center;
+        padding: 40px 0;
+        color: var(--el-text-color-secondary);
+        font-size: 14px;
+      }
+    }
+  }
+  /* 滚动条样式 */
+  .playlist-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
 
-.playlist-scroll::-webkit-scrollbar-thumb {
-  background: var(--el-border-color-darker);
-  border-radius: 3px;
-}
+  .playlist-scroll::-webkit-scrollbar-thumb {
+    background: var(--el-border-color-darker);
+    border-radius: 3px;
+  }
 
-.playlist-scroll::-webkit-scrollbar-track {
-  background: var(--el-border-color-light);
-  border-radius: 3px;
-}
-
-.playlist-header {
-  margin-bottom: 20px;
-}
-
-.playlist-header-inner {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.cover {
-  width: 200px;
-  height: 200px;
-  overflow: hidden;
-  border-radius: 8px;
-}
-
-.cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.info h1 {
-  margin: 0 0 10px 0;
-  font-size: 24px;
-}
-
-.info p {
-  margin: 0;
-  color: #666;
-}
-
-.playlist-content {
-  flex: 1;
-  overflow: visible;
-  position: relative;
-}
-
-.controls-sticky {
-  position: sticky;
-  top: -20px;
-  background: var(--el-bg-color);
-  z-index: 2;
-}
-
-.controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.right {
-  display: flex;
-  gap: 10px;
-}
-
-.play-all {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  background-color: var(--el-color-primary);
-  color: white;
-  cursor: pointer;
-}
-
-.play-all:disabled {
-  background-color: var(--el-color-primary-light-5);
-  cursor: not-allowed;
-}
-
-/* 加载更多样式 */
-.loading-more {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px 0;
-  color: var(--el-text-color-secondary);
-}
-
-.loading-more .el-icon {
-  margin-right: 5px;
-}
-
-.no-more {
-  text-align: center;
-  padding: 20px 0;
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-}
-
-.empty-data {
-  text-align: center;
-  padding: 40px 0;
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
+  .playlist-scroll::-webkit-scrollbar-track {
+    background: var(--el-border-color-light);
+    border-radius: 3px;
+  }
 }
 </style>

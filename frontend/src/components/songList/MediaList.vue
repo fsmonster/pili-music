@@ -50,7 +50,7 @@ import type { MediaItem } from '../../types';
 /**
  * Props
  */
-const props = defineProps<{
+defineProps<{
   // 媒体列表数据
   items: MediaItem[]
   // 当前内容信息

@@ -1,4 +1,3 @@
-# 列表头部组件
 <template>
   <div class="playlist-header">
     <div class="playlist-header-inner">

@@ -18,7 +18,7 @@ const router = createRouter({
       component: () => import('../views/Login.vue')
     },
     {
-      path: '/playlist/:id/:type',
+      path: '/playlist/:type/:id',
       name: 'playlist',
       component: () => import('../views/Songlist.vue')
     },
@@ -29,7 +29,7 @@ const router = createRouter({
  * 全局前置守卫
  * - 已登录时访问登录页，自动跳转到首页
  */
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
   
   if (authStore.isLoggedIn && to.path === '/login') {

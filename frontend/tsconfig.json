@@ -3,5 +3,9 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "compilerOptions": {
+    "noUnusedLocals": false,  // 允许未使用的局部变量
+    "noUnusedParameters": false, // 允许未使用的函数参数
+  },
 }

@@ -29,7 +29,7 @@
 import { ref, watch } from 'vue';
 import { Lock } from '@element-plus/icons-vue';
 import { useAuthStore } from '../../stores/user/auth';
-import { QRCodeStatus } from '../../types/auth';
+// import { QRCodeStatus } from '../../types/auth';
 import QRCode from './QRCode.vue';
 
 const props = defineProps<{

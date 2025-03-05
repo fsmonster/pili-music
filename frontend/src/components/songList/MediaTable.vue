@@ -34,7 +34,7 @@
 
     <el-table-column label="up" min-width="50">
       <template #default="{ row }">
-        {{ row.upper?.name }}
+        <div class="media-up">{{ row.upper?.name }}</div>
       </template>
     </el-table-column>
 
@@ -59,12 +59,17 @@
 <script setup lang="ts">
 import { processResourceUrl } from '../../utils/processResoureUrl';
 import type { MediaItem } from '../../types';
-import { computed } from 'vue';
 
-const props = defineProps<{
+defineProps<{
   data: MediaItem[];
   loading?: boolean;
   maxHeight?: number;
+}>();
+
+const emit = defineEmits<{
+  (e: 'play', item: MediaItem): void
+  (e: 'add', item: MediaItem): void
+  (e: 'play-all'): void
 }>();
 
 // 格式化时长
@@ -81,12 +86,6 @@ function formatDuration(seconds: number) {
 function handleRowDblClick(row: MediaItem) {
   emit('play', row);
 }
-
-const emit = defineEmits<{
-  (e: 'play', item: MediaItem): void
-  (e: 'add', item: MediaItem): void
-  (e: 'play-all'): void
-}>();
 </script>
 
 <style lang="scss" scoped>
@@ -131,22 +130,28 @@ const emit = defineEmits<{
       }
     }    
   }
-  
-  .media-text {
-    display: flex;
-    flex-direction: column;
-    
-    .media-title {
-      font-size: 14px;
-      margin-bottom: 4px;
-      @include mixins.text-ellipsis-multi(2);
-    } 
-    
-    .media-subtitle {
-      font-size: 12px;
-      color: #666;
-    }
+}
+
+.media-text {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  .media-title {
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 4px;
+    @include mixins.text-ellipsis-multi(2);
+  } 
+  .media-subtitle {
+    font-size: 12px;
+    color: #666;
   }
+}
+
+.media-up {
+  font-size: 13px;
+  color: #666;
+  @include mixins.text-ellipsis();
 }
 
 .add-button {
@@ -155,7 +160,6 @@ const emit = defineEmits<{
     font-size: 18px; 
   }
 }
-
 .el-table__row:hover {
   .media-cover-overlay {
     opacity: 1;

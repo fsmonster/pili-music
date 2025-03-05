@@ -2,12 +2,15 @@
   <div class="content-section">
     <div class="section-header">
       <div class="title">
+        <!-- 图标插槽 -->
         <slot name="icon">
           <i class="ri-folder-music-line"></i>
         </slot>
         <h3>{{ title }}</h3>
+        <slot name="title-suffix"></slot>
       </div>
       <div class="actions">
+        <!-- 操作按钮插槽 -->
         <slot name="actions">
           <template v-if="showManage">
             <el-button @click="$emit('manage')">
@@ -16,16 +19,23 @@
             </el-button>
           </template>
         </slot>
+        <!-- 自定义操作按钮插槽 -->
         <slot name="customActions"></slot>
       </div>
     </div>
     <div class="section-content">
-      <slot></slot>
+      <!-- 内容插槽 -->
+      <slot name="content"></slot>
       <div v-if="isEmpty" class="empty-hint">
+        <!-- 空状态提示插槽 -->
         <slot name="empty">
           暂无内容 (｡•́︿•̀｡)
         </slot>
       </div>
+    </div>
+    <div class="section-footer">
+      <!-- 底部插槽 -->
+      <slot name="footer"></slot>
     </div>
   </div>
 </template>
@@ -39,6 +49,16 @@ defineProps<{
 
 defineEmits<{
   (e: 'manage'): void;
+}>();
+
+defineSlots<{
+  icon?: (props: { }) => any;
+  content?: (props: { }) => any;
+  actions?: (props: { }) => any;
+  empty?: (props: { }) => any;
+  customActions?: (props: { }) => any;
+  'title-suffix'?: (props: { }) => any;
+  footer?: (props: { }) => any;
 }>();
 </script>
 
@@ -77,6 +97,10 @@ defineEmits<{
 
   .section-content {
     position: relative;
+  }
+
+  .section-footer {
+    margin-top: 16px;
   }
 
   .empty-hint {

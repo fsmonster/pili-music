@@ -1,34 +1,70 @@
 <template>
-  <ContentSection title="订阅合集" :show-manage="true" @manage="showManageDialog = true">
+  <ContentSection 
+    title="订阅合集" 
+    :show-manage="true" 
+    :isEmpty="!seasonStore.seasons.length && !seasonStore.loading"
+    @manage="showManageDialog = true"
+  >
     <template #icon>
       <i class="ri-stack-line"></i>
     </template>
-    <div class="music-grid">
-      <div 
-        v-for="item in seasonStore.seasons" 
-        :key="item.id" 
-        class="music-item"
-        @click="goToPlaylist(item.id)"
-      >
-        <div class="cover">
-          <el-skeleton v-if="seasonStore.loading || !item.cover" :rows="1" animated>
-          </el-skeleton>
-          <img v-else :src="processResourceUrl(item.cover)" :alt="item.title">
-        </div>
-        <div class="info">
-          <div class="title">{{ item.title }}</div>
-          <div class="count">{{ item.media_count }}个内容</div>
+
+    <!-- 标题后缀 -->
+    <template #title-suffix>
+      <span class="count-badge" v-if="seasonStore.seasons.length">
+        {{ seasonStore.seasons.length }}
+      </span>
+    </template>
+
+    <!-- 自定义操作按钮 -->
+    <template #customActions>
+
+    </template>
+
+    <template #content>
+      <div class="music-grid">
+        <div 
+          v-for="item in seasonStore.seasons" 
+          :key="item.id" 
+          class="music-item"
+          @click="goToPlaylist('season', item.id)"
+        >
+          <div class="cover">
+            <el-skeleton v-if="seasonStore.loading || !item.cover" :rows="1" animated>
+            </el-skeleton>
+            <img v-else :src="processResourceUrl(item.cover)" :alt="item.title">
+            <div class="play-overlay">
+              <i class="ri-play-fill"></i>
+            </div>
+          </div>
+          <div class="info">
+            <div class="title">{{ item.title }}</div>
+            <div class="count">{{ item.media_count }}个内容</div>
+          </div>
         </div>
       </div>
+    </template>
 
-      <!-- 无订阅时的提示 -->
-      <div v-if="!seasonStore.seasons.length && !seasonStore.loading" class="empty-tip">
-        <p>还没有订阅的合集</p>
+    <!-- 空状态提示 -->
+    <template #empty>
+      <div class="empty-tip">
+        <p>点击右上角的<i class="ri-settings-3-line"></i>添加订阅合集</p>
       </div>
-    </div>
+    </template>
 
-    <!-- 管理对话框 -->
-    <el-dialog 
+    <!-- 底部内容 -->
+    <template #footer v-if="seasonStore.seasons.length > 9">
+      <div class="view-more">
+        <el-button link type="primary" @click="showManageDialog = true">
+          查看更多订阅合集
+          <i class="ri-arrow-right-line"></i>
+        </el-button>
+      </div>
+    </template>
+  </ContentSection>
+
+      <!-- 管理对话框 -->
+      <el-dialog 
       v-model="showManageDialog" 
       title="管理订阅合集" 
       width="500px"
@@ -52,7 +88,6 @@
         <el-button type="primary" @click="saveSubscriptionsSettings">确定</el-button>
       </template>
     </el-dialog>
-  </ContentSection>
 </template>
 
 <script setup lang="ts">
@@ -72,8 +107,8 @@ const showManageDialog = ref(false);
 const checkedSeasons = ref<number[]>([]);
 
 // 跳转到播放列表
-const goToPlaylist = (id: number) => {
-  router.push(`/playlist/${id}/season`);
+const goToPlaylist = (type: 'favorite' | 'season', id: number) => {
+  router.push(`/playlist/${type}/${id}`);
 };
 
 // 打开管理对话框时，初始化选中状态
@@ -117,10 +152,11 @@ defineExpose({
 
 .empty-tip {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: var(--el-text-color-secondary);
+  padding: 40px;
 
   p {
     margin: 0 0 16px;
@@ -142,5 +178,19 @@ defineExpose({
       margin-left: 4px;
     }
   }
+}
+
+.count-badge {
+  background-color: var(--el-color-primary-light-8);
+  color: var(--el-color-primary);
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+.view-more {
+  text-align: center;
+  margin-top: 8px;
 }
 </style>

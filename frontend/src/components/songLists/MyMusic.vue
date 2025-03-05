@@ -14,47 +14,49 @@
     </template>
     
     <!-- 歌单列表 -->
-    <div class="music-grid">
-      <!-- 最近播放 -->
-      <div class="music-item">
-        <div class="cover">
-          <img :src="loveCover" alt="最近播放">
-          <div class="play-overlay">
-            <i class="ri-play-circle-fill"></i>
+    <template #content>
+      <div class="music-grid">
+        <!-- 最近播放 -->
+        <div class="music-item">
+          <div class="cover">
+            <img :src="loveCover" alt="最近播放">
+            <div class="play-overlay">
+              <i class="ri-play-circle-fill"></i>
+            </div>
+          </div>
+          <div class="info">
+            <div class="title">最近播放</div>
+            <div class="count">{{ likedSongs.length }}首歌曲</div>
           </div>
         </div>
-        <div class="info">
-          <div class="title">最近播放</div>
-          <div class="count">{{ likedSongs.length }}首歌曲</div>
-        </div>
-      </div>
-      <!-- 我喜欢的音乐 -->
-      <div class="music-item">
-        <div class="cover">
-          <img :src="loveCover" alt="我喜欢的音乐">
-          <div class="play-overlay">
-            <i class="ri-play-circle-fill"></i>
+        <!-- 我喜欢的音乐 -->
+        <div class="music-item">
+          <div class="cover">
+            <img :src="loveCover" alt="我喜欢的音乐">
+            <div class="play-overlay">
+              <i class="ri-play-circle-fill"></i>
+            </div>
+          </div>
+          <div class="info">
+            <div class="title">我的喜欢</div>
+            <div class="count">{{ likedSongs.length }}首歌曲</div>
           </div>
         </div>
-        <div class="info">
-          <div class="title">我的喜欢</div>
-          <div class="count">{{ likedSongs.length }}首歌曲</div>
-        </div>
-      </div>
-      <!-- 其他歌单 -->
-      <div v-for="playlist in playlists" :key="playlist.id" class="music-item">
-        <div class="cover">
-          <img :src="playlist.cover" :alt="playlist.title">
-          <div class="play-overlay">
-            <i class="ri-play-circle-fill"></i>
+        <!-- 其他歌单 -->
+        <div v-for="playlist in playlists" :key="playlist.id" class="music-item">
+          <div class="cover">
+            <img :src="playlist.cover" :alt="playlist.title">
+            <div class="play-overlay">
+              <i class="ri-play-circle-fill"></i>
+            </div>
+          </div>
+          <div class="info">
+            <div class="title">{{ playlist.title }}</div>
+            <div class="count">{{ playlist.count }}首歌曲</div>
           </div>
         </div>
-        <div class="info">
-          <div class="title">{{ playlist.title }}</div>
-          <div class="count">{{ playlist.count }}首歌曲</div>
-        </div>
       </div>
-    </div>
+    </template>
 
     <!-- 创建歌单对话框 -->
     <el-dialog v-model="showCreateDialog" title="创建歌单" width="400px">

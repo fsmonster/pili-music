@@ -18,16 +18,16 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
-        configure: (proxy, options) => {
+        configure: (proxy, _options) => {
           // 代理配置
-          proxy.on('proxyReq', (proxyReq, req, res) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
             // 将前端的 cookie 传递给后端
             if (req.headers.cookie) {
               proxyReq.setHeader('Cookie', req.headers.cookie);
             }
           });
 
-          proxy.on('proxyRes', (proxyRes, req, res) => {
+          proxy.on('proxyRes', (proxyRes, _req, _res) => {
             // 将后端的 cookie 传递给前端
             const cookies = proxyRes.headers['set-cookie'];
             if (cookies) {

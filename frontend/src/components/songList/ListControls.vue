@@ -25,7 +25,7 @@ defineProps<{
   disabled?: boolean
 }>();
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'play-all'): void
 }>();
 </script>
