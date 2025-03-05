@@ -1,0 +1,8 @@
+{
+  "builds": [
+    {
+      "src": "docker-compose.yml",
+      "use": "@zeabur/docker-compose"
+    }
+  ]
+}

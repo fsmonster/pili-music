@@ -15,12 +15,21 @@ import playRoutes from './routes/play.js'; // 新增音频代理路由
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 环境变量
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const CORS_ORIGIN = NODE_ENV === 'production' 
+  ? ['https://your-zeabur-domain.zeabur.app', 'http://localhost', 'http://localhost:80'] 
+  : 'http://localhost:5173';
+
 // 基础中间件
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite 默认端口
+  origin: CORS_ORIGIN,
   credentials: true // 允许跨域携带 cookie
 }));
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // 在生产环境中可能需要配置CSP
+  crossOriginEmbedderPolicy: false
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
@@ -59,6 +68,11 @@ const biliProxy = createProxyMiddleware({
 
 app.use('/api/bilibili', biliProxy);
 
+// 健康检查端点 - 用于Zeabur监控
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // 错误处理中间件
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -66,5 +80,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT} in ${NODE_ENV} mode`);
 });

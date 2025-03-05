@@ -91,5 +91,22 @@ export default defineConfig({
         }
       }
     }
+  },
+  // 生产环境配置
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    // 生成环境移除 console 和 debugger
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    // 设置静态资源的基础路径
+    // 在生产环境中，资源将从 /assets/ 路径加载
+    // 这与 Nginx 配置中的路径对应
+    assetsInlineLimit: 4096,
   }
 })
