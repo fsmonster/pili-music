@@ -6,13 +6,38 @@
 
 - 前端避免在frontend下在创建一个frontend名称的项目
 
-#### 前端：
+### 前端：
 - **Vue**：用于构建用户界面。
 - **Pinia**：状态管理工具。
 - **Element Plus**：UI 组件库。
 - **Remix Icons**：图标库。
 - **TypeScript**：增强代码的类型安全性。
 
-#### 后端：
-- **Koa**：Node.js Web 框架，处理后端逻辑。
+### 后端：
+- **express**：Node.js Web 框架，处理后端逻辑。
 - **MongoDB** 和 **Mongoose**：数据库，用于存储用户数据和收藏夹信息。
+
+### api参考
+- WBI 签名
+	- [WBI 签名 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/misc/sign/wbi.html) 
+	- [登录基本信息 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/login/login_info.html) - img_url、sub_url截取文件名=>img_key、sub_key
+- web登录
+	- [登录操作 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/login/login_action/) 
+	- [二维码登录 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/login/login_action/QR.html) 
+	- ~~[短信登录 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/login/login_action/SMS.html)~~ 
+	- ~~[密码登录 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/login/login_action/password.html#%E6%89%8B%E6%9C%BA%E5%8F%B7%E9%AA%8C%E8%AF%81)~~ 
+- 收藏夹
+	- [收藏夹基本信息 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/fav/info.html#%E8%8E%B7%E5%8F%96%E6%8C%87%E5%AE%9A%E7%94%A8%E6%88%B7%E5%88%9B%E5%BB%BA%E7%9A%84%E6%89%80%E6%9C%89%E6%94%B6%E8%97%8F%E5%A4%B9%E4%BF%A1%E6%81%AF) 获得用户所有收藏夹
+	- [收藏夹基本信息 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/fav/info.html#%E8%8E%B7%E5%8F%96%E6%94%B6%E8%97%8F%E5%A4%B9%E5%85%83%E6%95%B0%E6%8D%AE)  获取收藏夹元数据
+	- 内容
+		- [收藏夹内容 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/fav/list.html#%E8%8E%B7%E5%8F%96%E6%94%B6%E8%97%8F%E5%A4%B9%E5%86%85%E5%AE%B9%E6%98%8E%E7%BB%86%E5%88%97%E8%A1%A8) - 获取收藏夹内容明细列表
+		- [收藏夹内容 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/fav/list.html#%E8%8E%B7%E5%8F%96%E6%94%B6%E8%97%8F%E5%A4%B9%E5%85%A8%E9%83%A8%E5%86%85%E5%AE%B9id) - 获取收藏夹全部内容id
+	- 合集
+		- [收藏夹基本信息 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/fav/info.html#%E6%9F%A5%E8%AF%A2%E7%94%A8%E6%88%B7%E6%94%B6%E8%97%8F%E7%9A%84%E8%A7%86%E9%A2%91%E6%94%B6%E8%97%8F%E5%A4%B9) - 合集
+	- [收藏夹基本信息 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/fav/info.html#%E6%89%B9%E9%87%8F%E8%8E%B7%E5%8F%96%E6%8C%87%E5%AE%9A%E6%94%B6%E8%97%8Fid%E7%9A%84%E5%86%85%E5%AE%B9) - 批量获取指定收藏id的内容
+- 视频 - Cookie（SESSDATA）、鉴权方式：Wbi 签名
+	- [视频基本信息 | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/video/info.html#%E6%9F%A5%E8%AF%A2%E8%A7%86%E9%A2%91%E5%88%86p%E5%88%97%E8%A1%A8-avid-bvid%E8%BD%ACcid) 查询视频分P列表 (avid/bvid转cid)
+	- [视频流URL | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/video/videostream_url.html#%E8%8E%B7%E5%8F%96%E8%A7%86%E9%A2%91%E6%B5%81%E5%9C%B0%E5%9D%80-web%E7%AB%AF) - 获取视频流地址_web端
+		- 若视频有分P，仅为单P视频的 url，换P则需传参对应 CID 重新获取
+	- [视频流URL | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/video/videostream_url.html#dash%E6%A0%BC%E5%BC%8F) - dash.audio
+	- [视频流URL | BAC Document](https://socialsisteryi.github.io/bilibili-API-collect/docs/video/videostream_url.html#%E8%A7%86%E9%A2%91%E5%8F%96%E6%B5%81%E8%AF%B4%E6%98%8E) - WEB 端取流需要验证防盗链，即`referer`为 `.bilibili.com`域名下且 UA 不能为空

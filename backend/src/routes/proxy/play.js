@@ -4,6 +4,7 @@ const router = express.Router();
 
 /**
  * @desc 音频流代理接口
+ * @route GET /api/play/url
  * @param {string} url - 音频URL
  * @param {string} range - 前端传来的 Range 头，用于支持 Range 请求
  * @returns {stream} - 音频流
