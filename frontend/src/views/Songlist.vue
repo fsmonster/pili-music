@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
 import { ref, computed, onBeforeMount, onMounted, onUnmounted, nextTick } from 'vue';
-import { useFavoriteStore, useSeasonStore, usePlayerStore } from '../stores';
+import { useFavoriteStore, useSeasonStore, usePlayerStore, usePlaylistStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import MediaTable from '../components/songList/MediaTable.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
@@ -62,6 +62,7 @@ import type { MediaItem } from '../types';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
+const playlistStore = usePlaylistStore();
 
 const { type, id } = route.params;
 
@@ -117,6 +118,19 @@ async function loadContent() {
       await store.value.fetchFavoriteContent(Number(id));
   if (isSeasonStore(type, store.value))
       await store.value.fetchSeasonContent(Number(id));
+}
+
+/**
+ * @desc 移除内容
+ */
+function removeContent() {
+  store.value.items = [];
+  if (isFavoriteStore(type, store.value)) {
+    store.value.currentFavorite = null;
+  } else if (isSeasonStore(type, store.value)) {
+    store.value.currentSeason = null;
+  }
+  console.log(store.value.items);  
 }
 
 // 添加一个标志位，防止连续触发加载
@@ -177,7 +191,7 @@ function handleScroll() {
  */
 function handlePlayAll() {
   if (store.value.items.length > 0) {
-    playerStore.setPlaylist(store.value.items);
+    playlistStore.setPlaylist(store.value.items);
     playerStore.play(store.value.items[0]);
   }
 }
@@ -186,7 +200,7 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  playerStore.setPlaylist(store.value.items);
+  playlistStore.setPlaylist(store.value.items);
   playerStore.play(item);
 }
 
@@ -237,6 +251,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  removeContent();
   window.removeEventListener('resize', handleResize);
 });
 </script>

@@ -20,7 +20,8 @@
 <script setup lang="ts">
 import Sidebar from './Sidebar.vue';
 import Header from './Header.vue';
-import Player from './Player.vue';
+// 使用封装后的Player组件
+import { Player } from '../components/player';
 </script>
 
 <style lang="scss" scoped>

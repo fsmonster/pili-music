@@ -40,43 +40,9 @@ docker-compose logs -f
 docker-compose down
 ```
 
-## Zeabur部署
-
-### 准备工作
-
-1. 注册[Zeabur](https://zeabur.com)账号
-2. 创建一个新项目
-3. 将代码推送到GitHub仓库
-
-### 部署步骤
-
-1. 在Zeabur控制台中，点击"创建服务"
-2. 选择"从GitHub导入"，并选择你的仓库
-3. Zeabur会自动检测到Dockerfile，选择使用Docker部署
-4. 设置环境变量：
-   - `NODE_ENV`: production
-   - `PORT`: 3000（后端服务端口）
-   - 在后端服务的CORS配置中，将你的Zeabur域名添加到允许列表中
-
-### 自定义域名
-
-1. 在Zeabur控制台中，点击"域名"选项卡
-2. 添加你的自定义域名
-3. 按照指引配置DNS记录
-4. 等待DNS生效后，你的应用就可以通过自定义域名访问了
-
-### 注意事项
-
-1. 在生产环境中，请确保更新后端的CORS配置，将你的Zeabur域名添加到允许列表中
-2. 如果遇到跨域问题，请检查Nginx配置和后端CORS配置
-3. B站API可能会有变化，如果遇到API请求失败，请检查B站API的最新文档
-
 ## 技术栈
 
 - 前端: Vue 3, TypeScript, Pinia, Element Plus
 - 后端: Express.js, Axios
-- 部署: Docker, Nginx, Zeabur
+- 部署: Docker, Nginx
 
-## 许可证
-
-MIT

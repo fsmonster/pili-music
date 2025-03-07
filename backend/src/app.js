@@ -16,14 +16,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 环境变量
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const CORS_ORIGIN = NODE_ENV === 'production' 
-  ? ['https://your-zeabur-domain.zeabur.app', 'http://localhost', 'http://localhost:80'] 
-  : 'http://localhost:5173';
+// const NODE_ENV = process.env.NODE_ENV || 'development';
+// const CORS_ORIGIN = NODE_ENV === 'production' 
+//   ? ['https://your-zeabur-domain.zeabur.app', 'http://localhost', 'http://localhost:80'] 
+//   : 'http://localhost:5173';
 
 // 基础中间件
 app.use(cors({
-  origin: CORS_ORIGIN,
+  origin: true,
   credentials: true // 允许跨域携带 cookie
 }));
 app.use(helmet({
@@ -80,5 +80,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT} in ${NODE_ENV} mode`);
+  console.log(`Server is running on port ${PORT} in development mode`);
 });

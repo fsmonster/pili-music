@@ -41,11 +41,13 @@ router.get('/qrcode/status', async (req, res) => {
     if (response.data.code === 0 && response.headers['set-cookie']) {
       // 将 B 站返回的 Cookie 传递给前端
       const cookies = response.headers['set-cookie'].map(cookie => {
+        const domain = req.hostname;
         // 修改 cookie 的 domain 和 path
         return cookie
-          .replace(/Domain=[^;]+/, 'Domain=localhost')
+          .replace(/Domain=[^;]+/, `Domain=${domain}`)
           .replace(/Path=[^;]+/, 'Path=/')
-          .replace(/SameSite=[^;]+/, 'SameSite=Lax');
+          .replace(/SameSite=[^;]+/, 'SameSite=Lax')
+          // .replace(/Secure[^;]*;?/, ''); // 移除 Secure 标志
       });
 
       cookies.forEach(cookie => {
