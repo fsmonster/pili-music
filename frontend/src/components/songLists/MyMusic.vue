@@ -19,7 +19,7 @@
         <!-- 最近播放 -->
         <div class="music-item" @click="navigateToRecentPlays">
           <div class="cover">
-            <img :src="recentCover" alt="最近播放">
+            <img :src="loveCover" alt="最近播放">
             <div class="play-overlay" @click.stop="playAllRecentMusic">
               <i class="ri-play-circle-fill"></i>
             </div>
@@ -91,7 +91,6 @@ import { ElMessage } from 'element-plus';
 import ContentSection from './ContentSection.vue';
 import defaultCover from '@/assets/image/default_cover.avif';
 import loveCover from '@/assets/image/love.avif';
-import recentCover from '@/assets/image/recent.avif';
 import { usePlaylistStore } from '@/stores/list/custom';
 import { useLikeStore } from '@/stores/list/like';
 import { useRecentPlayStore } from '@/stores/list/recentPlay';

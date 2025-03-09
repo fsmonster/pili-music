@@ -17,7 +17,7 @@ import type {
  */
 export async function getRecentPlays(limit: number = 20): Promise<RecentPlay[]> {
     try {
-      const res = await request.get<RecentPlayResponse>('/recentPlay', {
+      const res = await request.get<RecentPlayResponse>('/recent', {
         params: { limit }
       });
       if (res.data.code !== 0) {
@@ -42,17 +42,16 @@ export async function getRecentPlays(limit: number = 20): Promise<RecentPlay[]> 
       const formattedMediaItem = {
         bvid: mediaItem.bvid,
         aid: mediaItem.id,  // 如果id是aid
-        cid: mediaItem.ugc.first_cid,
+        cid: mediaItem.cid,
         title: mediaItem.title,
         cover: mediaItem.cover,
         duration: mediaItem.duration,
         upper: {
           mid: mediaItem.upper.mid,
-          name: mediaItem.upper.name,
-          face: mediaItem.upper.face
+          name: mediaItem.upper.name
         }
       };
-      const res = await request.post<ApiResponse<RecentPlay>>('/recentPlay', formattedMediaItem);
+      const res = await request.post<ApiResponse<RecentPlay>>('/recent', formattedMediaItem);
       if (res.data.code !== 0) {
         throw new Error(res.data.message || '添加最近播放记录失败');
       }

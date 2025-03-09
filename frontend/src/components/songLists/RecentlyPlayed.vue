@@ -4,7 +4,7 @@
     @click="navigateToRecentPlays"
   >
     <div class="cover">
-      <img :src="recentCover" alt="最近播放">
+      <img :src="loveCover" alt="最近播放">
       <div class="play-overlay" @click.stop="playAllRecentMusic">
         <i class="ri-play-circle-fill"></i>
       </div>
@@ -22,7 +22,7 @@ import { useRouter } from 'vue-router';
 import { useRecentPlayStore } from '@/stores/list/recentPlay';
 // import { usePlayerStore } from '@/stores/play/player';
 import { ElMessage } from 'element-plus';
-import recentCover from '@/assets/image/love.avif';
+import loveCover from '@/assets/image/love.avif';
 
 // 引入状态管理
 const recentPlayStore = useRecentPlayStore();

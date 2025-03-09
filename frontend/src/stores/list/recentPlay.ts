@@ -4,7 +4,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { RecentPlay, MediaItem } from '../../types';
-import * as playlistApi from '../../api/custom';
+import * as recentApi from '../../api/recent';
 
 export const useRecentPlayStore = defineStore('recentPlay', () => {
   // 状态
@@ -18,7 +18,7 @@ export const useRecentPlayStore = defineStore('recentPlay', () => {
     error.value = null;
     
     try {
-      const data = await playlistApi.getRecentPlays(limit);
+      const data = await recentApi.getRecentPlays(limit);
       recentPlays.value = data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : '获取最近播放记录失败';
@@ -34,7 +34,7 @@ export const useRecentPlayStore = defineStore('recentPlay', () => {
     error.value = null;
     
     try {
-      const data = await playlistApi.addRecentPlay(mediaItem);
+      const data = await recentApi.addRecentPlay(mediaItem);
       
       // 更新本地缓存
       const index = recentPlays.value.findIndex(

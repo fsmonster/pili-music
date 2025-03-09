@@ -9,7 +9,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 /**
- * @route   GET /api/recent-play
+ * @route   GET /api/recent
  * @desc    获取用户的最近播放记录
  * @access  Private - 需要登录
  */
@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * @route   POST /api/recent-play
+ * @route   POST /api/recent
  * @desc    添加或更新播放记录
  * @param {Object} mediaData - 媒体数据
  * @access  Private - 需要登录
@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
 });
 
 /**
- * @route   DELETE /api/recent-play/:bvid
+ * @route   DELETE /api/recent/:bvid
  * @desc    删除单条播放记录
  * @access  Private - 需要登录
  */
@@ -89,7 +89,7 @@ router.delete('/:bvid', async (req, res) => {
 });
 
 /**
- * @route   DELETE /api/recent-play
+ * @route   DELETE /api/recent
  * @desc    清空所有播放记录
  * @access  Private - 需要登录
  */

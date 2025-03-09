@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElDialog, ElMessage, ElCheckbox, ElCheckboxGroup, ElButton } from 'element-plus';
 import ContentSection from './ContentSection.vue';
@@ -138,6 +138,11 @@ const saveFavoritesSettings = async () => {
 //   // 获取所有收藏夹列表
 //   await favoriteStore.fetchFavorites();
 // });
+
+onMounted(async () => {
+  // 获取收藏夹列表
+  await favoriteStore.fetchFavorites();
+});
 
 watch(()=> userStore.isLoggedIn, async (newVal) => {
   if (newVal) {

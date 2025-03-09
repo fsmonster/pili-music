@@ -10,12 +10,10 @@ router.use(authMiddleware);
 /**
  * @route   GET /api/favorite/list
  * @desc    获取用户收藏夹列表
- * @param {number} up_mid - 用户ID
  * @access  Private - 需要JWT认证
  */
 router.get('/list', async (req, res) => {
   try {
-    console.log('😀😀😀😀😀😀😀😀req:', req);
     
     const { sessdata } = req.user;
     
