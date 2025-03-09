@@ -1,4 +1,4 @@
-import CustomPlaylist from '../models/CustomPlaylist.js';
+import CustomPlaylist from '../models/custom.js';
 
 /**
  * @desc 获取用户的所有自建歌单
@@ -8,6 +8,7 @@ import CustomPlaylist from '../models/CustomPlaylist.js';
 export const getUserPlaylists = async (userId) => {
   try {
     const playlists = await CustomPlaylist.find({ userId }).sort({ updatedAt: -1 });
+    console.log('获取用户歌单:', playlists);    
     return playlists;
   } catch (error) {
     console.error('获取用户歌单失败:', error);

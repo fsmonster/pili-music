@@ -10,6 +10,7 @@
           <img :src="avatar" :alt="userStore.username" />
           <span class="username">{{ userStore.username }}</span>
         </div>
+
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="handleLogout">
@@ -21,15 +22,15 @@
       </el-dropdown>
       <div v-else class="user-avatar">
         <img :src="defaultAvatar" alt="默认头像" />
-        <el-button
+      </div>
+      <el-button
           class="login-btn"
           type="primary"
-          link
+          v-if="!userStore.isLoggedIn"
           @click="handleLogin"
         >
           登录
         </el-button>
-      </div>
     </div>
   </div>
 </template>

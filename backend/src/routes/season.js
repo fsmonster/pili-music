@@ -1,24 +1,19 @@
 import express from 'express';
 import axios from 'axios';
+import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
+
+// 应用认证中间件到需要认证的路由
+router.use('/season', authMiddleware);
 
 /**
  * @route   GET /api/season/collected/list
  * @desc    获取用户订阅的合集列表
- * @access  Private - 需要SESSDATA
+ * @access  Private - 需要JWT认证
  */
 router.get('/collected/list', async (req, res) => {
-  
     try {
-      const { SESSDATA } = req.cookies;
-      if (!SESSDATA) {
-        return res.status(401).json({ 
-          code: 401, 
-          message: '未登录或登录已过期' 
-        });
-      }
-  
       const { pn , ps , up_mid='' } = req.query;
   
       // 调用B站API获取订阅合集列表
@@ -30,7 +25,6 @@ router.get('/collected/list', async (req, res) => {
           platform:'web'
         },
         headers: {
-          Cookie: `SESSDATA=${SESSDATA}`,
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
       });

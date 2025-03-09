@@ -18,25 +18,11 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
+        // 简化代理配置，移除 Cookie 相关处理
         configure: (proxy, _options) => {
-          // 代理配置
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            // 将前端的 cookie 传递给后端
-            if (req.headers.cookie) {
-              proxyReq.setHeader('Cookie', req.headers.cookie);
-            }
-          });
-
-          proxy.on('proxyRes', (proxyRes, _req, _res) => {
-            // 将后端的 cookie 传递给前端
-            const cookies = proxyRes.headers['set-cookie'];
-            if (cookies) {
-              // 修改 cookie 的 SameSite 属性为 Lax
-              const modifiedCookies = cookies.map(cookie =>
-                cookie.replace(/^SameSite=\w+/, 'SameSite=Lax')
-              );
-              proxyRes.headers['set-cookie'] = modifiedCookies;
-            }
+          // JWT 认证不需要处理 Cookie
+          proxy.on('error', (err, _req, _res) => {
+            console.error('代理请求错误:', err);
           });
         }
       },

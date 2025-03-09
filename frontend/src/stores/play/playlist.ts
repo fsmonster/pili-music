@@ -51,7 +51,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
   }
 
   // 设置音频URL
-  function setAudioUrl(url: string) {
+  function setAudioUrl(url: string) {  
     audioUrl.value = url;
   }
 

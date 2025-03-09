@@ -1,4 +1,4 @@
-import RecentPlay from '../models/RecentPlay.js';
+import RecentPlay from '../models/recent.js';
 
 /**
  * @desc 获取用户的最近播放记录
@@ -22,10 +22,9 @@ export const getUserRecentPlays = async (userId, limit = 100) => {
  * @desc 添加或更新播放记录
  * @param {String} userId - 用户ID
  * @param {Object} mediaData - 媒体数据
- * @param {Number} progress - 播放进度(秒)
  * @returns {Object} 更新后的播放记录
  */
-export const addOrUpdateRecentPlay = async (userId, mediaData, progress = 0) => {
+export const addOrUpdateRecentPlay = async (userId, mediaData) => {
   try {
     const { bvid, aid, cid, title, cover, duration, upper } = mediaData;
     
@@ -33,13 +32,11 @@ export const addOrUpdateRecentPlay = async (userId, mediaData, progress = 0) => 
     let recentPlay = await RecentPlay.findOne({ userId, bvid });
     
     if (recentPlay) {
-      // 如果已存在，更新播放时间和进度
+      // 如果已存在，更新播放时间
       recentPlay = await RecentPlay.findOneAndUpdate(
         { userId, bvid },
         { 
           playedAt: new Date(),
-          progress,
-          // 更新其他可能变化的信息
           title,
           cover,
           duration,
@@ -57,7 +54,6 @@ export const addOrUpdateRecentPlay = async (userId, mediaData, progress = 0) => 
         title,
         cover,
         duration,
-        progress,
         upper,
         playedAt: new Date()
       });

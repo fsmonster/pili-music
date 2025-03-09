@@ -1,15 +1,4 @@
 /**
- * 用户信息
- */
-export interface UserInfo {
-    isLogin: boolean;
-    mid: number;        // 用户 ID
-    uname: string;      // 用户名
-    face: string;       // 头像 URL
-    level: number;      // 等级
-}
-
-/**
  * 二维码状态枚举
  */
 export enum QRCodeStatus {
@@ -36,13 +25,6 @@ export interface QRCodeStatusData {
     timestamp: number;     // 时间戳
     code: number;         // 二维码状态码
     message: string;      // 状态描述
+    token?: string;       // JWT 令牌
 }
 
-/**
- * API 响应格式
- */
-export interface APIResponse<T> {
-    code: number;
-    message: string;
-    data: T;
-}

@@ -4,10 +4,13 @@ import type { MediaItem } from '../../types';
 import { getVideoInfo, getAudioUrl } from '../../api';
 import { processResourceUrl } from '../../utils';
 import { usePlaylistStore } from './playlist';
+import { useRecentPlayStore } from '../list/recentPlay'; // 导入最近播放 store
 
 export const usePlayerStore = defineStore('player', () => {
   // 获取播放列表存储
   const playlistStore = usePlaylistStore();
+  // 获取最近播放记录存储
+  const recentPlayStore = useRecentPlayStore();
   
   // 音频实例
   const audio = new Audio();
@@ -57,6 +60,14 @@ export const usePlayerStore = defineStore('player', () => {
     if (item) {
       playlistStore.setCurrentTrack(item);
       audioLoaded.value = false; // 新的播放项需要重新加载
+      
+      // 添加到最近播放记录
+      try {
+        await recentPlayStore.addRecentPlay(item);
+      } catch (error) {
+        console.error('添加最近播放记录失败:', error);
+        // 不影响正常播放流程，所以不抛出异常
+      }
     }
 
     const currentItem = playlistStore.currentItem;
@@ -75,7 +86,7 @@ export const usePlayerStore = defineStore('player', () => {
             avid: currentItem.id,
             cid,
           });      
-          
+                    
           if (url) {
             // 使用 processResourceUrl 处理 URL，通过后端代理
             const processedUrl = processResourceUrl(url);
@@ -146,8 +157,8 @@ export const usePlayerStore = defineStore('player', () => {
         if (!playing.value) {
           loading.value = false;
           return;
-        }
-        
+    }
+    
         // 如果是播放状态，确保继续播放
         try {
           await audio.play();
@@ -210,4 +221,6 @@ export const usePlayerStore = defineStore('player', () => {
     // 播放列表方法
     setPlaylist: playlistStore.setPlaylist,
   };
+}, { 
+  persist: true
 });

@@ -28,15 +28,20 @@ export const verifyToken = (token) => {
 };
 
 /**
- * 从请求头中提取 token
+ * 从请求中提取 token
  * @param {Object} req - Express 请求对象
  * @returns {string|null} JWT token 或 null
  */
 export const getTokenFromRequest = (req) => {
+  // 1. 首先尝试从 Authorization 头中获取
   const authHeader = req.headers.authorization;
-  
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
+  }
+  
+  // 2. 如果没有 Authorization 头，尝试从 URL 参数中获取
+  if (req.query && req.query.token) {
+    return req.query.token;
   }
   
   return null;

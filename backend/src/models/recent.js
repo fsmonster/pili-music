@@ -38,10 +38,6 @@ const RecentPlaySchema = new mongoose.Schema({
     type: Date, 
     default: Date.now 
   }, // 播放时间
-  progress: { 
-    type: Number, 
-    default: 0 
-  }, // 播放进度(秒)
   
   // UP主信息
   upper: {

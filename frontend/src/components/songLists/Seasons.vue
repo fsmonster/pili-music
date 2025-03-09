@@ -71,7 +71,7 @@
       :close-on-click-modal="false"
       @open="onDialogOpen"
     >
-      <div class="subscriptions-manage">
+      <div class="seasons-manage">
         <el-checkbox-group v-model="checkedSeasons">
           <el-checkbox 
             v-for="item in seasonStore.allSeasons" 
@@ -163,7 +163,7 @@ defineExpose({
   }
 }
 
-.subscriptions-manage {
+.seasons-manage {
   max-height: 400px;
   overflow-y: auto;
   padding: 0 20px;

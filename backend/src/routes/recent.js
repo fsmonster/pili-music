@@ -37,15 +37,17 @@ router.get('/', async (req, res) => {
 /**
  * @route   POST /api/recent-play
  * @desc    添加或更新播放记录
+ * @param {Object} mediaData - 媒体数据
  * @access  Private - 需要登录
  */
 router.post('/', async (req, res) => {
+  console.log('添加播放记录:', req.body);  
   try {
     const { uid } = req.user;
-    const { mediaData, progress } = req.body;
+    const { mediaData } = req.body;
     
     // 添加或更新播放记录
-    const recentPlay = await recentPlayController.addOrUpdateRecentPlay(uid, mediaData, progress);
+    const recentPlay = await recentPlayController.addOrUpdateRecentPlay(uid, mediaData);
     
     res.status(201).json({
       code: 0,

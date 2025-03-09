@@ -1,3 +1,5 @@
+import { getToken } from './token';
+
 /**
  * 处理B站 i0~i2 域名的图片URL，将原始URL转换为本地代理URL
  * @param url B站 i0~i2 域名的原始图片URL
@@ -51,8 +53,12 @@ function processBiliAudioUrl(url: string): string {
     // 检查URL是否有效
     if (!url) return '';
     
+    // 获取JWT令牌
+    const token = getToken();
+    
     // 将完整的原始URL作为参数传递给后端代理接口
-    return `/api/play/url?url=${encodeURIComponent(url)}`;
+    // 如果有令牌，则添加到URL中
+    return `/api/play/url?url=${encodeURIComponent(url)}&token=${token}`;
 }
 
 /**

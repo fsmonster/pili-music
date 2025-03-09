@@ -5,7 +5,7 @@
         <!-- <RecentlyPlayed /> -->
         <MyMusic />
         <Favorites />
-        <Subscriptions />
+        <Seasons />
       </div>
     </template>
   </Layout>
@@ -15,7 +15,7 @@
 import Layout from '../layout/Layout.vue';
 // import RecentlyPlayed from '../components/songLists/RecentlyPlayed.vue';
 import Favorites from '../components/songLists/Favorites.vue';
-import Subscriptions from '../components/songLists/Subscriptions.vue';
+import Seasons from '../components/songLists/Seasons.vue';
 import MyMusic from '../components/songLists/MyMusic.vue';
 </script>
 

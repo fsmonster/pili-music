@@ -1,4 +1,4 @@
-import Like from '../models/Like.js';
+import Like from '../models/like.js';
 
 /**
  * @desc 获取用户喜欢的所有媒体

@@ -1,5 +1,6 @@
 import express from 'express';
 import axios from 'axios';
+
 const router = express.Router();
 
 /**
@@ -7,9 +8,13 @@ const router = express.Router();
  * @route GET /api/play/url
  * @param {string} url - 音频URL
  * @param {string} range - 前端传来的 Range 头，用于支持 Range 请求
+ * @param {string} token - 令牌
  * @returns {stream} - 音频流
+ * @access Public - 不需要JWT认证
  */
 router.get("/url", async (req, res) => {
+  console.log("用户信息:", JSON.stringify(req.user));
+
   const { url } = req.query;
   const range = req.headers.range; // 获取前端传来的 Range 头
 
@@ -22,8 +27,26 @@ router.get("/url", async (req, res) => {
     const headers = {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      Referer: "https://www.bilibili.com",
+      "Referer": "http://www.bilibili.com",
     };
+    
+    // 尝试从 JWT 中获取 SESSDATA
+    // 如果请求中有 token 参数，则解析它
+    if (req.query.token) {
+      try {
+        const decoded = JSON.parse(Buffer.from(req.query.token.split('.')[1], 'base64').toString());
+        if (decoded && decoded.sessdata) {
+          headers.Cookie = `SESSDATA=${decoded.sessdata}`;
+          console.log("从令牌中提取到 SESSDATA");
+        }
+      } catch (err) {
+        console.error("解析令牌失败:", err.message);
+      }
+    }
+    
+    // 调试信息：打印请求头
+    console.log("请求头:", JSON.stringify(headers));
+    
     if (range) {
       headers.Range = range; // 透传前端的 Range 请求头
     }
@@ -52,6 +75,14 @@ router.get("/url", async (req, res) => {
     audioStreamResponse.data.pipe(res);
   } catch (error) {
     console.error("获取音频流失败:", error.message);
+    
+    // 更详细的错误信息
+    if (error.response) {
+      console.error("错误状态码:", error.response.status);
+      console.error("错误响应头:", JSON.stringify(error.response.headers));
+      console.error("错误响应数据:", error.response.data);
+    }
+    
     res.status(500).json({ error: "获取音频流失败" });
   }
 });

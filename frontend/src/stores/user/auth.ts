@@ -1,24 +1,32 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { QRCodeStatusData, UserInfo } from '../../types';
+import type { QRCodeStatusData, BiliUserInfo } from '../../types';
 import { QRCodeStatus } from '../../types';
 import { authApi } from '../../api/auth';
 import { useUserStore } from './user';
+import { setToken, getToken, removeToken, parseToken, isTokenExpired } from '../../utils/token';
 
 /**
  * 认证状态管理
  */
 export const useAuthStore = defineStore('auth', () => {
     // 状态
-    const userInfo = ref<UserInfo | null>(null);
+    const userInfo = ref<BiliUserInfo | null>(null);
     const qrCodeStatus = ref<QRCodeStatus>(QRCodeStatus.PENDING);
     const qrCodeKey = ref<string>('');
     const qrCodeUrl = ref<string>('');
     const pollingTimer = ref<number | null>(null);
     const userStore = useUserStore();
+    const token = ref<string | null>(getToken());
 
     // 计算属性
-    const isLoggedIn = computed(() => userInfo.value?.isLogin ?? false);
+    const isLoggedIn = computed(() => {
+        // 检查 token 是否存在且未过期
+        if (token.value && !isTokenExpired(token.value)) {
+            return true;
+        }
+        return false;
+    });
 
     // 方法
     /**
@@ -52,6 +60,12 @@ export const useAuthStore = defineStore('auth', () => {
         // 已确认
         if (qrData.code === QRCodeStatus.CONFIRMED) {
             console.log('auth store: 二维码已确认，获取用户信息');
+            
+            // 如果 qrData 中包含 token，存储它
+            if (qrData.token) {
+                setTokenAndUpdateState(qrData.token);
+            }
+            
             await getUserInfo();
             stopPolling();
             console.log('auth store: 登录流程完成');
@@ -94,7 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
      * 获取用户信息
      */
     async function getUserInfo() {
-        const response: UserInfo = await authApi.getUserInfo();
+        const response: BiliUserInfo = await authApi.getUserInfo();
         userInfo.value = response;
         // 同步更新user store
         userStore.setUserInfo(response);
@@ -102,27 +116,82 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     /**
+     * 设置令牌并更新状态
+     */
+    function setTokenAndUpdateState(newToken: string) {
+        token.value = newToken;
+        setToken(newToken);
+        
+        // 尝试从令牌中解析基本用户信息
+        const payload = parseToken(newToken);
+        if (payload && payload.uid) {
+            // 可以从令牌中获取一些基本信息
+            console.log('从令牌中获取用户ID:', payload.uid);
+        }
+    }
+
+    /**
+     * 刷新令牌
+     */
+    async function refreshToken() {
+        try {
+            const newToken = await authApi.refreshToken();
+            setTokenAndUpdateState(newToken);
+            return true;
+        } catch (error) {
+            console.error('刷新令牌失败:', error);
+            logout();
+            return false;
+        }
+    }
+
+    /**
      * 登出
      */
-    function logout() {
-        userInfo.value = null;
-        qrCodeStatus.value = QRCodeStatus.PENDING;
-        qrCodeKey.value = '';
-        qrCodeUrl.value = '';
-        stopPolling();
-        // 同步登出user store
-        userStore.logout();
+    async function logout() {
+        try {
+            if (isLoggedIn.value) {
+                await authApi.logout();
+            }
+        } catch (error) {
+            console.error('登出请求失败:', error);
+        } finally {
+            // 无论请求成功与否，都清除本地状态
+            userInfo.value = null;
+            qrCodeStatus.value = QRCodeStatus.PENDING;
+            qrCodeKey.value = '';
+            qrCodeUrl.value = '';
+            token.value = null;
+            removeToken();
+            stopPolling();
+            // 同步登出user store
+            userStore.logout();
+        }
     }
 
     /**
      * 初始化：检查登录状态
      */
     async function init() {
-        try {
-            await getUserInfo();
-        } catch (error) {
-            console.error('初始化检查登录状态失败:', error);
-            logout();
+        // 检查是否有令牌
+        if (token.value) {
+            // 检查令牌是否过期
+            if (isTokenExpired(token.value)) {
+                // 令牌过期，尝试刷新
+                const refreshSuccess = await refreshToken();
+                if (!refreshSuccess) {
+                    logout();
+                    return;
+                }
+            }
+            
+            try {
+                // 获取用户详细信息
+                await getUserInfo();
+            } catch (error) {
+                console.error('初始化检查登录状态失败:', error);
+                logout();
+            }
         }
     }
 
@@ -133,6 +202,7 @@ export const useAuthStore = defineStore('auth', () => {
         qrCodeKey,
         qrCodeUrl,
         isLoggedIn,
+        token,
 
         // 方法
         getQRCode,
@@ -140,6 +210,7 @@ export const useAuthStore = defineStore('auth', () => {
         startPolling,
         stopPolling,
         getUserInfo,
+        refreshToken,
         logout,
         init
     };

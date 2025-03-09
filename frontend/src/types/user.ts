@@ -13,7 +13,7 @@ export interface BiliUserInfo {
  * 本地存储的精简用户状态
  * 只保存必要的用户信息，减少存储空间占用
  */
-export interface UserState {
+export interface UserInfo {
     isLoggedIn: boolean
     userInfo: {
         avatar: string    // 经过处理的头像URL（已转换为代理URL）

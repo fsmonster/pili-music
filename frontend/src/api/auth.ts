@@ -2,7 +2,7 @@ import request from '../utils/request';
 import type { 
     QRCodeGenerateData, 
     QRCodeStatusData, 
-    UserInfo, 
+    BiliUserInfo, 
     ApiResponse 
 } from '../types';
 
@@ -50,13 +50,45 @@ export const authApi = {
      */
     async getUserInfo(){
         try {
-            const response = await request.get<ApiResponse<UserInfo>>('/auth/user/info');
+            const response = await request.get<ApiResponse<BiliUserInfo>>('/auth/user/info');
             if(response.data.code !== 0) {
                 throw new Error(response.data.message || '获取用户信息失败');
             }
             return response.data.data;
         } catch (error) {
             console.error('获取用户信息失败:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * 刷新 JWT 令牌
+     */
+    async refreshToken() {
+        try {
+            const response = await request.post<ApiResponse<{token: string}>>('/auth/refresh');
+            if(response.data.code !== 0) {
+                throw new Error(response.data.message || '刷新令牌失败');
+            }
+            return response.data.data.token;
+        } catch (error) {
+            console.error('刷新令牌失败:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * 登出
+     */
+    async logout() {
+        try {
+            const response = await request.post<ApiResponse<null>>('/auth/logout');
+            if(response.data.code !== 0) {
+                throw new Error(response.data.message || '登出失败');
+            }
+            return true;
+        } catch (error) {
+            console.error('登出失败:', error);
             throw error;
         }
     }

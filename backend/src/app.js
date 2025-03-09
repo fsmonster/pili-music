@@ -12,21 +12,15 @@ import { connectDB } from './models/db.js';
 import authRoutes from './routes/auth.js';
 import favoriteRoutes from './routes/favorite.js'; // 新增收藏夹路由
 import seasonRoutes from './routes/season.js'; // 新增合集路由
-import infoRoutes from './routes/info.js'; // 新增视频信息路由
+import infoRoutes from './routes/audioInfo.js'; // 新增音频信息路由
 import playRoutes from './routes/play.js'; // 新增音频代理路由
 import userRoutes from './routes/user.js'; // 用户路由
-import playlistRoutes from './routes/playlist.js'; // 自建歌单路由
-import recentPlayRoutes from './routes/recentPlay.js'; // 最近播放记录路由
+import customRoutes from './routes/custom.js'; // 自建歌单路由
+import recentPlayRoutes from './routes/recent.js'; // 最近播放记录路由
 import likeRoutes from './routes/like.js'; // 我的喜欢路由
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// 环境变量
-// const NODE_ENV = process.env.NODE_ENV || 'development';
-// const CORS_ORIGIN = NODE_ENV === 'production' 
-//   ? ['https://your-zeabur-domain.zeabur.app', 'http://localhost', 'http://localhost:80'] 
-//   : 'http://localhost:5173';
 
 // 基础中间件
 app.use(cors({
@@ -52,11 +46,11 @@ app.use(limiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/favorite', favoriteRoutes); // 注册收藏夹路由
 app.use('/api/season', seasonRoutes); // 注册合集路由
-app.use('/api/info', infoRoutes); // 注册视频信息路由
+app.use('/api/audioInfo', infoRoutes); // 注册音频信息路由
 app.use('/api/play', playRoutes); // 注册音频代理路由
 app.use('/api/user', userRoutes); // 注册用户路由
-app.use('/api/playlist', playlistRoutes); // 注册自建歌单路由
-app.use('/api/recentPlay', recentPlayRoutes); // 注册最近播放记录路由
+app.use('/api/custom', customRoutes); // 注册自建歌单路由
+app.use('/api/recent', recentPlayRoutes); // 注册最近播放记录路由
 app.use('/api/like', likeRoutes); // 注册我的喜欢路由
 
 // B站API代理

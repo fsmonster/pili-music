@@ -90,14 +90,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElDialog, ElMessage, ElCheckbox, ElCheckboxGroup, ElButton } from 'element-plus';
 import ContentSection from './ContentSection.vue';
-import { useFavoriteStore } from '@/stores';
+import { useUserStore, useFavoriteStore } from '@/stores';
 import { processResourceUrl } from '@/utils/processResoureUrl';
 
 const router = useRouter();
+const userStore = useUserStore();
 const favoriteStore = useFavoriteStore();
 
 // 对话框显示状态
@@ -130,9 +131,18 @@ const saveFavoritesSettings = async () => {
   ElMessage.success('设置已保存');
 };
 
-onMounted(async () => {
-  // 获取所有收藏夹列表
-  await favoriteStore.fetchFavorites();
+// onMounted(async () => {
+//   if (!userStore.isLoggedIn) {
+//     return;
+//   }
+//   // 获取所有收藏夹列表
+//   await favoriteStore.fetchFavorites();
+// });
+
+watch(()=> userStore.isLoggedIn, async (newVal) => {
+  if (newVal) {
+    await favoriteStore.fetchFavorites();
+  }
 });
 
 watch(checkedFavorites, async (newVal) => {

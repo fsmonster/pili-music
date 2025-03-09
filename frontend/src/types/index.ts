@@ -9,3 +9,4 @@ export * from './season';
 export * from './mediaItem';
 export * from './video';
 export * from './audio';
+export * from './playlist';

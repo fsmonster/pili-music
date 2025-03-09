@@ -1,52 +1,60 @@
 <template>
-  <ContentSection title="最近播放">
-    <template #icon>
-      <i class="ri-history-line"></i>
-    </template>
-    <div class="music-grid">
-      <div v-for="item in recentlyPlayed" :key="item.id" class="music-item">
-        <div class="cover">
-          <img :src="item.cover" :alt="item.title">
-          <div class="play-overlay">
-            <i class="ri-play-circle-fill"></i>
-          </div>
-        </div>
-        <div class="info">
-          <div class="title">{{ item.title }}</div>
-          <div class="artist">{{ item.artist }}</div>
-        </div>
+  <div 
+    class="music-item" 
+    @click="navigateToRecentPlays"
+  >
+    <div class="cover">
+      <img :src="recentCover" alt="最近播放">
+      <div class="play-overlay" @click.stop="playAllRecentMusic">
+        <i class="ri-play-circle-fill"></i>
       </div>
     </div>
-  </ContentSection>
+    <div class="info">
+      <div class="title">最近播放</div>
+      <div class="count">{{ recentPlayStore.recentPlayCount }}首歌曲</div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import ContentSection from './ContentSection.vue';
-import defaultCover from '@/assets/image/default_cover.avif';
-// 假数据
-const recentlyPlayed = ref([
-  {
-    id: 1,
-    title: '夜に駆ける',
-    artist: 'YOASOBI',
-    cover: defaultCover,
-  },
-  {
-    id: 2,
-    title: '群青',
-    artist: 'YOASOBI',
-    cover: defaultCover,
-  },
-  {
-    id: 3,
-    title: '怪物',
-    artist: 'YOASOBI',
-    cover: defaultCover,
-  },
-]);
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useRecentPlayStore } from '@/stores/list/recentPlay';
+// import { usePlayerStore } from '@/stores/play/player';
+import { ElMessage } from 'element-plus';
+import recentCover from '@/assets/image/love.avif';
+
+// 引入状态管理
+const recentPlayStore = useRecentPlayStore();
+// const playerStore = usePlayerStore();
+const router = useRouter();
+
+// 组件挂载时获取最近播放列表
+onMounted(async () => {
+  if (recentPlayStore.recentPlayCount === 0) {
+    await recentPlayStore.fetchRecentPlays();
+  }
+});
+
+// 播放所有最近播放的音乐
+const playAllRecentMusic = async () => {
+  // 如果没有最近播放的音乐，不执行任何操作
+  if (recentPlayStore.recentPlayCount === 0) {
+    ElMessage.warning('暂无最近播放记录');
+    return;
+  }
+  
+  // TODO: 实现播放所有最近播放音乐的逻辑
+  // 将最近播放的音乐添加到播放列表
+  ElMessage.success('开始播放最近播放的音乐');
+};
+
+// 导航到最近播放详情页
+const navigateToRecentPlays = () => {
+  router.push('/recent-plays');
+};
 </script>
 
 <style lang="scss" scoped>
-@use './styles/music-grid.scss';
+// 样式继承自父组件
 </style>

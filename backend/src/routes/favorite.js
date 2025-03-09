@@ -1,23 +1,24 @@
 import express from 'express';
 import axios from 'axios';
+import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
+
+// 应用认证中间件到所有路由
+router.use(authMiddleware);
 
 /**
  * @route   GET /api/favorite/list
  * @desc    获取用户收藏夹列表
- * @access  Private - 需要SESSDATA
+ * @param {number} up_mid - 用户ID
+ * @access  Private - 需要JWT认证
  */
 router.get('/list', async (req, res) => {
   try {
-    const { SESSDATA } = req.cookies;
-    if (!SESSDATA) {
-      return res.status(401).json({ 
-        code: 401, 
-        message: '未登录或登录已过期' 
-      });
-    }
-
+    console.log('😀😀😀😀😀😀😀😀req:', req);
+    
+    const { sessdata } = req.user;
+    
     // 调用B站API获取收藏夹列表
     const response = await axios.get('https://api.bilibili.com/x/v3/fav/folder/created/list-all', {
       params: {
@@ -25,8 +26,9 @@ router.get('/list', async (req, res) => {
         jsonp: 'jsonp'
       },
       headers: {
-        Cookie: `SESSDATA=${SESSDATA}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        Cookie: `SESSDATA=${sessdata}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://www.bilibili.com'
       }
     });
 
@@ -44,19 +46,12 @@ router.get('/list', async (req, res) => {
  * @route   GET /api/favorite/folder/info
  * @desc    获取收藏夹内容信息
  * @param {number} media_id - 收藏夹ID
- * @access  Private - 需要SESSDATA
+ * @access  Private - 需要JWT认证
  */
-
 router.get('/folder/info', async (req, res) => {
   try {
-    const { SESSDATA } = req.cookies;
-    if (!SESSDATA) {
-      return res.status(401).json({ 
-        code: 401, 
-        message: '未登录或登录已过期' 
-      });
-    }
-
+    const { sessdata } = req.user;
+    
     const { media_id } = req.query;
     if (!media_id) {
       return res.status(400).json({ 
@@ -70,8 +65,9 @@ router.get('/folder/info', async (req, res) => {
         media_id
       },
       headers: {
-        Cookie: `SESSDATA=${SESSDATA}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        Cookie: `SESSDATA=${sessdata}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://www.bilibili.com'
       }
     });
 
@@ -88,19 +84,14 @@ router.get('/folder/info', async (req, res) => {
 /**
  * @route   GET /api/favorite/resource/list
  * @desc    获取收藏夹内容列表
- * @access  Private - 需要SESSDATA
+ * @access  Private - 需要JWT认证
  */
 router.get('/resource/list', async (req, res) => {
   try {
-    const { SESSDATA } = req.cookies;
-    if (!SESSDATA) {
-      return res.status(401).json({ 
-        code: 401, 
-        message: '未登录或登录已过期' 
-      });
-    }
-
-    const { media_id, pn = 1, ps = 20 } = req.query;
+    const { sessdata } = req.user;
+    
+    const { media_id, ps = 20, pn = 1, keyword = '', order = 'mtime', type = 0, tid = 0 } = req.query;
+    
     if (!media_id) {
       return res.status(400).json({ 
         code: 400, 
@@ -108,21 +99,20 @@ router.get('/resource/list', async (req, res) => {
       });
     }
 
-    // 调用B站API获取收藏夹内容
     const response = await axios.get('https://api.bilibili.com/x/v3/fav/resource/list', {
       params: {
         media_id,
-        pn,
         ps,
-        keyword: req.query.keyword || '',
-        order: req.query.order || 'mtime',
-        type: req.query.type || 0,
-        tid: req.query.tid || 0,
-        jsonp: 'jsonp'
+        pn,
+        keyword,
+        order,
+        type,
+        tid
       },
       headers: {
-        Cookie: `SESSDATA=${SESSDATA}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        Cookie: `SESSDATA=${sessdata}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://www.bilibili.com'
       }
     });
 
@@ -139,18 +129,12 @@ router.get('/resource/list', async (req, res) => {
 /**
  * @route   GET /api/favorite/resource/ids
  * @desc    获取收藏夹全部内容的id
- * @access  Private - 需要SESSDATA
+ * @access  Private - 需要JWT认证
  */
 router.get('/resource/ids', async (req, res) => {
   try {
-    const { SESSDATA } = req.cookies;
-    if (!SESSDATA) {
-      return res.status(401).json({ 
-        code: 401, 
-        message: '未登录或登录已过期' 
-      });
-    }
-
+    const { sessdata } = req.user;
+    
     const { media_id } = req.query;
     if (!media_id) {
       return res.status(400).json({ 
@@ -159,15 +143,15 @@ router.get('/resource/ids', async (req, res) => {
       });
     }
 
-    // 调用B站API获取收藏夹内所有资源的id
     const response = await axios.get('https://api.bilibili.com/x/v3/fav/resource/ids', {
       params: {
         media_id,
         jsonp: 'jsonp'
       },
       headers: {
-        Cookie: `SESSDATA=${SESSDATA}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        Cookie: `SESSDATA=${sessdata}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://www.bilibili.com'
       }
     });
 
