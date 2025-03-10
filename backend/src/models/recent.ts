@@ -1,9 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, Model } from 'mongoose';
+import { IRecentPlay } from '../types/models.ts';
 
 /**
  * 最近播放记录模型 - 只保留最近100条记录
  */
-const RecentPlaySchema = new mongoose.Schema({
+const RecentPlaySchema = new Schema<IRecentPlay>({
   // 关联用户
   userId: { 
     type: String, 
@@ -65,23 +66,23 @@ RecentPlaySchema.pre('save', async function(next) {
       const count = await this.constructor.countDocuments({ userId: this.userId });
       if (count >= 100) {
         // 查找并删除最早的记录，直到总数小于100
-        const oldestRecords = await this.constructor.find({ userId: this.userId })
+        const oldestRecords = await (this.constructor as Model<IRecentPlay>).find({ userId: this.userId })
           .sort({ playedAt: 1 })
           .limit(count - 99);
         
         if (oldestRecords.length > 0) {
           const oldestIds = oldestRecords.map(record => record._id);
-          await this.constructor.deleteMany({ _id: { $in: oldestIds } });
+          await (this.constructor as Model<IRecentPlay>).deleteMany({ _id: { $in: oldestIds } });
         }
       }
     }
     next();
   } catch (error) {
-    next(error);
+    next(error instanceof Error ? error : new Error(String(error)));
   }
 });
 
 // 创建并导出最近播放记录模型
-const RecentPlay = mongoose.model('RecentPlay', RecentPlaySchema);
+const RecentPlay = mongoose.model<IRecentPlay>('RecentPlay', RecentPlaySchema);
 
 export default RecentPlay;

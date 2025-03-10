@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import axios from 'axios';
 import * as userController from '../controllers/userController.js';
 import authMiddleware from '../middleware/auth.js';
@@ -9,12 +9,40 @@ const router = express.Router();
 router.use(authMiddleware);
 
 /**
+ * 用户认证请求接口扩展
+ */
+interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    uid: string;
+    sessdata: string;
+  };
+}
+
+/**
+ * 用户偏好设置接口
+ */
+interface UserPreferences {
+  theme?: string;
+  audioQuality?: string;
+  showLyrics?: boolean;
+  [key: string]: any;
+}
+
+/**
  * @route   GET /api/user/profile
  * @desc    获取用户个人资料
  * @access  Private - 需要登录
  */
-router.get('/profile', async (req, res) => {
+router.get('/profile', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid, sessdata } = req.user;
     
     // 调用B站API获取用户信息
@@ -62,10 +90,17 @@ router.get('/profile', async (req, res) => {
  * @desc    更新用户偏好设置
  * @access  Private - 需要登录
  */
-router.put('/preferences', async (req, res) => {
+router.put('/preferences', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid } = req.user;
-    const { preferences } = req.body;
+    const { preferences } = req.body as { preferences: UserPreferences };
     
     // 更新用户偏好设置
     const updatedUser = await userController.updateUserPreferences(uid, preferences);
@@ -88,10 +123,17 @@ router.put('/preferences', async (req, res) => {
  * @desc    更新用户显示的收藏夹列表
  * @access  Private - 需要登录
  */
-router.put('/display-favorites', async (req, res) => {
+router.put('/display-favorites', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid } = req.user;
-    const { favoriteIds } = req.body;
+    const { favoriteIds } = req.body as { favoriteIds: string[] };
     
     // 更新用户显示的收藏夹列表
     const updatedUser = await userController.updateDisplayFavorites(uid, favoriteIds);
@@ -114,10 +156,17 @@ router.put('/display-favorites', async (req, res) => {
  * @desc    更新用户显示的合集列表
  * @access  Private - 需要登录
  */
-router.put('/display-seasons', async (req, res) => {
+router.put('/display-seasons', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid } = req.user;
-    const { seasonIds } = req.body;
+    const { seasonIds } = req.body as { seasonIds: string[] };
     
     // 更新用户显示的合集列表
     const updatedUser = await userController.updateDisplaySeasons(uid, seasonIds);

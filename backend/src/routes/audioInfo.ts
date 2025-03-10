@@ -1,8 +1,19 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import axios from 'axios';
 import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
+
+/**
+ * 用户认证请求接口扩展
+ */
+interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    uid: string;
+    sessdata: string;
+  };
+}
 
 /**
  * @describe 查看视频分p信息， avid/bvid转cid，cid表示当前分p
@@ -12,7 +23,7 @@ const router = express.Router();
  * @returns {Object} 视频分p信息
  * @access Public - 不需要认证
  */
-router.get('/player/pagelist', async (req, res) => {
+router.get('/player/pagelist', async (req: Request, res: Response) => {
   try {
     const { aid, bvid } = req.query;
     console.log(aid, bvid);
@@ -23,6 +34,7 @@ router.get('/player/pagelist', async (req, res) => {
         message: '缺少必要参数：aid 或 bvid' 
       });
     }
+    
     let xid = aid ? 'aid' : 'bvid';
     let id = aid ?? bvid;
     
@@ -36,6 +48,7 @@ router.get('/player/pagelist', async (req, res) => {
         'Referer': 'https://www.bilibili.com'
       }
     });
+    
     res.json(response.data);
   } catch (error) {
     console.error('获取视频分P列表失败:', error);
@@ -57,8 +70,15 @@ router.use('/audio', authMiddleware);
  * @returns {Object} 音频流信息
  * @access Private - 需要JWT认证
  */
-router.get('/audio/url', async (req, res) => {
+router.get('/audio/url', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { sessdata } = req.user;
     
     const { avid, cid } = req.query;

@@ -1,7 +1,18 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import axios from 'axios';
 
 const router = express.Router();
+
+/**
+ * 用户认证请求接口扩展
+ */
+interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    uid: string;
+    sessdata: string;
+  };
+}
 
 /**
  * @desc 音频流代理接口
@@ -12,10 +23,10 @@ const router = express.Router();
  * @returns {stream} - 音频流
  * @access Public - 不需要JWT认证
  */
-router.get("/url", async (req, res) => {
+router.get("/url", async (req: Request, res: Response) => {
   console.log("用户信息:", JSON.stringify(req.user));
 
-  const { url } = req.query;
+  const { url, token } = req.query;
   const range = req.headers.range; // 获取前端传来的 Range 头
 
   if (!url) {
@@ -24,7 +35,7 @@ router.get("/url", async (req, res) => {
 
   try {
     // 设置请求头，支持 Range 请求
-    const headers = {
+    const headers: Record<string, string> = {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       "Referer": "http://www.bilibili.com",
@@ -32,15 +43,16 @@ router.get("/url", async (req, res) => {
     
     // 尝试从 JWT 中获取 SESSDATA
     // 如果请求中有 token 参数，则解析它
-    if (req.query.token) {
+    if (token && typeof token === 'string') {
       try {
-        const decoded = JSON.parse(Buffer.from(req.query.token.split('.')[1], 'base64').toString());
+        const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
         if (decoded && decoded.sessdata) {
           headers.Cookie = `SESSDATA=${decoded.sessdata}`;
           console.log("从令牌中提取到 SESSDATA");
         }
       } catch (err) {
-        console.error("解析令牌失败:", err.message);
+        const error = err as Error;
+        console.error("解析令牌失败:", error.message);
       }
     }
     
@@ -52,7 +64,7 @@ router.get("/url", async (req, res) => {
     }
 
     // 发起请求获取音频流
-    const audioStreamResponse = await axios.get(url, {
+    const audioStreamResponse = await axios.get(url as string, {
       responseType: "stream",
       headers,
     });
@@ -74,13 +86,14 @@ router.get("/url", async (req, res) => {
     // 传输音频流
     audioStreamResponse.data.pipe(res);
   } catch (error) {
-    console.error("获取音频流失败:", error.message);
+    const err = error as any;
+    console.error("获取音频流失败:", err.message);
     
     // 更详细的错误信息
-    if (error.response) {
-      console.error("错误状态码:", error.response.status);
-      console.error("错误响应头:", JSON.stringify(error.response.headers));
-      console.error("错误响应数据:", error.response.data);
+    if (err.response) {
+      console.error("错误状态码:", err.response.status);
+      console.error("错误响应头:", JSON.stringify(err.response.headers));
+      console.error("错误响应数据:", err.response.data);
     }
     
     res.status(500).json({ error: "获取音频流失败" });

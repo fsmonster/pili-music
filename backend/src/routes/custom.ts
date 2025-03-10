@@ -1,5 +1,4 @@
-import express from 'express';
-import axios from 'axios';
+import express, { Request, Response } from 'express';
 import * as customController from '../controllers/customController.js';
 import authMiddleware from '../middleware/auth.js';
 
@@ -9,12 +8,54 @@ const router = express.Router();
 router.use(authMiddleware);
 
 /**
+ * 媒体项接口
+ */
+interface MediaItem {
+  bvid: string;
+  aid?: number;
+  cid?: number;
+  title: string;
+  cover?: string;
+  duration?: number;
+  upper?: {
+    uid: string;
+    name: string;
+  };
+}
+
+/**
+ * 创建歌单请求体接口
+ */
+interface CreatePlaylistRequest {
+  title: string;
+  cover?: string;
+  description?: string;
+}
+
+/**
+ * 用户认证请求接口扩展
+ */
+interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    uid: string;
+  };
+}
+
+/**
  * @route   GET /api/custom
  * @desc    获取用户的所有自建歌单
  * @access  Private - 需要登录
  */
-router.get('/', async (req, res) => {
+router.get('/', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid } = req.user;
     
     // 获取用户的所有自建歌单
@@ -38,7 +79,7 @@ router.get('/', async (req, res) => {
  * @desc    获取单个歌单详情
  * @access  Private - 需要登录
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     
@@ -53,7 +94,7 @@ router.get('/:id', async (req, res) => {
     console.error('获取歌单详情失败:', error);
     res.status(500).json({ 
       code: 500, 
-      message: error.message || '获取歌单详情失败' 
+      message: error instanceof Error ? error.message : '获取歌单详情失败' 
     });
   }
 });
@@ -63,14 +104,21 @@ router.get('/:id', async (req, res) => {
  * @desc    创建新歌单
  * @access  Private - 需要登录
  */
-router.post('/', async (req, res) => {
+router.post('/', async (req: AuthRequest, res: Response) => {
   try {    
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid } = req.user;
-    const { title, cover, description } = req.body;
+    const { title, cover, description } = req.body as CreatePlaylistRequest;
     
     // 创建新歌单
     const newPlaylist = await customController.createPlaylist(uid, {
-      title,
+      name: title,
       cover,
       description
     });
@@ -93,15 +141,22 @@ router.post('/', async (req, res) => {
  * @desc    更新歌单信息
  * @access  Private - 需要登录
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid } = req.user;
     const { id } = req.params;
-    const { title, cover, description } = req.body;
+    const { title, cover, description } = req.body as CreatePlaylistRequest;
     
     // 更新歌单信息
     const updatedPlaylist = await customController.updatePlaylist(id, uid, {
-      title,
+      name: title,
       cover,
       description
     });
@@ -114,7 +169,7 @@ router.put('/:id', async (req, res) => {
     console.error('更新歌单失败:', error);
     res.status(500).json({ 
       code: 500, 
-      message: error.message || '更新歌单失败' 
+      message: error instanceof Error ? error.message : '更新歌单失败' 
     });
   }
 });
@@ -124,8 +179,15 @@ router.put('/:id', async (req, res) => {
  * @desc    删除歌单
  * @access  Private - 需要登录
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid } = req.user;
     const { id } = req.params;
     
@@ -140,7 +202,7 @@ router.delete('/:id', async (req, res) => {
     console.error('删除歌单失败:', error);
     res.status(500).json({ 
       code: 500, 
-      message: error.message || '删除歌单失败' 
+      message: error instanceof Error ? error.message : '删除歌单失败' 
     });
   }
 });
@@ -150,11 +212,18 @@ router.delete('/:id', async (req, res) => {
  * @desc    向歌单添加媒体
  * @access  Private - 需要登录
  */
-router.post('/:id/media', async (req, res) => {
+router.post('/:id/media', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid } = req.user;
     const { id } = req.params;
-    const mediaItem = req.body;
+    const mediaItem = req.body as MediaItem;
     
     // 添加媒体到歌单
     const updatedPlaylist = await customController.addMediaToPlaylist(id, uid, mediaItem);
@@ -167,7 +236,7 @@ router.post('/:id/media', async (req, res) => {
     console.error('添加媒体到歌单失败:', error);
     res.status(500).json({ 
       code: 500, 
-      message: error.message || '添加媒体到歌单失败' 
+      message: error instanceof Error ? error.message : '添加媒体到歌单失败' 
     });
   }
 });
@@ -177,8 +246,15 @@ router.post('/:id/media', async (req, res) => {
  * @desc    从歌单移除媒体
  * @access  Private - 需要登录
  */
-router.delete('/:id/media/:bvid', async (req, res) => {
+router.delete('/:id/media/:bvid', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { uid } = req.user;
     const { id, bvid } = req.params;
     
@@ -193,7 +269,7 @@ router.delete('/:id/media/:bvid', async (req, res) => {
     console.error('从歌单移除媒体失败:', error);
     res.status(500).json({ 
       code: 500, 
-      message: error.message || '从歌单移除媒体失败' 
+      message: error instanceof Error ? error.message : '从歌单移除媒体失败' 
     });
   }
 });

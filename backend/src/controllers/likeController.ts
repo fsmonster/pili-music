@@ -1,11 +1,28 @@
 import Like from '../models/like.js';
+import { ILike } from '../types/models';
+
+/**
+ * 媒体数据接口
+ */
+interface MediaData {
+  bvid: string;
+  aid?: number;
+  cid?: number;
+  title: string;
+  cover?: string;
+  duration?: number;
+  upper?: {
+    uid: string;
+    name: string;
+  };
+}
 
 /**
  * @desc 获取用户喜欢的所有媒体
  * @param {String} userId - 用户ID
- * @returns {Array} 用户喜欢的媒体列表
+ * @returns {Promise<ILike[]>} 用户喜欢的媒体列表
  */
-export const getUserLikes = async (userId) => {
+export const getUserLikes = async (userId: string): Promise<ILike[]> => {
   try {
     const likes = await Like.find({ userId }).sort({ likedAt: -1 });
     return likes;
@@ -18,10 +35,10 @@ export const getUserLikes = async (userId) => {
 /**
  * @desc 添加媒体到喜欢列表
  * @param {String} userId - 用户ID
- * @param {Object} mediaData - 媒体数据
- * @returns {Object} 添加的喜欢记录
+ * @param {MediaData} mediaData - 媒体数据
+ * @returns {Promise<ILike>} 添加的喜欢记录
  */
-export const addLike = async (userId, mediaData) => {
+export const addLike = async (userId: string, mediaData: MediaData): Promise<ILike> => {
   try {
     const { bvid, aid, cid, title, cover, duration, upper } = mediaData;
     
@@ -55,9 +72,9 @@ export const addLike = async (userId, mediaData) => {
  * @desc 从喜欢列表移除媒体
  * @param {String} userId - 用户ID
  * @param {String} bvid - 视频ID
- * @returns {Boolean} 是否移除成功
+ * @returns {Promise<boolean>} 是否移除成功
  */
-export const removeLike = async (userId, bvid) => {
+export const removeLike = async (userId: string, bvid: string): Promise<boolean> => {
   try {
     await Like.findOneAndDelete({ userId, bvid });
     return true;
@@ -71,9 +88,9 @@ export const removeLike = async (userId, bvid) => {
  * @desc 检查媒体是否在喜欢列表中
  * @param {String} userId - 用户ID
  * @param {String} bvid - 视频ID
- * @returns {Boolean} 是否在喜欢列表中
+ * @returns {Promise<boolean>} 是否在喜欢列表中
  */
-export const checkIsLiked = async (userId, bvid) => {
+export const checkIsLiked = async (userId: string, bvid: string): Promise<boolean> => {
   try {
     const like = await Like.findOne({ userId, bvid });
     return !!like;

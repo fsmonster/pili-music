@@ -1,8 +1,19 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import axios from 'axios';
 import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
+
+/**
+ * 用户认证请求接口扩展
+ */
+interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    uid: string;
+    sessdata: string;
+  };
+}
 
 // 应用认证中间件到所有路由
 router.use(authMiddleware);
@@ -12,8 +23,14 @@ router.use(authMiddleware);
  * @desc    获取用户收藏夹列表
  * @access  Private - 需要JWT认证
  */
-router.get('/list', async (req, res) => {
+router.get('/list', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
     
     const { sessdata } = req.user;
     
@@ -46,8 +63,15 @@ router.get('/list', async (req, res) => {
  * @param {number} media_id - 收藏夹ID
  * @access  Private - 需要JWT认证
  */
-router.get('/folder/info', async (req, res) => {
+router.get('/folder/info', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { sessdata } = req.user;
     
     const { media_id } = req.query;
@@ -84,8 +108,15 @@ router.get('/folder/info', async (req, res) => {
  * @desc    获取收藏夹内容列表
  * @access  Private - 需要JWT认证
  */
-router.get('/resource/list', async (req, res) => {
+router.get('/resource/list', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { sessdata } = req.user;
     
     const { media_id, ps = 20, pn = 1, keyword = '', order = 'mtime', type = 0, tid = 0 } = req.query;
@@ -129,8 +160,15 @@ router.get('/resource/list', async (req, res) => {
  * @desc    获取收藏夹全部内容的id
  * @access  Private - 需要JWT认证
  */
-router.get('/resource/ids', async (req, res) => {
+router.get('/resource/ids', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { sessdata } = req.user;
     
     const { media_id } = req.query;

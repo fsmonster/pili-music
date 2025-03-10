@@ -1,26 +1,31 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware, Options } from 'http-proxy-middleware';
 import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+
+// 加载环境变量
+dotenv.config();
 
 // 导入数据库连接
-import { connectDB } from './models/db.js';
+import { connectDB } from './models/db.ts';
 
-import authRoutes from './routes/auth.js';
-import favoriteRoutes from './routes/favorite.js'; // 新增收藏夹路由
-import seasonRoutes from './routes/season.js'; // 新增合集路由
-import infoRoutes from './routes/audioInfo.js'; // 新增音频信息路由
-import playRoutes from './routes/play.js'; // 新增音频代理路由
-import userRoutes from './routes/user.js'; // 用户路由
-import customRoutes from './routes/custom.js'; // 自建歌单路由
-import recentPlayRoutes from './routes/recent.js'; // 最近播放记录路由
-import likeRoutes from './routes/like.js'; // 我的喜欢路由
+// 导入路由
+import authRoutes from './routes/auth.ts';
+import favoriteRoutes from './routes/favorite.ts'; // 收藏夹路由
+import seasonRoutes from './routes/season.ts'; // 合集路由
+import infoRoutes from './routes/audioInfo.ts'; // 音频信息路由
+import playRoutes from './routes/play.ts'; // 音频代理路由
+import userRoutes from './routes/user.ts'; // 用户路由
+import customRoutes from './routes/custom.ts'; // 自建歌单路由
+import recentPlayRoutes from './routes/recent.ts'; // 最近播放记录路由
+import likeRoutes from './routes/like.ts'; // 我的喜欢路由
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT: number = parseInt(process.env.PORT || '3000', 10);
 
 // 基础中间件
 app.use(cors({
@@ -54,32 +59,35 @@ app.use('/api/recent', recentPlayRoutes); // 注册最近播放记录路由
 app.use('/api/like', likeRoutes); // 注册我的喜欢路由
 
 // B站API代理
-const biliProxy = createProxyMiddleware({
+const biliProxyOptions: Options = {
   target: 'https://api.bilibili.com',
   changeOrigin: true,
   pathRewrite: {
     '^/api/bilibili': ''
   },
-  onProxyReq: (proxyReq, req, res) => {
-    // 转发Cookie
-    if (req.headers.cookie) {
-      proxyReq.setHeader('Cookie', req.headers.cookie);
-    }
+  onProxyReq: (proxyReq, _req, _res) => {
     // 设置必要的请求头
     proxyReq.setHeader('Referer', 'https://www.bilibili.com');
     proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+  },
+  onError: (err, _req, res) => {
+    console.error('代理请求错误:', err);
+    res.status(500).json({ 
+      code: 500, 
+      message: '代理请求失败' 
+    });
   }
-});
+};
 
-app.use('/api/bilibili', biliProxy);
+app.use('/api/bilibili', createProxyMiddleware(biliProxyOptions));
 
-// 健康检查端点 - 用于Zeabur监控
-app.get('/health', (req, res) => {
+// 健康检查端点 - 用于监控
+app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
 
 // 错误处理中间件
-app.use((err, req, res, next) => {
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
@@ -92,6 +100,6 @@ app.listen(PORT, async () => {
     await connectDB();
     console.log('成功连接到MongoDB数据库');
   } catch (error) {
-    console.error('MongoDB数据库连接失败:', error.message);
+    console.error('MongoDB数据库连接失败:', error instanceof Error ? error.message : String(error));
   }
 });

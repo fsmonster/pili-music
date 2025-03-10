@@ -1,11 +1,39 @@
 import CustomPlaylist from '../models/custom.js';
+import { ICustomPlaylist } from '../types/models.js';
+import { Types } from 'mongoose';
+
+/**
+ * 媒体项接口
+ */
+interface MediaItem {
+  bvid: string;
+  aid?: number;
+  cid?: number;
+  title: string;
+  cover?: string;
+  duration?: number;
+  upper?: {
+    uid: string;
+    name: string;
+  };
+}
+
+/**
+ * 播放列表数据接口
+ */
+interface PlaylistData {
+  name: string;
+  description?: string;
+  cover?: string;
+  isPublic?: boolean;
+}
 
 /**
  * @desc 获取用户的所有自建歌单
  * @param {String} userId - 用户ID
- * @returns {Array} 用户的自建歌单列表
+ * @returns {Promise<ICustomPlaylist[]>} 用户的自建歌单列表
  */
-export const getUserPlaylists = async (userId) => {
+export const getUserPlaylists = async (userId: string): Promise<ICustomPlaylist[]> => {
   try {
     const playlists = await CustomPlaylist.find({ userId }).sort({ updatedAt: -1 });
     console.log('获取用户歌单:', playlists);    
@@ -19,9 +47,9 @@ export const getUserPlaylists = async (userId) => {
 /**
  * @desc 获取单个歌单详情
  * @param {String} playlistId - 歌单ID
- * @returns {Object} 歌单详情
+ * @returns {Promise<ICustomPlaylist>} 歌单详情
  */
-export const getPlaylistById = async (playlistId) => {
+export const getPlaylistById = async (playlistId: string): Promise<ICustomPlaylist> => {
   try {
     const playlist = await CustomPlaylist.findById(playlistId);
     if (!playlist) {
@@ -30,22 +58,22 @@ export const getPlaylistById = async (playlistId) => {
     return playlist;
   } catch (error) {
     console.error('获取歌单详情失败:', error);
-    throw new Error(error.message || '获取歌单详情失败');
+    throw new Error(error instanceof Error ? error.message : '获取歌单详情失败');
   }
 };
 
 /**
  * @desc 创建新歌单
  * @param {String} userId - 用户ID
- * @param {Object} playlistData - 歌单数据
- * @returns {Object} 创建的歌单
+ * @param {PlaylistData} playlistData - 歌单数据
+ * @returns {Promise<ICustomPlaylist>} 创建的歌单
  */
-export const createPlaylist = async (userId, playlistData) => {
+export const createPlaylist = async (userId: string, playlistData: PlaylistData): Promise<ICustomPlaylist> => {
   try {
     const newPlaylist = await CustomPlaylist.create({
       ...playlistData,
       userId,
-      mediaItems: []
+      items: []
     });
     return newPlaylist;
   } catch (error) {
@@ -58,13 +86,21 @@ export const createPlaylist = async (userId, playlistData) => {
  * @desc 更新歌单信息
  * @param {String} playlistId - 歌单ID
  * @param {String} userId - 用户ID (用于验证权限)
- * @param {Object} updateData - 更新的数据
- * @returns {Object} 更新后的歌单
+ * @param {Partial<PlaylistData>} updateData - 更新的数据
+ * @returns {Promise<ICustomPlaylist>} 更新后的歌单
  */
-export const updatePlaylist = async (playlistId, userId, updateData) => {
+export const updatePlaylist = async (
+  playlistId: string, 
+  userId: string, 
+  updateData: Partial<PlaylistData>
+): Promise<ICustomPlaylist> => {
   try {
     // 查找并验证歌单所有权
-    const playlist = await CustomPlaylist.findOne({ _id: playlistId, userId });
+    const playlist = await CustomPlaylist.findOne({ 
+      _id: new Types.ObjectId(playlistId), 
+      userId 
+    });
+    
     if (!playlist) {
       throw new Error('歌单不存在或无权限修改');
     }
@@ -76,10 +112,14 @@ export const updatePlaylist = async (playlistId, userId, updateData) => {
       { new: true }
     );
     
+    if (!updatedPlaylist) {
+      throw new Error('更新歌单失败');
+    }
+    
     return updatedPlaylist;
   } catch (error) {
     console.error('更新歌单失败:', error);
-    throw new Error(error.message || '更新歌单失败');
+    throw new Error(error instanceof Error ? error.message : '更新歌单失败');
   }
 };
 
@@ -87,12 +127,16 @@ export const updatePlaylist = async (playlistId, userId, updateData) => {
  * @desc 删除歌单
  * @param {String} playlistId - 歌单ID
  * @param {String} userId - 用户ID (用于验证权限)
- * @returns {Boolean} 是否删除成功
+ * @returns {Promise<boolean>} 是否删除成功
  */
-export const deletePlaylist = async (playlistId, userId) => {
+export const deletePlaylist = async (playlistId: string, userId: string): Promise<boolean> => {
   try {
     // 查找并验证歌单所有权
-    const playlist = await CustomPlaylist.findOne({ _id: playlistId, userId });
+    const playlist = await CustomPlaylist.findOne({ 
+      _id: new Types.ObjectId(playlistId), 
+      userId 
+    });
+    
     if (!playlist) {
       throw new Error('歌单不存在或无权限删除');
     }
@@ -102,7 +146,7 @@ export const deletePlaylist = async (playlistId, userId) => {
     return true;
   } catch (error) {
     console.error('删除歌单失败:', error);
-    throw new Error(error.message || '删除歌单失败');
+    throw new Error(error instanceof Error ? error.message : '删除歌单失败');
   }
 };
 
@@ -110,19 +154,27 @@ export const deletePlaylist = async (playlistId, userId) => {
  * @desc 向歌单添加媒体
  * @param {String} playlistId - 歌单ID
  * @param {String} userId - 用户ID (用于验证权限)
- * @param {Object} mediaItem - 媒体信息
- * @returns {Object} 更新后的歌单
+ * @param {MediaItem} mediaItem - 媒体信息
+ * @returns {Promise<ICustomPlaylist>} 更新后的歌单
  */
-export const addMediaToPlaylist = async (playlistId, userId, mediaItem) => {
+export const addMediaToPlaylist = async (
+  playlistId: string, 
+  userId: string, 
+  mediaItem: MediaItem
+): Promise<ICustomPlaylist> => {
   try {
     // 查找并验证歌单所有权
-    const playlist = await CustomPlaylist.findOne({ _id: playlistId, userId });
+    const playlist = await CustomPlaylist.findOne({ 
+      _id: new Types.ObjectId(playlistId), 
+      userId 
+    });
+    
     if (!playlist) {
       throw new Error('歌单不存在或无权限修改');
     }
     
     // 检查媒体是否已存在于歌单中
-    const mediaExists = playlist.mediaItems.some(item => item.bvid === mediaItem.bvid);
+    const mediaExists = playlist.items.some(item => item.bvid === mediaItem.bvid);
     if (mediaExists) {
       throw new Error('该媒体已存在于歌单中');
     }
@@ -132,7 +184,7 @@ export const addMediaToPlaylist = async (playlistId, userId, mediaItem) => {
       playlistId,
       { 
         $push: { 
-          mediaItems: {
+          items: {
             ...mediaItem,
             addedAt: new Date()
           } 
@@ -142,10 +194,14 @@ export const addMediaToPlaylist = async (playlistId, userId, mediaItem) => {
       { new: true }
     );
     
+    if (!updatedPlaylist) {
+      throw new Error('添加媒体到歌单失败');
+    }
+    
     return updatedPlaylist;
   } catch (error) {
     console.error('添加媒体到歌单失败:', error);
-    throw new Error(error.message || '添加媒体到歌单失败');
+    throw new Error(error instanceof Error ? error.message : '添加媒体到歌单失败');
   }
 };
 
@@ -154,12 +210,20 @@ export const addMediaToPlaylist = async (playlistId, userId, mediaItem) => {
  * @param {String} playlistId - 歌单ID
  * @param {String} userId - 用户ID (用于验证权限)
  * @param {String} bvid - 媒体ID
- * @returns {Object} 更新后的歌单
+ * @returns {Promise<ICustomPlaylist>} 更新后的歌单
  */
-export const removeMediaFromPlaylist = async (playlistId, userId, bvid) => {
+export const removeMediaFromPlaylist = async (
+  playlistId: string, 
+  userId: string, 
+  bvid: string
+): Promise<ICustomPlaylist> => {
   try {
     // 查找并验证歌单所有权
-    const playlist = await CustomPlaylist.findOne({ _id: playlistId, userId });
+    const playlist = await CustomPlaylist.findOne({ 
+      _id: new Types.ObjectId(playlistId), 
+      userId 
+    });
+    
     if (!playlist) {
       throw new Error('歌单不存在或无权限修改');
     }
@@ -168,15 +232,19 @@ export const removeMediaFromPlaylist = async (playlistId, userId, bvid) => {
     const updatedPlaylist = await CustomPlaylist.findByIdAndUpdate(
       playlistId,
       { 
-        $pull: { mediaItems: { bvid } },
+        $pull: { items: { bvid } },
         updatedAt: new Date()
       },
       { new: true }
     );
     
+    if (!updatedPlaylist) {
+      throw new Error('从歌单移除媒体失败');
+    }
+    
     return updatedPlaylist;
   } catch (error) {
     console.error('从歌单移除媒体失败:', error);
-    throw new Error(error.message || '从歌单移除媒体失败');
+    throw new Error(error instanceof Error ? error.message : '从歌单移除媒体失败');
   }
 };

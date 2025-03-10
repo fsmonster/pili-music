@@ -1,9 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { ILike } from '../types/models.ts';
 
 /**
  * 我的喜欢模型 - 用户在应用内标记喜欢的歌曲
  */
-const LikeSchema = new mongoose.Schema({
+const LikeSchema = new Schema<ILike>({
   // 关联用户
   userId: { 
     type: String, 
@@ -55,6 +56,6 @@ const LikeSchema = new mongoose.Schema({
 LikeSchema.index({ userId: 1, bvid: 1 }, { unique: true });
 
 // 创建并导出我的喜欢模型
-const Like = mongoose.model('Like', LikeSchema);
+const Like = mongoose.model<ILike>('Like', LikeSchema);
 
 export default Like;

@@ -5,19 +5,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // MongoDB连接URI
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bilibili-music';
+const MONGODB_URI: string = process.env.MONGODB_URI || 'mongodb://localhost:27017/bilibili-music';
 
 /**
  * 连接MongoDB数据库
  */
-export const connectDB = async () => {
+export const connectDB = async (): Promise<void> => {
   try {
-    await mongoose.connect(MONGODB_URI, {
-      // 这些选项在最新版本的mongoose中已经是默认值，不需要显式设置
-    });
+    await mongoose.connect(MONGODB_URI);
     console.log('MongoDB数据库连接成功');
   } catch (error) {
-    console.error('MongoDB数据库连接失败:', error.message);
+    const err = error as Error;
+    console.error('MongoDB数据库连接失败:', err.message);
     process.exit(1);
   }
 };
@@ -25,12 +24,13 @@ export const connectDB = async () => {
 /**
  * 关闭MongoDB数据库连接
  */
-export const closeDB = async () => {
+export const closeDB = async (): Promise<void> => {
   try {
     await mongoose.connection.close();
     console.log('MongoDB数据库连接已关闭');
   } catch (error) {
-    console.error('关闭MongoDB数据库连接失败:', error.message);
+    const err = error as Error;
+    console.error('关闭MongoDB数据库连接失败:', err.message);
   }
 };
 

@@ -1,8 +1,32 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import axios from 'axios';
 import { generateToken } from '../middleware/auth.js';
 
 const router = express.Router();
+
+/**
+ * 用户信息接口
+ */
+interface UserInfo {
+  mid: string;
+  uname: string;
+  face: string;
+  level_info: {
+    current_level: number;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+/**
+ * JWT令牌有效载荷接口
+ */
+interface TokenPayload {
+  uid: string;
+  uname: string;
+  sessdata: string;
+  [key: string]: any;
+}
 
 /**
  * @desc 获取二维码
@@ -10,7 +34,7 @@ const router = express.Router();
  * @access Public
  * @returns {Object} 二维码数据
  */
-router.get('/qrcode', async (req, res) => {
+router.get('/qrcode', async (req: Request, res: Response) => {
   try {
     const response = await axios.get('https://passport.bilibili.com/x/passport-login/web/qrcode/generate');
     res.json(response.data);
@@ -30,7 +54,7 @@ router.get('/qrcode', async (req, res) => {
  * @param {string} qrcode_key - 二维码 key
  * @returns {Object} 登录状态和JWT令牌
  */
-router.get('/qrcode/status', async (req, res) => {
+router.get('/qrcode/status', async (req: Request, res: Response) => {
   const { qrcode_key } = req.query;
   if (!qrcode_key) {
     return res.status(400).json({ 
@@ -47,7 +71,7 @@ router.get('/qrcode/status', async (req, res) => {
     // 如果登录成功，生成JWT令牌
     if (response.data.code === 0 && response.headers['set-cookie']) {
       // 从Cookie中提取SESSDATA
-      const cookies = response.headers['set-cookie'];
+      const cookies = response.headers['set-cookie'] as string[];
       let sessdata = '';
       
       for (const cookie of cookies) {
@@ -71,7 +95,7 @@ router.get('/qrcode/status', async (req, res) => {
         });
         
         if (userInfoResponse.data.code === 0 && userInfoResponse.data.data) {
-          const userData = userInfoResponse.data.data;
+          const userData = userInfoResponse.data.data as UserInfo;
           
           // 生成JWT令牌，包含用户ID和SESSDATA
           const token = generateToken({
@@ -115,7 +139,7 @@ router.get('/qrcode/status', async (req, res) => {
  * @access Private
  * @returns {Object} 用户信息
  */
-router.get('/user/info', async (req, res) => {
+router.get('/user/info', async (req: Request, res: Response) => {
   // 从请求头中获取认证令牌
   const authHeader = req.headers.authorization;
   
@@ -135,7 +159,7 @@ router.get('/user/info', async (req, res) => {
     // 解析令牌获取SESSDATA（简化处理，实际应使用jwt.verify）
     let sessdata = '';
     try {
-      const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()) as TokenPayload;
       sessdata = decoded.sessdata;
     } catch (e) {
       return res.status(401).json({ 
@@ -175,7 +199,7 @@ router.get('/user/info', async (req, res) => {
  * @access Private
  * @returns {Object} 新的JWT令牌
  */
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', async (req: Request, res: Response) => {
   // 从请求头中获取认证令牌
   const authHeader = req.headers.authorization;
   
@@ -197,7 +221,7 @@ router.post('/refresh', async (req, res) => {
     let uname = '';
     
     try {
-      const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()) as TokenPayload;
       sessdata = decoded.sessdata;
       uid = decoded.uid;
       uname = decoded.uname;

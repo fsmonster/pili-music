@@ -1,5 +1,4 @@
-import express from 'express';
-import axios from 'axios';
+import express, { Request, Response } from 'express';
 import * as likeController from '../controllers/likeController.js';
 import authMiddleware from '../middleware/auth.js';
 
@@ -9,16 +8,39 @@ const router = express.Router();
 router.use(authMiddleware);
 
 /**
+ * 媒体数据接口
+ */
+interface MediaData {
+  bvid: string;
+  aid?: number;
+  cid?: number;
+  title: string;
+  cover?: string;
+  duration?: number;
+  upper?: {
+    uid: string;
+    name: string;
+  };
+}
+
+/**
  * @route   GET /api/like
  * @desc    获取用户喜欢的所有媒体
  * @access  Private - 需要登录
  */
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const { uid } = req.user;
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { userId } = req.user;
     
     // 获取用户喜欢的所有媒体
-    const likes = await likeController.getUserLikes(uid);
+    const likes = await likeController.getUserLikes(userId);
     
     res.json({
       code: 0,
@@ -38,15 +60,22 @@ router.get('/', async (req, res) => {
  * @desc    添加媒体到喜欢列表
  * @access  Private - 需要登录
  */
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
-    const { uid } = req.user;
-    const { mediaData } = req.body;
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { userId } = req.user;
+    const { mediaData } = req.body as { mediaData: MediaData };
 
-    console.log('😀😀😀添加喜欢:', JSON.stringify({ uid, mediaData })); // 确保 bvid 和 title 存在
+    console.log('😀😀😀添加喜欢:', JSON.stringify({ userId, mediaData })); // 确保 bvid 和 title 存在
 
     // 添加媒体到喜欢列表
-    const like = await likeController.addLike(uid, mediaData);
+    const like = await likeController.addLike(userId, mediaData);
     
     res.status(201).json({
       code: 0,
@@ -66,13 +95,20 @@ router.post('/', async (req, res) => {
  * @desc    从喜欢列表移除媒体
  * @access  Private - 需要登录
  */
-router.delete('/:bvid', async (req, res) => {
+router.delete('/:bvid', async (req: Request, res: Response) => {
   try {
-    const { uid } = req.user;
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { userId } = req.user;
     const { bvid } = req.params;
     
     // 从喜欢列表移除媒体
-    await likeController.removeLike(uid, bvid);
+    await likeController.removeLike(userId, bvid);
     
     res.json({
       code: 0,
@@ -92,13 +128,20 @@ router.delete('/:bvid', async (req, res) => {
  * @desc    检查媒体是否在喜欢列表中
  * @access  Private - 需要登录
  */
-router.get('/check/:bvid', async (req, res) => {
+router.get('/check/:bvid', async (req: Request, res: Response) => {
   try {
-    const { uid } = req.user;
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { userId } = req.user;
     const { bvid } = req.params;
     
     // 检查媒体是否在喜欢列表中
-    const isLiked = await likeController.checkIsLiked(uid, bvid);
+    const isLiked = await likeController.checkIsLiked(userId, bvid);
     
     res.json({
       code: 0,

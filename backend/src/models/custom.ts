@@ -1,20 +1,25 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { ICustomPlaylist, IPlaylistItem } from '../types/models.ts';
 
 /**
  * 自建歌单模型 - 用户在应用内创建的歌单
  */
-const CustomPlaylistSchema = new mongoose.Schema({
+const CustomPlaylistSchema = new Schema<ICustomPlaylist>({
   // 歌单基本信息
-  title: { 
+  name: { 
     type: String, 
     required: true 
   }, // 歌单标题
-  cover: { 
-    type: String 
-  }, // 封面图URL
   description: { 
     type: String 
   }, // 描述
+  cover: { 
+    type: String 
+  }, // 封面图URL
+  isPublic: {
+    type: Boolean,
+    default: false
+  }, // 是否公开
   
   // 关联用户
   userId: { 
@@ -24,7 +29,7 @@ const CustomPlaylistSchema = new mongoose.Schema({
   }, // B站用户ID
   
   // 包含的媒体
-  mediaItems: [{
+  items: [{
     bvid: { 
       type: String, 
       required: true 
@@ -57,16 +62,7 @@ const CustomPlaylistSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     } // 添加到歌单的时间
-  }],
-  
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
-  },
-  updatedAt: { 
-    type: Date, 
-    default: Date.now 
-  }
+  }]
 }, {
   timestamps: true // 自动管理createdAt和updatedAt字段
 });
@@ -78,6 +74,6 @@ CustomPlaylistSchema.pre('findOneAndUpdate', function(next) {
 });
 
 // 创建并导出自建歌单模型
-const CustomPlaylist = mongoose.model('CustomPlaylist', CustomPlaylistSchema);
+const CustomPlaylist = mongoose.model<ICustomPlaylist>('CustomPlaylist', CustomPlaylistSchema);
 
 export default CustomPlaylist;

@@ -1,8 +1,19 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import axios from 'axios';
 import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
+
+/**
+ * 用户认证请求接口扩展
+ */
+interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    uid: string;
+    sessdata: string;
+  };
+}
 
 // 应用认证中间件到需要认证的路由
 router.use('/collected', authMiddleware);
@@ -12,8 +23,15 @@ router.use('/collected', authMiddleware);
  * @desc    获取用户订阅的合集列表
  * @access  Private - 需要JWT认证
  */
-router.get('/collected/list', async (req, res) => {
+router.get('/collected/list', async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
     const { sessdata } = req.user;
     
     const { pn, ps, up_mid='' } = req.query;
@@ -48,7 +66,7 @@ router.get('/collected/list', async (req, res) => {
  * @desc    获取指定合集的内容列表
  * @access  Public - 不需要认证
  */
-router.get('/season/list', async (req, res) => {
+router.get('/season/list', async (req: Request, res: Response) => {
   try {
     const { season_id, pn, ps } = req.query;
     if (!season_id) {

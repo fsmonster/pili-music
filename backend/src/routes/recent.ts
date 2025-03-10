@@ -1,5 +1,4 @@
-import express from 'express';
-import axios from 'axios';
+import express, { Request, Response } from 'express';
 import * as recentPlayController from '../controllers/recentPlayController.js';
 import authMiddleware from '../middleware/auth.js';
 
@@ -9,17 +8,40 @@ const router = express.Router();
 router.use(authMiddleware);
 
 /**
+ * 媒体数据接口
+ */
+interface MediaData {
+  bvid: string;
+  aid?: number;
+  cid?: number;
+  title: string;
+  cover?: string;
+  duration?: number;
+  upper?: {
+    uid: string;
+    name: string;
+  };
+}
+
+/**
  * @route   GET /api/recent
  * @desc    获取用户的最近播放记录
  * @access  Private - 需要登录
  */
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const { uid } = req.user;
-    const limit = req.query.limit ? parseInt(req.query.limit) : 100;
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { userId } = req.user;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
     
     // 获取用户的最近播放记录
-    const recentPlays = await recentPlayController.getUserRecentPlays(uid, limit);
+    const recentPlays = await recentPlayController.getUserRecentPlays(userId, limit);
     
     res.json({
       code: 0,
@@ -40,16 +62,23 @@ router.get('/', async (req, res) => {
  * @param {Object} mediaData - 媒体数据
  * @access  Private - 需要登录
  */
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   console.log('添加播放记录:', req.body);  
   try {
-    const { uid } = req.user;
-    const { mediaData } = req.body;
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { userId } = req.user;
+    const { mediaData } = req.body as { mediaData: MediaData };
 
-    console.log('😀😀😀添加播放记录:', JSON.stringify({ uid, mediaData }));
+    console.log('😀😀😀添加播放记录:', JSON.stringify({ userId, mediaData }));
     
     // 添加或更新播放记录
-    const recentPlay = await recentPlayController.addOrUpdateRecentPlay(uid, mediaData);
+    const recentPlay = await recentPlayController.addOrUpdateRecentPlay(userId, mediaData);
     
     res.status(201).json({
       code: 0,
@@ -70,13 +99,20 @@ router.post('/', async (req, res) => {
  * @param {String} bvid - 视频ID
  * @access  Private - 需要登录
  */
-router.delete('/:bvid', async (req, res) => {
+router.delete('/:bvid', async (req: Request, res: Response) => {
   try {
-    const { uid } = req.user;
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { userId } = req.user;
     const { bvid } = req.params;
     
     // 删除播放记录
-    await recentPlayController.deleteRecentPlay(uid, bvid);
+    await recentPlayController.deleteRecentPlay(userId, bvid);
     
     res.json({
       code: 0,
@@ -96,12 +132,19 @@ router.delete('/:bvid', async (req, res) => {
  * @desc    清空所有播放记录
  * @access  Private - 需要登录
  */
-router.delete('/', async (req, res) => {
+router.delete('/', async (req: Request, res: Response) => {
   try {
-    const { uid } = req.user;
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { userId } = req.user;
     
     // 清空所有播放记录
-    await recentPlayController.clearAllRecentPlays(uid);
+    await recentPlayController.clearAllRecentPlays(userId);
     
     res.json({
       code: 0,

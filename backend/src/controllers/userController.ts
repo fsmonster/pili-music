@@ -1,12 +1,32 @@
-import User from '../models/User.js';
-import axios from 'axios';
+import User from '../models/user.js';
+import { IUser } from '../types/models.js';
+
+/**
+ * B站用户数据接口
+ */
+interface BilibiliUserData {
+  mid: string;
+  uname: string;
+  face: string;
+  [key: string]: any;
+}
+
+/**
+ * 用户偏好设置接口
+ */
+interface UserPreferences {
+  theme?: string;
+  audioQuality?: string;
+  showLyrics?: boolean;
+  [key: string]: any;
+}
 
 /**
  * @desc 处理用户登录后的信息保存
- * @param {Object} userData - B站返回的用户数据
- * @returns {Object} 处理后的用户数据
+ * @param {BilibiliUserData} userData - B站返回的用户数据
+ * @returns {Promise<IUser>} 处理后的用户数据
  */
-export const saveUserInfo = async (userData) => {
+export const saveUserInfo = async (userData: BilibiliUserData): Promise<IUser> => {
   try {
     // 从B站API响应中提取用户信息
     const { mid: uid, uname: username, face: avatar } = userData;
@@ -25,6 +45,10 @@ export const saveUserInfo = async (userData) => {
         },
         { new: true }
       );
+      
+      if (!user) {
+        throw new Error('更新用户信息失败');
+      }
     } else {
       // 如果用户不存在，创建新用户
       user = await User.create({
@@ -45,10 +69,10 @@ export const saveUserInfo = async (userData) => {
 
 /**
  * @desc 获取用户信息
- * @param {String} uid - 用户ID
- * @returns {Object} 用户信息
+ * @param {string} uid - 用户ID
+ * @returns {Promise<IUser | null>} 用户信息
  */
-export const getUserInfo = async (uid) => {
+export const getUserInfo = async (uid: string): Promise<IUser | null> => {
   try {
     const user = await User.findOne({ uid });
     return user;
@@ -60,11 +84,11 @@ export const getUserInfo = async (uid) => {
 
 /**
  * @desc 更新用户偏好设置
- * @param {String} uid - 用户ID
- * @param {Object} preferences - 用户偏好设置
- * @returns {Object} 更新后的用户信息
+ * @param {string} uid - 用户ID
+ * @param {UserPreferences} preferences - 用户偏好设置
+ * @returns {Promise<IUser | null>} 更新后的用户信息
  */
-export const updateUserPreferences = async (uid, preferences) => {
+export const updateUserPreferences = async (uid: string, preferences: UserPreferences): Promise<IUser | null> => {
   try {
     const user = await User.findOneAndUpdate(
       { uid },
@@ -84,11 +108,11 @@ export const updateUserPreferences = async (uid, preferences) => {
 
 /**
  * @desc 更新用户显示的收藏夹ID列表
- * @param {String} uid - 用户ID
- * @param {Array} favoriteIds - 收藏夹ID列表
- * @returns {Object} 更新后的用户信息
+ * @param {string} uid - 用户ID
+ * @param {string[]} favoriteIds - 收藏夹ID列表
+ * @returns {Promise<IUser | null>} 更新后的用户信息
  */
-export const updateDisplayFavorites = async (uid, favoriteIds) => {
+export const updateDisplayFavorites = async (uid: string, favoriteIds: string[]): Promise<IUser | null> => {
   try {
     const user = await User.findOneAndUpdate(
       { uid },
@@ -108,11 +132,11 @@ export const updateDisplayFavorites = async (uid, favoriteIds) => {
 
 /**
  * @desc 更新用户显示的合集ID列表
- * @param {String} uid - 用户ID
- * @param {Array} seasonIds - 合集ID列表
- * @returns {Object} 更新后的用户信息
+ * @param {string} uid - 用户ID
+ * @param {string[]} seasonIds - 合集ID列表
+ * @returns {Promise<IUser | null>} 更新后的用户信息
  */
-export const updateDisplaySeasons = async (uid, seasonIds) => {
+export const updateDisplaySeasons = async (uid: string, seasonIds: string[]): Promise<IUser | null> => {
   try {
     const user = await User.findOneAndUpdate(
       { uid },
