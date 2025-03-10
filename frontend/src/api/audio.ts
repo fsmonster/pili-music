@@ -46,8 +46,6 @@ export async function getAudioUrl(params: {
     if (res.data.code !== 0) {
       throw new Error(res.data.message || '获取音频URL失败');
     }
-    
-    console.log(res.data.data);
 
     // 获取所有音频流
     const audioStreams = res.data.data;

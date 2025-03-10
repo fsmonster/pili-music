@@ -20,9 +20,6 @@
         <div class="music-item" @click="navigateToRecentPlays">
           <div class="cover">
             <img :src="loveCover" alt="最近播放">
-            <div class="play-overlay" @click.stop="playAllRecentMusic">
-              <i class="ri-play-circle-fill"></i>
-            </div>
           </div>
           <div class="info">
             <div class="title">最近播放</div>
@@ -44,14 +41,14 @@
         </div>
         <!-- 其他歌单 -->
         <div 
-          v-for="playlist in playlistStore.playlists" 
+          v-for="playlist in customPlaylistStore.customPlaylists" 
           :key="playlist._id" 
           class="music-item"
           @click="navigateToPlaylist(playlist)"
         >
           <div class="cover">
             <img :src="playlist.coverUrl || defaultCover" :alt="playlist.name">
-            <div class="play-overlay" @click.stop="playPlaylist(playlist)">
+            <div class="play-overlay" @click.stop="playPlaylist(playlist, $event)">
               <i class="ri-play-circle-fill"></i>
             </div>
           </div>
@@ -91,14 +88,14 @@ import { ElMessage } from 'element-plus';
 import ContentSection from './ContentSection.vue';
 import defaultCover from '@/assets/image/default_cover.avif';
 import loveCover from '@/assets/image/love.avif';
-import { usePlaylistStore } from '@/stores/list/custom';
+import { useCustomPlaylistStore } from '@/stores/list/custom';
 import { useLikeStore } from '@/stores/list/like';
 import { useRecentPlayStore } from '@/stores/list/recentPlay';
 // import { usePlayerStore } from '@/stores/play/player';
 import type { CreatePlaylistParams, CustomPlaylist } from '@/types';
 
 // 引入状态管理
-const playlistStore = usePlaylistStore();
+const customPlaylistStore = useCustomPlaylistStore();
 const likeStore = useLikeStore();
 const recentPlayStore = useRecentPlayStore();
 // const playerStore = usePlayerStore();
@@ -118,9 +115,9 @@ const newPlaylist = ref<CreatePlaylistParams>({
 // 组件挂载时获取数据
 onMounted(async () => {
   // 获取用户歌单
-  if (playlistStore.playlists.length === 0) {
+  if (customPlaylistStore.customPlaylists.length === 0) {
     try {
-      await playlistStore.fetchUserPlaylists();
+      await customPlaylistStore.fetchUserPlaylists();
     } catch (error) {
       console.error('获取用户歌单失败:', error);
     }
@@ -166,7 +163,7 @@ async function saveNewPlaylist() {
   
   creating.value = true;
   try {
-    await playlistStore.createPlaylist(newPlaylist.value);
+    await customPlaylistStore.createPlaylist(newPlaylist.value);
     ElMessage.success('歌单创建成功');
     showCreateDialog.value = false;
   } catch (error) {
@@ -176,20 +173,6 @@ async function saveNewPlaylist() {
     creating.value = false;
   }
 }
-
-// 播放所有最近播放的音乐
-const playAllRecentMusic = async (event: Event) => {
-  event.stopPropagation();
-  // 如果没有最近播放的音乐，不执行任何操作
-  if (recentPlayStore.recentPlayCount === 0) {
-    ElMessage.warning('暂无最近播放记录');
-    return;
-  }
-  
-  // TODO: 实现播放所有最近播放音乐的逻辑
-  // 将最近播放的音乐添加到播放列表
-  ElMessage.success('开始播放最近播放的音乐');
-};
 
 // 播放所有喜欢的音乐
 const playAllLikedMusic = async (event: Event) => {
@@ -221,18 +204,18 @@ const playPlaylist = async (playlist: CustomPlaylist, event: Event) => {
 
 // 导航到最近播放详情页
 const navigateToRecentPlays = () => {
-  router.push('/recent-plays');
+  router.push('/recent');
 };
 
 // 导航到喜欢的音乐详情页
 const navigateToLikedMusic = () => {
-  router.push('/liked-music');
+  router.push('/liked');
 };
 
 // 导航到播放列表详情页
 const navigateToPlaylist = (playlist: CustomPlaylist) => {
   // 设置当前查看的播放列表
-  playlistStore.setCurrentPlaylist(playlist);
+  customPlaylistStore.setCurrentPlaylist(playlist);
   router.push(`/playlist/${playlist._id}`);
 };
 </script>

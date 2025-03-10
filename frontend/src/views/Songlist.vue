@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
 import { ref, computed, onBeforeMount, onMounted, onUnmounted, nextTick } from 'vue';
-import { useFavoriteStore, useSeasonStore, usePlayerStore, usePlaylistStore } from '../stores';
+import { useFavoriteStore, useSeasonStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import MediaTable from '../components/songList/MediaTable.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
@@ -62,7 +62,7 @@ import type { MediaItem } from '../types';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
-const playlistStore = usePlaylistStore();
+const queueStore = useQueueStore();
 
 const { type, id } = route.params;
 
@@ -191,7 +191,7 @@ function handleScroll() {
  */
 function handlePlayAll() {
   if (store.value.items.length > 0) {
-    playlistStore.setPlaylist(store.value.items);
+    queueStore.setQueue(store.value.items);
     playerStore.play(store.value.items[0]);
   }
 }
@@ -200,7 +200,7 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  playlistStore.setPlaylist(store.value.items);
+  queueStore.setQueue(store.value.items);
   playerStore.play(item);
 }
 

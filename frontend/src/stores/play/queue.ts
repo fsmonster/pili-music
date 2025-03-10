@@ -3,12 +3,12 @@ import { ref, computed } from 'vue';
 import type { MediaItem } from '../../types';
 
 /**
- * @desc 播放列表状态管理
+ * @desc 当前播放列表状态管理
  */
-export const usePlaylistStore = defineStore('playlist', () => {
+export const useQueueStore = defineStore('queue', () => {
   // 状态
   const currentTrack = ref<MediaItem | null>(null);
-  const playlist = ref<MediaItem[]>([]);
+  const queue = ref<MediaItem[]>([]);
   const loading = ref(false);
   const error = ref<string>('');
   const audioUrl = ref<string>('');
@@ -18,20 +18,20 @@ export const usePlaylistStore = defineStore('playlist', () => {
   const isPlaying = computed(() => !!currentTrack.value && !!audioUrl.value);
   const currentIndexComputed = computed(() => {
     if (!currentTrack.value) return -1;
-    return playlist.value.findIndex(item => item.id === currentTrack.value?.id);
+    return queue.value.findIndex(item => item.id === currentTrack.value?.id);
   });
 
   // 当前播放项
   const currentItem = computed(() => {
-    if (currentIndex.value >= 0 && currentIndex.value < playlist.value.length) {
-      return playlist.value[currentIndex.value];
+    if (currentIndex.value >= 0 && currentIndex.value < queue.value.length) {
+      return queue.value[currentIndex.value];
     }
     return null;
   });
 
   // 设置播放列表
-  function setPlaylist(items: MediaItem[]) {
-    playlist.value = items;
+  function setQueue(items: MediaItem[]) {
+    queue.value = items;
   }
 
   // 设置当前播放项
@@ -39,13 +39,13 @@ export const usePlaylistStore = defineStore('playlist', () => {
     currentTrack.value = item;
     if (item) {
       // 查找项目索引
-      const index = playlist.value.findIndex(i => i.bvid === item.bvid);
+      const index = queue.value.findIndex(i => i.bvid === item.bvid);
       if (index !== -1) {
         currentIndex.value = index;
       } else {
         // 如果不在列表中，添加到列表并更新索引
-        playlist.value.push(item);
-        currentIndex.value = playlist.value.length - 1;
+        queue.value.push(item);
+        currentIndex.value = queue.value.length - 1;
       }
     }
   }
@@ -67,24 +67,24 @@ export const usePlaylistStore = defineStore('playlist', () => {
 
   // 下一曲索引
   function nextIndex() {
-    if (playlist.value.length === 0) return -1;    
-    return (currentIndex.value + 1) % playlist.value.length;
+    if (queue.value.length === 0) return -1;    
+    return (currentIndex.value + 1) % queue.value.length;
   }
 
   // 上一曲索引
   function prevIndex() {
-    if (playlist.value.length === 0) return -1;
+    if (queue.value.length === 0) return -1;
     
     let index = currentIndex.value - 1;
     if (index < 0) {
-      index = playlist.value.length - 1;
+      index = queue.value.length - 1;
     }
     return index;
   }
 
   // 设置当前索引
   function setCurrentIndex(index: number) {
-    if (index >= -1 && index < playlist.value.length) {
+    if (index >= -1 && index < queue.value.length) {
       currentIndex.value = index;
       currentTrack.value = currentItem.value;
     }
@@ -93,7 +93,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
   // 重置状态
   function reset() {
     currentTrack.value = null;
-    playlist.value = [];
+    queue.value = [];
     loading.value = false;
     error.value = '';
     audioUrl.value = '';
@@ -103,7 +103,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
   return {
     // 状态
     currentTrack,
-    playlist,
+    queue,
     loading,
     error,
     audioUrl,
@@ -113,7 +113,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
     currentIndexComputed,
     currentItem,
     // 方法
-    setPlaylist,
+    setQueue,
     setCurrentTrack,
     setAudioUrl,
     setLoading,

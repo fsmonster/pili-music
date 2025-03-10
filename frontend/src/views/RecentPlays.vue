@@ -1,8 +1,10 @@
 <template>
-  <div class="recent-plays-page">
-    <!-- 列表头部 -->
-    <ListHeader 
-      title="最近播放" 
+  <Layout>
+    <template #main>
+      <div class="recent-plays-page">
+        <!-- 列表头部 -->
+        <ListHeader 
+          title="最近播放" 
       :cover="recentCover" 
       :count="recentPlayStore.recentPlayCount" 
     />
@@ -20,12 +22,15 @@
       @play="playMedia" 
       @add="addToQueue"
     />
-  </div>
+      </div>
+    </template>
+  </Layout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
+import Layout from '@/layout/Layout.vue';
 import ListHeader from '@/components/songList/ListHeader.vue';
 import ListControls from '@/components/songList/ListControls.vue';
 import MediaTable from '@/components/songList/MediaTable.vue';

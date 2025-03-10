@@ -8,4 +8,4 @@ export * from './list/season'
 
 // 播放
 export * from './play/player'
-export * from './play/playlist'
+export * from './play/queue'

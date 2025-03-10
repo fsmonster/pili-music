@@ -6,9 +6,9 @@ import { ref, computed } from 'vue';
 import type { CustomPlaylist, MediaItem, CreatePlaylistParams, UpdatePlaylistParams } from '../../types';
 import * as playlistApi from '../../api';
 
-export const usePlaylistStore = defineStore('customPlaylist', () => {
+export const useCustomPlaylistStore = defineStore('customPlaylist', () => {
   // 状态
-  const playlists = ref<CustomPlaylist[]>([]);
+  const customPlaylists = ref<CustomPlaylist[]>([]);
   const currentPlaylist = ref<CustomPlaylist | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
@@ -20,7 +20,7 @@ export const usePlaylistStore = defineStore('customPlaylist', () => {
     
     try {
       const data = await playlistApi.getUserPlaylists();
-      playlists.value = data;
+      customPlaylists.value = data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : '获取歌单失败';
       console.error('获取歌单失败:', err);
@@ -39,9 +39,9 @@ export const usePlaylistStore = defineStore('customPlaylist', () => {
       currentPlaylist.value = data;
       
       // 更新本地缓存的歌单列表
-      const index = playlists.value.findIndex(p => p._id === playlistId);
+      const index = customPlaylists.value.findIndex(p => p._id === playlistId);
       if (index !== -1) {
-        playlists.value[index] = data;
+        customPlaylists.value[index] = data;
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : '获取歌单详情失败';
@@ -58,7 +58,7 @@ export const usePlaylistStore = defineStore('customPlaylist', () => {
     
     try {
       const data = await playlistApi.createPlaylist(playlistData);
-      playlists.value.unshift(data); // 添加到列表开头
+      customPlaylists.value.unshift(data); // 添加到列表开头
       return data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : '创建歌单失败';
@@ -78,9 +78,9 @@ export const usePlaylistStore = defineStore('customPlaylist', () => {
       const data = await playlistApi.updatePlaylist(playlistId, updateData);
       
       // 更新本地缓存
-      const index = playlists.value.findIndex(p => p._id === playlistId);
+      const index = customPlaylists.value.findIndex(p => p._id === playlistId);
       if (index !== -1) {
-        playlists.value[index] = data;
+        customPlaylists.value[index] = data;
       }
       
       // 如果正在查看该歌单，也更新当前歌单
@@ -107,7 +107,7 @@ export const usePlaylistStore = defineStore('customPlaylist', () => {
       await playlistApi.deletePlaylist(playlistId);
       
       // 从本地缓存中移除
-      playlists.value = playlists.value.filter(p => p._id !== playlistId);
+      customPlaylists.value = customPlaylists.value.filter(p => p._id !== playlistId);
       
       // 如果正在查看该歌单，清空当前歌单
       if (currentPlaylist.value && currentPlaylist.value._id === playlistId) {
@@ -133,9 +133,9 @@ export const usePlaylistStore = defineStore('customPlaylist', () => {
       const data = await playlistApi.addMediaToPlaylist(playlistId, mediaItem);
       
       // 更新本地缓存
-      const index = playlists.value.findIndex(p => p._id === playlistId);
+      const index = customPlaylists.value.findIndex(p => p._id === playlistId);
       if (index !== -1) {
-        playlists.value[index] = data;
+        customPlaylists.value[index] = data;
       }
       
       // 如果正在查看该歌单，也更新当前歌单
@@ -162,9 +162,9 @@ export const usePlaylistStore = defineStore('customPlaylist', () => {
       const data = await playlistApi.removeMediaFromPlaylist(playlistId, bvid);
       
       // 更新本地缓存
-      const index = playlists.value.findIndex(p => p._id === playlistId);
+      const index = customPlaylists.value.findIndex(p => p._id === playlistId);
       if (index !== -1) {
-        playlists.value[index] = data;
+        customPlaylists.value[index] = data;
       }
       
       // 如果正在查看该歌单，也更新当前歌单
@@ -189,13 +189,13 @@ export const usePlaylistStore = defineStore('customPlaylist', () => {
 
   return {
     // 状态
-    playlists,
+    customPlaylists,
     currentPlaylist,
     loading,
     error,
     
     // 计算属性
-    playlistCount: computed(() => playlists.value.length),
+    playlistCount: computed(() => customPlaylists.value.length),
     
     // 方法
     fetchUserPlaylists,

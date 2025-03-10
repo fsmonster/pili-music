@@ -20,7 +20,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 // import { usePlayerStore } from '@/stores/play/player';
-import { usePlaylistStore } from '@/stores/list/custom';
+import { useCustomPlaylistStore } from '@/stores/list/custom';
 import { ElMessage } from 'element-plus';
 import type { CustomPlaylist } from '@/types';
 import defaultCover from '@/assets/image/default_cover.avif';
@@ -32,7 +32,7 @@ const props = defineProps<{
 
 // 引入状态管理
 // const playerStore = usePlayerStore();
-const playlistStore = usePlaylistStore();
+const customPlaylistStore = useCustomPlaylistStore();
 const router = useRouter();
 
 // 计算封面URL
@@ -56,7 +56,9 @@ const playPlaylist = async () => {
 // 导航到播放列表详情页
 const navigateToPlaylist = () => {
   // 设置当前查看的播放列表
-  playlistStore.setCurrentPlaylist(props.playlist);
+  console.log('😀😀😀Navigating to playlist:', props.playlist);
+  
+  customPlaylistStore.setCurrentPlaylist(props.playlist);
   router.push(`/playlist/${props.playlist._id}`);
 };
 </script>

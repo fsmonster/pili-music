@@ -41,8 +41,10 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { uid } = req.user;
-    const mediaData = req.body;
-    
+    const { mediaData } = req.body;
+
+    console.log('😀😀😀添加喜欢:', JSON.stringify({ uid, mediaData })); // 确保 bvid 和 title 存在
+
     // 添加媒体到喜欢列表
     const like = await likeController.addLike(uid, mediaData);
     

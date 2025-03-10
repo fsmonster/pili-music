@@ -3,12 +3,12 @@ import { ref, computed } from 'vue';
 import type { MediaItem } from '../../types';
 import { getVideoInfo, getAudioUrl } from '../../api';
 import { processResourceUrl } from '../../utils';
-import { usePlaylistStore } from './playlist';
+import { useQueueStore } from './queue';
 import { useRecentPlayStore } from '../list/recentPlay'; // 导入最近播放 store
 
 export const usePlayerStore = defineStore('player', () => {
   // 获取播放列表存储
-  const playlistStore = usePlaylistStore();
+  const queueStore = useQueueStore();
   // 获取最近播放记录存储
   const recentPlayStore = useRecentPlayStore();
   
@@ -58,7 +58,7 @@ export const usePlayerStore = defineStore('player', () => {
   async function play(item?: MediaItem) {
     // 如果提供了新的播放项，则更新当前播放项
     if (item) {
-      playlistStore.setCurrentTrack(item);
+      queueStore.setCurrentTrack(item);
       audioLoaded.value = false; // 新的播放项需要重新加载
       
       // 添加到最近播放记录
@@ -70,14 +70,14 @@ export const usePlayerStore = defineStore('player', () => {
       }
     }
 
-    const currentItem = playlistStore.currentItem;
+    const currentItem = queueStore.currentItem;
     
     // 如果有当前播放项
     if (currentItem) {
       // 如果音频尚未加载，需要获取播放地址
       if (!audioLoaded.value) {
         loading.value = true;
-        playlistStore.setLoading(true);
+        queueStore.setLoading(true);
         
         try {
           // 获取播放地址
@@ -91,16 +91,16 @@ export const usePlayerStore = defineStore('player', () => {
             // 使用 processResourceUrl 处理 URL，通过后端代理
             const processedUrl = processResourceUrl(url);
             audio.src = processedUrl;
-            playlistStore.setAudioUrl(processedUrl);
+            queueStore.setAudioUrl(processedUrl);
             await audio.play();
           } else {
             throw new Error('无法获取音频URL');
           }
         } catch (err) {
           console.error('加载音频失败', err);
-          playlistStore.setError(err instanceof Error ? err.message : '加载失败');
+          queueStore.setError(err instanceof Error ? err.message : '加载失败');
           loading.value = false;
-          playlistStore.setLoading(false);
+          queueStore.setLoading(false);
         }
       } else {
         // 音频已加载，直接播放
@@ -125,20 +125,20 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 下一曲
   function next() {
-    const nextIdx = playlistStore.nextIndex();
+    const nextIdx = queueStore.nextIndex();
     if (nextIdx === -1) return;
     
-    playlistStore.setCurrentIndex(nextIdx);
+    queueStore.setCurrentIndex(nextIdx);
     audioLoaded.value = false; // 重置加载状态
     play();
   }
 
   // 上一曲
   function prev() {
-    const prevIdx = playlistStore.prevIndex();
+    const prevIdx = queueStore.prevIndex();
     if (prevIdx === -1) return;
     
-    playlistStore.setCurrentIndex(prevIdx);
+    queueStore.setCurrentIndex(prevIdx);
     audioLoaded.value = false; // 重置加载状态
     play();
   }
@@ -177,7 +177,7 @@ export const usePlayerStore = defineStore('player', () => {
         console.error('跳转失败:', err);
         // 如果跳转失败，可能是因为音频流还未加载到该位置
         // 可以考虑重新加载音频
-        if (playlistStore.currentItem) {
+        if (queueStore.currentItem) {
           audioLoaded.value = false; // 重置加载状态
           await play(); // 重新加载并播放
         }
@@ -205,9 +205,9 @@ export const usePlayerStore = defineStore('player', () => {
     audioLoaded,
     
     // 播放列表状态 (从playlistStore获取)
-    currentItem: computed(() => playlistStore.currentItem),
-    playlist: computed(() => playlistStore.playlist),
-    currentIndex: computed(() => playlistStore.currentIndex),
+    currentItem: computed(() => queueStore.currentItem),
+    queue: computed(() => queueStore.queue),
+    currentIndex: computed(() => queueStore.currentIndex),
     
     // 方法
     play,
@@ -219,7 +219,7 @@ export const usePlayerStore = defineStore('player', () => {
     setVolume,
     
     // 播放列表方法
-    setPlaylist: playlistStore.setPlaylist,
+    setQueue: queueStore.setQueue,
   };
 }, { 
   persist: true

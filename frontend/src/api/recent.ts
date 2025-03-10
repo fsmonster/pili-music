@@ -40,15 +40,17 @@ export async function getRecentPlays(limit: number = 20): Promise<RecentPlay[]> 
   
       // 格式化为后端所需的格式
       const formattedMediaItem = {
-        bvid: mediaItem.bvid,
-        aid: mediaItem.id,  // 如果id是aid
-        cid: mediaItem.cid,
-        title: mediaItem.title,
-        cover: mediaItem.cover,
-        duration: mediaItem.duration,
-        upper: {
-          mid: mediaItem.upper.mid,
-          name: mediaItem.upper.name
+        mediaData:{
+          bvid: mediaItem.bvid,
+          aid: mediaItem.id,  // 如果id是aid
+          cid: mediaItem.cid,
+          title: mediaItem.title,
+          cover: mediaItem.cover,
+          duration: mediaItem.duration,
+          upper: {
+            mid: mediaItem.upper.mid,
+            name: mediaItem.upper.name
+          }
         }
       };
       const res = await request.post<ApiResponse<RecentPlay>>('/recent', formattedMediaItem);

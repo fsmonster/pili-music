@@ -45,6 +45,8 @@ router.post('/', async (req, res) => {
   try {
     const { uid } = req.user;
     const { mediaData } = req.body;
+
+    console.log('😀😀😀添加播放记录:', JSON.stringify({ uid, mediaData }));
     
     // 添加或更新播放记录
     const recentPlay = await recentPlayController.addOrUpdateRecentPlay(uid, mediaData);
@@ -65,6 +67,7 @@ router.post('/', async (req, res) => {
 /**
  * @route   DELETE /api/recent/:bvid
  * @desc    删除单条播放记录
+ * @param {String} bvid - 视频ID
  * @access  Private - 需要登录
  */
 router.delete('/:bvid', async (req, res) => {
