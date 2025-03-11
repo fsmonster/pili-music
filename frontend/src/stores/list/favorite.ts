@@ -19,7 +19,7 @@ export const useFavoriteStore = defineStore('favorite', () => {
   const currentFavoriteId = ref<number | null>(null); // 当前正在查看的收藏夹ID
 
   const userStore = useUserStore();
-  const uid = computed(() => userStore.uid);
+  const mid = computed(() => userStore.mid);
 
   // 计算属性：当前显示的收藏夹(歌单)列表
   const favorites = computed<Favorite[]>(() =>
@@ -67,7 +67,7 @@ export const useFavoriteStore = defineStore('favorite', () => {
    * @desc 获取收藏夹列表
    */
   const fetchFavorites = async () => {
-    if (!uid.value) {
+    if (!mid.value) {
       baseList.error.value = '请先登录';
       return;
     }
@@ -76,7 +76,7 @@ export const useFavoriteStore = defineStore('favorite', () => {
     baseList.error.value = '';
 
     // 获取收藏夹列表基本信息（不包含封面）
-    const favoriteList = await favoriteApi.getFavoriteList(uid.value);
+    const favoriteList = await favoriteApi.getFavoriteList(mid.value);
 
     // 合并原有收藏夹的 cover 信息
     allFavorites.value = favoriteList.map(newFav => {

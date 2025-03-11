@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { ICustomPlaylist, IPlaylistItem } from '../types/models.ts';
+import { ICustomPlaylist, IPlaylistItem } from '../types/models.js';
 
 /**
  * 自建歌单模型 - 用户在应用内创建的歌单
@@ -22,7 +22,7 @@ const CustomPlaylistSchema = new Schema<ICustomPlaylist>({
   }, // 是否公开
   
   // 关联用户
-  userId: { 
+  mid: { 
     type: String, 
     required: true,
     index: true
@@ -51,7 +51,7 @@ const CustomPlaylistSchema = new Schema<ICustomPlaylist>({
       type: Number 
     }, // 时长(秒)
     upper: {
-      uid: { 
+      mid: { 
         type: String 
       }, // UP主ID
       name: { 

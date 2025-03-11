@@ -13,7 +13,7 @@ interface MediaItem {
   cover?: string;
   duration?: number;
   upper?: {
-    uid: string;
+    mid: string;
     name: string;
   };
 }
@@ -30,12 +30,12 @@ interface PlaylistData {
 
 /**
  * @desc 获取用户的所有自建歌单
- * @param {String} userId - 用户ID
+ * @param {String} mid - 用户ID
  * @returns {Promise<ICustomPlaylist[]>} 用户的自建歌单列表
  */
-export const getUserPlaylists = async (userId: string): Promise<ICustomPlaylist[]> => {
+export const getUserPlaylists = async (mid: string): Promise<ICustomPlaylist[]> => {
   try {
-    const playlists = await CustomPlaylist.find({ userId }).sort({ updatedAt: -1 });
+    const playlists = await CustomPlaylist.find({ mid }).sort({ updatedAt: -1 });
     console.log('获取用户歌单:', playlists);    
     return playlists;
   } catch (error) {
@@ -64,15 +64,15 @@ export const getPlaylistById = async (playlistId: string): Promise<ICustomPlayli
 
 /**
  * @desc 创建新歌单
- * @param {String} userId - 用户ID
+ * @param {String} mid - 用户ID
  * @param {PlaylistData} playlistData - 歌单数据
  * @returns {Promise<ICustomPlaylist>} 创建的歌单
  */
-export const createPlaylist = async (userId: string, playlistData: PlaylistData): Promise<ICustomPlaylist> => {
+export const createPlaylist = async (mid: string, playlistData: PlaylistData): Promise<ICustomPlaylist> => {
   try {
     const newPlaylist = await CustomPlaylist.create({
       ...playlistData,
-      userId,
+      mid,
       items: []
     });
     return newPlaylist;
@@ -85,20 +85,20 @@ export const createPlaylist = async (userId: string, playlistData: PlaylistData)
 /**
  * @desc 更新歌单信息
  * @param {String} playlistId - 歌单ID
- * @param {String} userId - 用户ID (用于验证权限)
+ * @param {String} mid - 用户ID (用于验证权限)
  * @param {Partial<PlaylistData>} updateData - 更新的数据
  * @returns {Promise<ICustomPlaylist>} 更新后的歌单
  */
 export const updatePlaylist = async (
   playlistId: string, 
-  userId: string, 
+  mid: string, 
   updateData: Partial<PlaylistData>
 ): Promise<ICustomPlaylist> => {
   try {
     // 查找并验证歌单所有权
     const playlist = await CustomPlaylist.findOne({ 
       _id: new Types.ObjectId(playlistId), 
-      userId 
+      mid 
     });
     
     if (!playlist) {
@@ -126,15 +126,15 @@ export const updatePlaylist = async (
 /**
  * @desc 删除歌单
  * @param {String} playlistId - 歌单ID
- * @param {String} userId - 用户ID (用于验证权限)
+ * @param {String} mid - 用户ID (用于验证权限)
  * @returns {Promise<boolean>} 是否删除成功
  */
-export const deletePlaylist = async (playlistId: string, userId: string): Promise<boolean> => {
+export const deletePlaylist = async (playlistId: string, mid: string): Promise<boolean> => {
   try {
     // 查找并验证歌单所有权
     const playlist = await CustomPlaylist.findOne({ 
       _id: new Types.ObjectId(playlistId), 
-      userId 
+      mid 
     });
     
     if (!playlist) {
@@ -153,20 +153,20 @@ export const deletePlaylist = async (playlistId: string, userId: string): Promis
 /**
  * @desc 向歌单添加媒体
  * @param {String} playlistId - 歌单ID
- * @param {String} userId - 用户ID (用于验证权限)
+ * @param {String} mid - 用户ID (用于验证权限)
  * @param {MediaItem} mediaItem - 媒体信息
  * @returns {Promise<ICustomPlaylist>} 更新后的歌单
  */
 export const addMediaToPlaylist = async (
   playlistId: string, 
-  userId: string, 
+  mid: string, 
   mediaItem: MediaItem
 ): Promise<ICustomPlaylist> => {
   try {
     // 查找并验证歌单所有权
     const playlist = await CustomPlaylist.findOne({ 
       _id: new Types.ObjectId(playlistId), 
-      userId 
+      mid 
     });
     
     if (!playlist) {
@@ -208,20 +208,20 @@ export const addMediaToPlaylist = async (
 /**
  * @desc 从歌单移除媒体
  * @param {String} playlistId - 歌单ID
- * @param {String} userId - 用户ID (用于验证权限)
+ * @param {String} mid - 用户ID (用于验证权限)
  * @param {String} bvid - 媒体ID
  * @returns {Promise<ICustomPlaylist>} 更新后的歌单
  */
 export const removeMediaFromPlaylist = async (
   playlistId: string, 
-  userId: string, 
+  mid: string, 
   bvid: string
 ): Promise<ICustomPlaylist> => {
   try {
     // 查找并验证歌单所有权
     const playlist = await CustomPlaylist.findOne({ 
       _id: new Types.ObjectId(playlistId), 
-      userId 
+      mid 
     });
     
     if (!playlist) {

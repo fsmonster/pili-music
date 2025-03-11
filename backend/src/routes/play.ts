@@ -8,8 +8,7 @@ const router = express.Router();
  */
 interface AuthRequest extends Request {
   user?: {
-    userId: string;
-    uid: string;
+    mid: string;
     sessdata: string;
   };
 }

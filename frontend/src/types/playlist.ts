@@ -11,7 +11,7 @@ export interface CustomPlaylist {
   name: string;
   description: string;
   coverUrl?: string;
-  userId: string;
+  mid: string | number;
   mediaItems: MediaItem[];
   createdAt: string;
   updatedAt: string;

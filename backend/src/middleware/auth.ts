@@ -76,8 +76,8 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
   
   // 将解码后的用户信息添加到请求对象
   req.user = {
-    userId: decoded.userId,
-    mid: decoded.mid
+    mid: decoded.mid,
+    sessdata: decoded.sessdata
   };
   next();
 };

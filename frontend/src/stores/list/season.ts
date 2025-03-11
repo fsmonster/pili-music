@@ -22,7 +22,7 @@ export const useSeasonStore = defineStore('season', () => {
     const allMediaItems = ref<MediaItem[]>([]);
 
     const userStore = useUserStore();
-    const uid = computed(() => userStore.uid);
+    const mid = computed(() => userStore.mid);
 
     // 计算属性：当前显示的订阅合集
     const seasons = computed(() =>
@@ -36,7 +36,7 @@ export const useSeasonStore = defineStore('season', () => {
 
     // 获取订阅合集列表
     const fetchSeasons = async () => {
-        if (!uid.value) {
+        if (!mid.value) {
             throw new Error('用户未登录');
         }
         baseList.loading.value = true;
@@ -44,7 +44,7 @@ export const useSeasonStore = defineStore('season', () => {
 
         try {
             allSeasons.value = await seasonApi.getSeasonList({
-                up_mid: uid.value,
+                up_mid: mid.value,
                 pn: 1,
                 ps: 40
             });

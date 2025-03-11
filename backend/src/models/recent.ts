@@ -1,12 +1,12 @@
 import mongoose, { Schema, Model } from 'mongoose';
-import { IRecentPlay } from '../types/models.ts';
+import { IRecentPlay } from '../types/models.js';
 
 /**
  * 最近播放记录模型 - 只保留最近100条记录
  */
 const RecentPlaySchema = new Schema<IRecentPlay>({
   // 关联用户
-  userId: { 
+  mid: { 
     type: String, 
     required: true,
     index: true
@@ -42,7 +42,7 @@ const RecentPlaySchema = new Schema<IRecentPlay>({
   
   // UP主信息
   upper: {
-    uid: { 
+    mid: { 
       type: String 
     }, // UP主ID
     name: { 
@@ -54,7 +54,7 @@ const RecentPlaySchema = new Schema<IRecentPlay>({
 });
 
 // 设置索引，按用户ID和播放时间排序
-RecentPlaySchema.index({ userId: 1, playedAt: -1 });
+RecentPlaySchema.index({ mid: 1, playedAt: -1 });
 
 /**
  * 保存前钩子 - 确保每个用户最多只有100条最近播放记录
@@ -63,10 +63,10 @@ RecentPlaySchema.pre('save', async function(next) {
   try {
     // 如果是新记录，检查并删除多余的记录
     if (this.isNew) {
-      const count = await this.constructor.countDocuments({ userId: this.userId });
+      const count = await this.constructor.countDocuments({ mid: this.mid });
       if (count >= 100) {
         // 查找并删除最早的记录，直到总数小于100
-        const oldestRecords = await (this.constructor as Model<IRecentPlay>).find({ userId: this.userId })
+        const oldestRecords = await (this.constructor as Model<IRecentPlay>).find({ mid: this.mid })
           .sort({ playedAt: 1 })
           .limit(count - 99);
         

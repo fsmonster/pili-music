@@ -18,6 +18,6 @@ export interface UserInfo {
     userInfo: {
         avatar: string    // 经过处理的头像URL（已转换为代理URL）
         username: string  // 用户名
-        uid: number      // 用户ID
+        mid: number      // 用户ID
     } | null
 }

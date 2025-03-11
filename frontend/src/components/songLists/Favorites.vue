@@ -131,16 +131,11 @@ const saveFavoritesSettings = async () => {
   ElMessage.success('设置已保存');
 };
 
-// onMounted(async () => {
-//   if (!userStore.isLoggedIn) {
-//     return;
-//   }
-//   // 获取所有收藏夹列表
-//   await favoriteStore.fetchFavorites();
-// });
-
 onMounted(async () => {
-  // 获取收藏夹列表
+  if (!userStore.isLoggedIn) {
+    return;
+  }
+  // 获取所有收藏夹列表
   await favoriteStore.fetchFavorites();
 });
 

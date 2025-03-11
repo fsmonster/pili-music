@@ -22,7 +22,7 @@ export const useUserStore = defineStore('user', () => {
       ? {
           avatar: processResourceUrl(info.face),
           username: info.uname,
-          uid: info.mid
+          mid: info.mid
         }
       : null
   }
@@ -39,9 +39,9 @@ export const useUserStore = defineStore('user', () => {
   // 计算属性
   const avatar = computed(() => userInfo.value?.avatar || '')
   const username = computed(() => userInfo.value?.username || '')
-  const uid = computed(() => userInfo.value?.uid || null)
+  const mid = computed(() => userInfo.value?.mid || null)
 
-  return { isLoggedIn, userInfo, setUserInfo, logout, avatar, username, uid }
+  return { isLoggedIn, userInfo, setUserInfo, logout, avatar, username, mid }
 }, {
   persist: true // 开启状态持久化
 })

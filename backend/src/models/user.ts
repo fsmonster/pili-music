@@ -1,20 +1,15 @@
 import mongoose, { Schema } from 'mongoose';
-import { IUser } from '../types/models.ts';
+import { IUser } from '../types/models.js';
 
 /**
  * 用户模型 - 只存储基本信息，不存储敏感凭证
  */
 const UserSchema = new Schema<IUser>({
   // 用户基本信息
-  userId: { 
-    type: String, 
-    required: true, 
-    unique: true 
-  }, // B站用户ID
   mid: { 
     type: String, 
     required: true 
-  }, // B站mid
+  }, // B站用户ID
   username: { 
     type: String, 
     required: true 

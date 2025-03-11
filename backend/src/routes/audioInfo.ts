@@ -1,19 +1,9 @@
 import express, { Request, Response } from 'express';
 import axios from 'axios';
 import authMiddleware from '../middleware/auth.js';
+import { AuthRequest } from '../types/index.js';
 
 const router = express.Router();
-
-/**
- * 用户认证请求接口扩展
- */
-interface AuthRequest extends Request {
-  user?: {
-    userId: string;
-    uid: string;
-    sessdata: string;
-  };
-}
 
 /**
  * @describe 查看视频分p信息， avid/bvid转cid，cid表示当前分p

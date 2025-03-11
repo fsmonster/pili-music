@@ -18,7 +18,7 @@ interface MediaData {
   cover?: string;
   duration?: number;
   upper?: {
-    uid: string;
+    mid: string;
     name: string;
   };
 }
@@ -37,11 +37,11 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
     
-    const { userId } = req.user;
+    const { mid } = req.user;
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
     
     // 获取用户的最近播放记录
-    const recentPlays = await recentPlayController.getUserRecentPlays(userId, limit);
+    const recentPlays = await recentPlayController.getUserRecentPlays(mid, limit);
     
     res.json({
       code: 0,
@@ -72,13 +72,13 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
     
-    const { userId } = req.user;
+    const { mid } = req.user;
     const { mediaData } = req.body as { mediaData: MediaData };
 
-    console.log('😀😀😀添加播放记录:', JSON.stringify({ userId, mediaData }));
+    console.log('😀😀😀添加播放记录:', JSON.stringify({ mid, mediaData }));
     
     // 添加或更新播放记录
-    const recentPlay = await recentPlayController.addOrUpdateRecentPlay(userId, mediaData);
+    const recentPlay = await recentPlayController.addOrUpdateRecentPlay(mid, mediaData);
     
     res.status(201).json({
       code: 0,
@@ -108,11 +108,11 @@ router.delete('/:bvid', async (req: Request, res: Response) => {
       });
     }
     
-    const { userId } = req.user;
+    const { mid } = req.user;
     const { bvid } = req.params;
     
     // 删除播放记录
-    await recentPlayController.deleteRecentPlay(userId, bvid);
+    await recentPlayController.deleteRecentPlay(mid, bvid);
     
     res.json({
       code: 0,
@@ -141,10 +141,10 @@ router.delete('/', async (req: Request, res: Response) => {
       });
     }
     
-    const { userId } = req.user;
+    const { mid } = req.user;
     
     // 清空所有播放记录
-    await recentPlayController.clearAllRecentPlays(userId);
+    await recentPlayController.clearAllRecentPlays(mid);
     
     res.json({
       code: 0,

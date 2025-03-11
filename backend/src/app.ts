@@ -11,18 +11,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // 导入数据库连接
-import { connectDB } from './models/db.ts';
+import { connectDB } from './models/db.js';
 
 // 导入路由
-import authRoutes from './routes/auth.ts';
-import favoriteRoutes from './routes/favorite.ts'; // 收藏夹路由
-import seasonRoutes from './routes/season.ts'; // 合集路由
-import infoRoutes from './routes/audioInfo.ts'; // 音频信息路由
-import playRoutes from './routes/play.ts'; // 音频代理路由
-import userRoutes from './routes/user.ts'; // 用户路由
-import customRoutes from './routes/custom.ts'; // 自建歌单路由
-import recentPlayRoutes from './routes/recent.ts'; // 最近播放记录路由
-import likeRoutes from './routes/like.ts'; // 我的喜欢路由
+import authRoutes from './routes/auth.js';
+import favoriteRoutes from './routes/favorite.js'; // 收藏夹路由
+import seasonRoutes from './routes/season.js'; // 合集路由
+import infoRoutes from './routes/audioInfo.js'; // 音频信息路由
+import playRoutes from './routes/play.js'; // 音频代理路由
+import userRoutes from './routes/user.js'; // 用户路由
+import customRoutes from './routes/custom.js'; // 自建歌单路由
+import recentPlayRoutes from './routes/recent.js'; // 最近播放记录路由
+import likeRoutes from './routes/like.js'; // 我的喜欢路由
 
 const app = express();
 const PORT: number = parseInt(process.env.PORT || '3000', 10);

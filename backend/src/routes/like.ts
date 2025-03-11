@@ -18,7 +18,7 @@ interface MediaData {
   cover?: string;
   duration?: number;
   upper?: {
-    uid: string;
+    mid: string;
     name: string;
   };
 }
@@ -37,10 +37,10 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
     
-    const { userId } = req.user;
+    const { mid } = req.user;
     
     // 获取用户喜欢的所有媒体
-    const likes = await likeController.getUserLikes(userId);
+    const likes = await likeController.getUserLikes(mid);
     
     res.json({
       code: 0,
@@ -69,13 +69,13 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
     
-    const { userId } = req.user;
+    const { mid } = req.user;
     const { mediaData } = req.body as { mediaData: MediaData };
 
-    console.log('😀😀😀添加喜欢:', JSON.stringify({ userId, mediaData })); // 确保 bvid 和 title 存在
+    console.log('😀😀😀添加喜欢:', JSON.stringify({ mid, mediaData })); // 确保 bvid 和 title 存在
 
     // 添加媒体到喜欢列表
-    const like = await likeController.addLike(userId, mediaData);
+    const like = await likeController.addLike(mid, mediaData);
     
     res.status(201).json({
       code: 0,
@@ -104,11 +104,11 @@ router.delete('/:bvid', async (req: Request, res: Response) => {
       });
     }
     
-    const { userId } = req.user;
+    const { mid } = req.user;
     const { bvid } = req.params;
     
     // 从喜欢列表移除媒体
-    await likeController.removeLike(userId, bvid);
+    await likeController.removeLike(mid, bvid);
     
     res.json({
       code: 0,
@@ -137,11 +137,11 @@ router.get('/check/:bvid', async (req: Request, res: Response) => {
       });
     }
     
-    const { userId } = req.user;
+    const { mid } = req.user;
     const { bvid } = req.params;
     
     // 检查媒体是否在喜欢列表中
-    const isLiked = await likeController.checkIsLiked(userId, bvid);
+    const isLiked = await likeController.checkIsLiked(mid, bvid);
     
     res.json({
       code: 0,

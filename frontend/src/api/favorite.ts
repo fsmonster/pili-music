@@ -14,6 +14,8 @@ export async function getFavoriteList(up_mid?: number): Promise<Favorite[]> {
     const res = await request.get<ApiResponse<FavoriteListResponse>>('/favorite/list', {
       params: { up_mid }
     });
+    console.log('😀😀😀😀获取收藏夹列表:', res.data);
+    
     return res.data.data.list;
   } catch (error) {
     console.error('获取收藏夹列表失败:', error);

@@ -124,9 +124,9 @@ export const useAuthStore = defineStore('auth', () => {
         
         // 尝试从令牌中解析基本用户信息
         const payload = parseToken(newToken);
-        if (payload && payload.uid) {
+        if (payload && payload.mid) {
             // 可以从令牌中获取一些基本信息
-            console.log('从令牌中获取用户ID:', payload.uid);
+            console.log('从令牌中获取用户ID:', payload.mid);
         }
     }
 

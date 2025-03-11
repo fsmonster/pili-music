@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                       /* 指定ECMAScript目标版本 */
+    "module": "NodeNext",                     /* 指定生成的模块代码 */
+    "moduleResolution": "NodeNext",           /* 模块解析策略 */
+    "esModuleInterop": true,                  /* 启用CommonJS和ES模块之间的互操作性 */
+    "allowSyntheticDefaultImports": true,     /* 允许从没有默认导出的模块中默认导入 */
+    "strict": true,                           /* 启用所有严格类型检查选项 */
+    "forceConsistentCasingInFileNames": true, /* 禁止对同一文件的大小写不一致引用 */
+    "skipLibCheck": true,                     /* 跳过声明文件的类型检查 */
+    "outDir": "./dist",                       /* 指定输出目录 */
+    "rootDir": "./src",                       /* 指定输入文件的根目录 */
+    "sourceMap": true,                        /* 生成相应的.map文件 */
+    "declaration": true,                      /* 生成相应的.d.ts文件 */
+    "removeComments": false,                  /* 不删除注释 */
+    "typeRoots": ["./node_modules/@types", "./src/types"], /* 类型声明文件的路径 */
+    "resolveJsonModule": true,                /* 允许导入json模块 */
+    "baseUrl": ".",                           /* 基本目录，用于解析非相对模块名称 */
+    "paths": {
+      "*": ["node_modules/*"]
+    }
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
+  "include": ["src/**/*"],                    /* 需要编译的文件 */
+  "exclude": ["node_modules", "dist"]         /* 排除的文件 */
+}

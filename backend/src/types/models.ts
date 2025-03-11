@@ -3,10 +3,16 @@
  */
 import { Document, Types } from 'mongoose';
 
+// 用户偏好设置接口
+export interface UserPreferences {
+  theme?: string;
+  audioQuality?: string;
+  [key: string]: any;
+}
+
 // 用户模型接口
 export interface IUser extends Document {
-  userId: string;
-  mid: string;
+  mid: string | number;
   username: string;
   avatar: string;
   accessToken?: string;
@@ -15,17 +21,20 @@ export interface IUser extends Document {
   lastLogin: Date;
   createdAt: Date;
   updatedAt: Date;
+  preferences?: UserPreferences;
+  displayFavoriteIds?: string[];
+  displaySeasonIds?: string[];
 }
 
 // UP主信息接口
 export interface IUpper {
-  uid: string;
+  mid: string;
   name: string;
 }
 
 // 最近播放记录模型接口
 export interface IRecentPlay extends Document {
-  userId: string;
+  mid: string;
   bvid: string;
   aid?: number;
   cid?: number;
@@ -40,7 +49,7 @@ export interface IRecentPlay extends Document {
 
 // 喜欢的音乐模型接口
 export interface ILike extends Document {
-  userId: string;
+  mid: string;
   bvid: string;
   aid?: number;
   cid?: number;
@@ -55,7 +64,7 @@ export interface ILike extends Document {
 
 // 自定义播放列表模型接口
 export interface ICustomPlaylist extends Document {
-  userId: string;
+  mid: string;
   name: string;
   description?: string;
   cover?: string;

@@ -1,12 +1,12 @@
 import mongoose, { Schema } from 'mongoose';
-import { ILike } from '../types/models.ts';
+import { ILike } from '../types/models.js';
 
 /**
  * 我的喜欢模型 - 用户在应用内标记喜欢的歌曲
  */
 const LikeSchema = new Schema<ILike>({
   // 关联用户
-  userId: { 
+  mid: { 
     type: String, 
     required: true 
   }, // B站用户ID
@@ -35,7 +35,7 @@ const LikeSchema = new Schema<ILike>({
   
   // UP主信息
   upper: {
-    uid: { 
+    mid: { 
       type: String 
     }, // UP主ID
     name: { 
@@ -53,7 +53,7 @@ const LikeSchema = new Schema<ILike>({
 });
 
 // 设置复合唯一索引，确保每个用户对每个视频只有一个喜欢记录
-LikeSchema.index({ userId: 1, bvid: 1 }, { unique: true });
+LikeSchema.index({ mid: 1, bvid: 1 }, { unique: true });
 
 // 创建并导出我的喜欢模型
 const Like = mongoose.model<ILike>('Like', LikeSchema);

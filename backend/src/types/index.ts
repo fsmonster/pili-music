@@ -1,6 +1,7 @@
 /**
  * 通用类型定义
  */
+import { Request } from 'express';
 
 // 通用响应接口
 export interface ApiResponse<T = any> {
@@ -27,16 +28,23 @@ export interface PaginatedResponse<T> {
 
 // 用户JWT载荷
 export interface JwtPayload {
-  userId: string;
   mid: string;
+  sessdata?: string;
   iat?: number;
   exp?: number;
 }
 
 // 请求中的用户信息
 export interface RequestUser {
-  userId: string;
   mid: string;
+  sessdata?: string;
+}
+
+/**
+ * 用户认证请求接口扩展
+ */
+export interface AuthRequest extends Request {
+  user?: RequestUser;
 }
 
 // 扩展Express请求对象，添加用户信息

@@ -2,22 +2,12 @@ import express, { Request, Response } from 'express';
 import axios from 'axios';
 import * as userController from '../controllers/userController.js';
 import authMiddleware from '../middleware/auth.js';
+import { AuthRequest } from '../types/index.js';
 
 const router = express.Router();
 
 // 应用认证中间件到所有路由
 router.use(authMiddleware);
-
-/**
- * 用户认证请求接口扩展
- */
-interface AuthRequest extends Request {
-  user?: {
-    userId: string;
-    uid: string;
-    sessdata: string;
-  };
-}
 
 /**
  * 用户偏好设置接口
@@ -43,7 +33,7 @@ router.get('/profile', async (req: AuthRequest, res: Response) => {
       });
     }
     
-    const { uid, sessdata } = req.user;
+    const { mid, sessdata } = req.user;
     
     // 调用B站API获取用户信息
     const response = await axios.get('https://api.bilibili.com/x/web-interface/nav', {
@@ -99,11 +89,11 @@ router.put('/preferences', async (req: AuthRequest, res: Response) => {
       });
     }
     
-    const { uid } = req.user;
+    const { mid } = req.user;
     const { preferences } = req.body as { preferences: UserPreferences };
     
     // 更新用户偏好设置
-    const updatedUser = await userController.updateUserPreferences(uid, preferences);
+    const updatedUser = await userController.updateUserPreferences(mid, preferences);
     
     res.json({
       code: 0,
@@ -132,11 +122,11 @@ router.put('/display-favorites', async (req: AuthRequest, res: Response) => {
       });
     }
     
-    const { uid } = req.user;
+    const { mid } = req.user;
     const { favoriteIds } = req.body as { favoriteIds: string[] };
     
     // 更新用户显示的收藏夹列表
-    const updatedUser = await userController.updateDisplayFavorites(uid, favoriteIds);
+    const updatedUser = await userController.updateDisplayFavorites(mid, favoriteIds);
     
     res.json({
       code: 0,
@@ -165,11 +155,11 @@ router.put('/display-seasons', async (req: AuthRequest, res: Response) => {
       });
     }
     
-    const { uid } = req.user;
+    const { mid } = req.user;
     const { seasonIds } = req.body as { seasonIds: string[] };
     
     // 更新用户显示的合集列表
-    const updatedUser = await userController.updateDisplaySeasons(uid, seasonIds);
+    const updatedUser = await userController.updateDisplaySeasons(mid, seasonIds);
     
     res.json({
       code: 0,

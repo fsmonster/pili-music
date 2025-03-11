@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import axios from 'axios';
-import { generateToken } from '../middleware/auth.js';
+import { generateToken, verifyToken } from '../middleware/auth.js';
+import * as userController from '../controllers/userController.js';
+import { JwtPayload } from '../types/index.js';
 
 const router = express.Router();
 
@@ -22,7 +24,7 @@ interface UserInfo {
  * JWT令牌有效载荷接口
  */
 interface TokenPayload {
-  uid: string;
+  mid: string;
   uname: string;
   sessdata: string;
   [key: string]: any;
@@ -99,8 +101,8 @@ router.get('/qrcode/status', async (req: Request, res: Response) => {
           
           // 生成JWT令牌，包含用户ID和SESSDATA
           const token = generateToken({
-            uid: userData.mid,
-            uname: userData.uname,
+            mid: userData.mid,
+            // uname: userData.uname,
             sessdata: sessdata
           });
           
@@ -111,7 +113,7 @@ router.get('/qrcode/status', async (req: Request, res: Response) => {
               ...response.data.data,
               token,
               user_info: {
-                uid: userData.mid,
+                mid: userData.mid,
                 uname: userData.uname,
                 face: userData.face,
                 level: userData.level_info.current_level
@@ -137,7 +139,7 @@ router.get('/qrcode/status', async (req: Request, res: Response) => {
  * @desc 获取用户信息
  * @route GET /api/auth/user/info
  * @access Private
- * @returns {Object} 用户信息
+ * @returns {Object} 用户信息 - 包含B站API返回的信息和本地数据库中的用户偏好设置
  */
 router.get('/user/info', async (req: Request, res: Response) => {
   // 从请求头中获取认证令牌
@@ -153,14 +155,17 @@ router.get('/user/info', async (req: Request, res: Response) => {
   try {
     // 从令牌中提取SESSDATA
     const token = authHeader.substring(7);
-    // 注意：这里不验证令牌，因为这个路由是直接请求B站API
-    // 实际验证会在authMiddleware中完成
     
-    // 解析令牌获取SESSDATA（简化处理，实际应使用jwt.verify）
-    let sessdata = '';
+    // 解析令牌获取用户信息
+    let decoded: JwtPayload | TokenPayload | null = null;
     try {
-      const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()) as TokenPayload;
-      sessdata = decoded.sessdata;
+      // 首先尝试使用verifyToken函数验证
+      decoded = verifyToken(token);
+      
+      // 如果验证失败，尝试使用Base64解码
+      if (!decoded) {
+        decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()) as TokenPayload;
+      }
     } catch (e) {
       return res.status(401).json({ 
         code: 401, 
@@ -168,13 +173,16 @@ router.get('/user/info', async (req: Request, res: Response) => {
       });
     }
     
-    if (!sessdata) {
+    if (!decoded || !decoded.sessdata) {
       return res.status(401).json({ 
         code: 401, 
         message: '认证令牌中缺少必要信息' 
       });
     }
+    
+    const { sessdata } = decoded;
 
+    // 调用B站API获取用户信息
     const response = await axios.get('https://api.bilibili.com/x/web-interface/nav', {
       headers: {
         Cookie: `SESSDATA=${sessdata}`,
@@ -183,7 +191,26 @@ router.get('/user/info', async (req: Request, res: Response) => {
       }
     });
 
-    res.json(response.data);
+    if (response.data.code === 0 && response.data.data) {
+      const userData = response.data.data;   
+      
+      // 保存用户信息到MongoDB
+      const user = await userController.saveUserInfo(userData);
+      
+      // 返回合并后的用户信息
+      return res.json({
+        code: 0,
+        data: {
+          ...userData,
+          preferences: user.preferences,
+          displayFavoriteIds: user.displayFavoriteIds,
+          displaySeasonIds: user.displaySeasonIds
+        }
+      });
+    } else {
+      // 如果B站API返回错误，直接返回原始响应
+      return res.json(response.data);
+    }
   } catch (error) {
     console.error('获取用户信息失败:', error);
     res.status(500).json({ 
@@ -217,13 +244,13 @@ router.post('/refresh', async (req: Request, res: Response) => {
     
     // 解析令牌获取SESSDATA（简化处理，实际应使用jwt.verify）
     let sessdata = '';
-    let uid = '';
+    let mid = '';
     let uname = '';
     
     try {
       const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()) as TokenPayload;
       sessdata = decoded.sessdata;
-      uid = decoded.uid;
+      mid = decoded.mid;
       uname = decoded.uname;
     } catch (e) {
       return res.status(401).json({ 
@@ -251,8 +278,8 @@ router.post('/refresh', async (req: Request, res: Response) => {
     if (response.data.code === 0 && response.data.data && response.data.data.isLogin) {
       // SESSDATA仍然有效，生成新的JWT令牌
       const newToken = generateToken({
-        uid,
-        uname,
+        mid,
+        // uname,
         sessdata
       });
       

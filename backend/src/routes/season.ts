@@ -1,19 +1,9 @@
 import express, { Request, Response } from 'express';
 import axios from 'axios';
 import authMiddleware from '../middleware/auth.js';
+import { AuthRequest } from '../types/index.js';
 
 const router = express.Router();
-
-/**
- * 用户认证请求接口扩展
- */
-interface AuthRequest extends Request {
-  user?: {
-    userId: string;
-    uid: string;
-    sessdata: string;
-  };
-}
 
 // 应用认证中间件到需要认证的路由
 router.use('/collected', authMiddleware);
@@ -21,6 +11,9 @@ router.use('/collected', authMiddleware);
 /**
  * @route   GET /api/season/collected/list
  * @desc    获取用户订阅的合集列表
+ * @param {number} up_mid - 用户uid
+ * @param {number} pn - 页码
+ * @param {number} ps - 每页项数
  * @access  Private - 需要JWT认证
  */
 router.get('/collected/list', async (req: AuthRequest, res: Response) => {
@@ -64,6 +57,7 @@ router.get('/collected/list', async (req: AuthRequest, res: Response) => {
 /**
  * @route   GET /api/season/season/list
  * @desc    获取指定合集的内容列表
+ * @param {number} season_id - 合集ID
  * @access  Public - 不需要认证
  */
 router.get('/season/list', async (req: Request, res: Response) => {
@@ -79,10 +73,7 @@ router.get('/season/list', async (req: Request, res: Response) => {
     // 调用B站API获取合集内容
     const response = await axios.get('https://api.bilibili.com/x/space/fav/season/list', {
       params: {
-        season_id,
-        pn,
-        ps,
-        jsonp: 'jsonp'
+        season_id
       },
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',

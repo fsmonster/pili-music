@@ -1,15 +1,15 @@
 import RecentPlay from '../models/recent.js';
-import { IRecentPlay } from '../types/models';
+import { IRecentPlay } from '../types/models.js';
 
 /**
  * @desc 获取用户的最近播放记录
- * @param {String} userId - 用户ID
+ * @param {String} mid - 用户ID
  * @param {Number} limit - 限制返回数量，默认100
  * @returns {Promise<IRecentPlay[]>} 最近播放记录列表
  */
-export const getUserRecentPlays = async (userId: string, limit: number = 100): Promise<IRecentPlay[]> => {
+export const getUserRecentPlays = async (mid: string, limit: number = 100): Promise<IRecentPlay[]> => {
   try {
-    const recentPlays = await RecentPlay.find({ userId })
+    const recentPlays = await RecentPlay.find({ mid })
       .sort({ playedAt: -1 })
       .limit(limit);
     return recentPlays;
@@ -30,28 +30,28 @@ interface MediaData {
   cover?: string;
   duration?: number;
   upper?: {
-    uid: string;
+    mid: string;
     name: string;
   };
 }
 
 /**
  * @desc 添加或更新播放记录
- * @param {String} userId - 用户ID
+ * @param {String} mid - 用户ID
  * @param {MediaData} mediaData - 媒体数据
  * @returns {Promise<IRecentPlay>} 更新后的播放记录
  */
-export const addOrUpdateRecentPlay = async (userId: string, mediaData: MediaData): Promise<IRecentPlay> => {
+export const addOrUpdateRecentPlay = async (mid: string, mediaData: MediaData): Promise<IRecentPlay> => {
   try {
     const { bvid, aid, cid, title, cover, duration, upper } = mediaData;
     
     // 查找是否已有该媒体的播放记录
-    let recentPlay = await RecentPlay.findOne({ userId, bvid });
+    let recentPlay = await RecentPlay.findOne({ mid, bvid });
     
     if (recentPlay) {
       // 如果已存在，更新播放时间
       recentPlay = await RecentPlay.findOneAndUpdate(
-        { userId, bvid },
+        { mid, bvid },
         { 
           playedAt: new Date(),
           title,
@@ -69,7 +69,7 @@ export const addOrUpdateRecentPlay = async (userId: string, mediaData: MediaData
     } else {
       // 如果不存在，创建新记录
       recentPlay = await RecentPlay.create({
-        userId,
+        mid,
         bvid,
         aid,
         cid,
@@ -90,13 +90,13 @@ export const addOrUpdateRecentPlay = async (userId: string, mediaData: MediaData
 
 /**
  * @desc 删除播放记录
- * @param {String} userId - 用户ID
+ * @param {String} mid - 用户ID
  * @param {String} bvid - 视频ID
  * @returns {Promise<boolean>} 是否删除成功
  */
-export const deleteRecentPlay = async (userId: string, bvid: string): Promise<boolean> => {
+export const deleteRecentPlay = async (mid: string, bvid: string): Promise<boolean> => {
   try {
-    await RecentPlay.findOneAndDelete({ userId, bvid });
+    await RecentPlay.findOneAndDelete({ mid, bvid });
     return true;
   } catch (error) {
     console.error('删除播放记录失败:', error);
@@ -106,12 +106,12 @@ export const deleteRecentPlay = async (userId: string, bvid: string): Promise<bo
 
 /**
  * @desc 清空用户的所有播放记录
- * @param {String} userId - 用户ID
+ * @param {String} mid - 用户ID
  * @returns {Promise<boolean>} 是否清空成功
  */
-export const clearAllRecentPlays = async (userId: string): Promise<boolean> => {
+export const clearAllRecentPlays = async (mid: string): Promise<boolean> => {
   try {
-    await RecentPlay.deleteMany({ userId });
+    await RecentPlay.deleteMany({ mid });
     return true;
   } catch (error) {
     console.error('清空播放记录失败:', error);

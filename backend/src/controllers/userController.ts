@@ -29,15 +29,15 @@ interface UserPreferences {
 export const saveUserInfo = async (userData: BilibiliUserData): Promise<IUser> => {
   try {
     // 从B站API响应中提取用户信息
-    const { mid: uid, uname: username, face: avatar } = userData;
+    const { mid: mid, uname: username, face: avatar } = userData;    
     
     // 查找用户是否已存在
-    let user = await User.findOne({ uid });
+    let user = await User.findOne({ mid });
     
     if (user) {
       // 如果用户存在，更新信息
       user = await User.findOneAndUpdate(
-        { uid },
+        { mid },
         { 
           username, 
           avatar,
@@ -52,7 +52,7 @@ export const saveUserInfo = async (userData: BilibiliUserData): Promise<IUser> =
     } else {
       // 如果用户不存在，创建新用户
       user = await User.create({
-        uid,
+        mid,
         username,
         avatar,
         displayFavoriteIds: [],
@@ -69,12 +69,12 @@ export const saveUserInfo = async (userData: BilibiliUserData): Promise<IUser> =
 
 /**
  * @desc 获取用户信息
- * @param {string} uid - 用户ID
+ * @param {string} mid - 用户ID
  * @returns {Promise<IUser | null>} 用户信息
  */
-export const getUserInfo = async (uid: string): Promise<IUser | null> => {
+export const getUserInfo = async (mid: string): Promise<IUser | null> => {
   try {
-    const user = await User.findOne({ uid });
+    const user = await User.findOne({ mid });
     return user;
   } catch (error) {
     console.error('获取用户信息失败:', error);
@@ -84,14 +84,14 @@ export const getUserInfo = async (uid: string): Promise<IUser | null> => {
 
 /**
  * @desc 更新用户偏好设置
- * @param {string} uid - 用户ID
+ * @param {string} mid - 用户ID
  * @param {UserPreferences} preferences - 用户偏好设置
  * @returns {Promise<IUser | null>} 更新后的用户信息
  */
-export const updateUserPreferences = async (uid: string, preferences: UserPreferences): Promise<IUser | null> => {
+export const updateUserPreferences = async (mid: string, preferences: UserPreferences): Promise<IUser | null> => {
   try {
     const user = await User.findOneAndUpdate(
-      { uid },
+      { mid },
       { 
         preferences,
         updatedAt: new Date()
@@ -108,14 +108,14 @@ export const updateUserPreferences = async (uid: string, preferences: UserPrefer
 
 /**
  * @desc 更新用户显示的收藏夹ID列表
- * @param {string} uid - 用户ID
+ * @param {string} mid - 用户ID
  * @param {string[]} favoriteIds - 收藏夹ID列表
  * @returns {Promise<IUser | null>} 更新后的用户信息
  */
-export const updateDisplayFavorites = async (uid: string, favoriteIds: string[]): Promise<IUser | null> => {
+export const updateDisplayFavorites = async (mid: string, favoriteIds: string[]): Promise<IUser | null> => {
   try {
     const user = await User.findOneAndUpdate(
-      { uid },
+      { mid },
       { 
         displayFavoriteIds: favoriteIds,
         updatedAt: new Date()
@@ -132,14 +132,14 @@ export const updateDisplayFavorites = async (uid: string, favoriteIds: string[])
 
 /**
  * @desc 更新用户显示的合集ID列表
- * @param {string} uid - 用户ID
+ * @param {string} mid - 用户ID
  * @param {string[]} seasonIds - 合集ID列表
  * @returns {Promise<IUser | null>} 更新后的用户信息
  */
-export const updateDisplaySeasons = async (uid: string, seasonIds: string[]): Promise<IUser | null> => {
+export const updateDisplaySeasons = async (mid: string, seasonIds: string[]): Promise<IUser | null> => {
   try {
     const user = await User.findOneAndUpdate(
-      { uid },
+      { mid },
       { 
         displaySeasonIds: seasonIds,
         updatedAt: new Date()
