@@ -129,7 +129,6 @@ const saveFavoritesSettings = async () => {
 };
 
 onMounted(() => {
-  favoriteStore.fetchDisplayFavorites();
   favoriteStore.fetchFavoritesIfNeeded();
 });
 

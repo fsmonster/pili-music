@@ -134,7 +134,6 @@ const onDialogOpen = () => {
 };
 
 onMounted(() => {
-  seasonStore.fetchDisplaySeasons();
   seasonStore.fetchSeasonsIfNeeded();
 });
 

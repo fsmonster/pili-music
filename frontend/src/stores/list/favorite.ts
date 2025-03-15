@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Favorite, FavoriteInfo } from '../../types';
+import type { FavoriteList, FavoriteInfo } from '../../types';
 import * as favoriteApi from '../../api/favorite';
 import { useUserStore } from '../user/user';
 import { createBaseListStore } from './baseList';
@@ -18,19 +18,21 @@ export const useFavoriteStore = defineStore('favorite', () => {
   const baseList = createBaseListStore();
   
   // 收藏夹特有状态
-  const allFavorites = ref<Favorite[]>([]); 
+  const allFavorites = ref<FavoriteList[]>([]); 
   const displayFavoriteIds = ref<number[]>([]);
-  const currentFavorite = ref<Favorite | null>(null);
+  const currentFavorite = ref<FavoriteList | null>(null);
   const currentFavoriteId = ref<number | null>(null); // 当前正在查看的收藏夹ID
   const isLoaded = ref(false);
 
   // 计算属性：当前显示的收藏夹(歌单)列表
-  const favorites = computed<Favorite[]>(() =>
+  const favorites = computed<FavoriteList[]>(() =>
     allFavorites.value.filter(f => displayFavoriteIds.value.includes(f.id))
   );
 
   // 获取收藏夹显示设置
-  const fetchDisplayFavorites = async () => displayFavoriteIds.value = await favoriteApi.getDisplayFavorites();
+  const fetchDisplayFavorites = async () => {
+    displayFavoriteIds.value = await favoriteApi.getDisplayFavorites();
+  };
 
   // 更新收藏夹显示设置 并获取收藏夹基础信息(title、count、cover)
   const updateDisplaySettings = async (ids: number[]) => {
@@ -54,7 +56,9 @@ export const useFavoriteStore = defineStore('favorite', () => {
             const favorite = allFavorites.value.find(f => f.id === id);
             if (!favorite) return null;
             
-            const folderInfo: FavoriteInfo | null = await favoriteApi.getFavoriteInfo(id);
+            const folderInfo: FavoriteInfo | null = await favoriteApi.getFavoriteInfo({
+              media_id: id
+            });
             return {
               ...favorite,
               ...folderInfo
@@ -81,7 +85,9 @@ export const useFavoriteStore = defineStore('favorite', () => {
     isLoaded.value = false;
 
     // 获取收藏夹列表基本信息（不包含封面）
-    const favoriteList = await favoriteApi.getFavoriteList(mid.value!);
+    const favoriteList = await favoriteApi.getFavoriteList({
+      up_mid: mid.value!
+    });
 
     // 合并原有收藏夹的 cover 信息
     allFavorites.value = favoriteList.map(newFav => {
@@ -103,13 +109,52 @@ export const useFavoriteStore = defineStore('favorite', () => {
   };
 
   /**
-   * @desc 获取收藏夹列表
+   * @desc 获取收藏夹相关内容
    */
   const fetchFavoritesIfNeeded = async () => {
     if (isLoggedIn.value && !isLoaded.value && mid.value) {
+      await fetchDisplayFavorites();
       await fetchFavorites();
     }
   };
+
+  interface FavoriteContentListParams {
+    /**
+     * 搜索关键字
+     */
+    keyword?: string;
+    media_id: number;
+    /**
+     * 按收藏时间:mtime；按播放量: view；按投稿时间：pubtime
+     */
+    order?: string;
+    /**
+     * 平台标识
+     * 可为web（影响内容列表类型）
+     */
+    platform?: string;
+    /**
+     * 页码，默认为1
+     */
+    pn: number;
+    /**
+     * 每页数量，定义域：1-20
+     */
+    ps?: number;
+    /**
+     * 分区tid
+     */
+    tid?: number;
+    /**
+     * 查询范围
+     * 0：当前收藏夹（对应media_id）
+     * 1：全部收藏夹
+     */
+    type?: number;
+    [property: string]: any;
+  }
+
+
 
   /**
    * @desc 获取收藏夹内容(媒体列表) - 初始加载
@@ -122,9 +167,15 @@ export const useFavoriteStore = defineStore('favorite', () => {
     // 重置列表状态
     baseList.reset();
     currentFavoriteId.value = mediaId;
+
+    const params: FavoriteContentListParams = {
+      media_id: mediaId,
+      pn: 0,
+      ps: baseList.pageSize.value
+    };
     
     // 获取收藏夹内容（第一页）
-    const items = await favoriteApi.getFavoriteContent(mediaId, 0, baseList.pageSize.value);
+    const items = await favoriteApi.getFavoriteContent(params);
     
     // 设置当前收藏夹
     currentFavorite.value = allFavorites.value.find(f => f.id === mediaId) || null;
@@ -146,11 +197,11 @@ export const useFavoriteStore = defineStore('favorite', () => {
     baseList.loading.value = true;
     
     // 获取下一页数据
-    const moreItems = await favoriteApi.getFavoriteContent(
-      currentFavoriteId.value,
-      baseList.currentOffset.value,
-      baseList.pageSize.value
-    );
+    const moreItems = await favoriteApi.getFavoriteContent({
+      media_id: currentFavoriteId.value,
+      pn: baseList.currentOffset.value + 1,
+      ps: baseList.pageSize.value
+    });
     
     // 添加到现有列表
     baseList.appendItems(moreItems);

@@ -33,7 +33,9 @@ export const useSeasonStore = defineStore('season', () => {
     );
 
     // 获取订阅合集显示设置
-    const fetchDisplaySeasons = async () => displaySeasonIds.value = await seasonApi.getDisplaySeasons();
+    const fetchDisplaySeasons = async () => {
+        displaySeasonIds.value = await seasonApi.getDisplaySeasons();
+    };
 
     // 更新订阅合集显示设置
     const updateSeasonSettings = async (ids: number[]) => {
@@ -62,9 +64,10 @@ export const useSeasonStore = defineStore('season', () => {
         }
     };
 
-    // 获取订阅合集列表（如果未加载）
+    // 获取订阅合集相关内容（如果未加载）
     const fetchSeasonsIfNeeded = async () => {
         if (isLoggedIn.value && !isLoaded.value && mid.value) {
+            await fetchDisplaySeasons();
             await fetchSeasons();
         }
     };
