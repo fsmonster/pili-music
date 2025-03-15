@@ -3,11 +3,12 @@ import { ref, computed } from 'vue';
 import type { MediaItem } from '../../types';
 import { getCid, getAudioUrl } from '../../api';
 import { processResourceUrl } from '../../utils';
-import { useQueueStore } from './queue';
+import { useQueueStore, useMultiPageQueueStore } from './index';
 
 export const usePlayerStore = defineStore('player', () => {
   // 获取播放列表存储
   const queueStore = useQueueStore();
+  const multiPageQueueStore = useMultiPageQueueStore();
   
   // 音频实例
   const audio = new Audio();
@@ -53,6 +54,9 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 播放指定项
   async function play(item?: MediaItem) {
+    // 先重置
+    multiPageQueueStore.isMultiPage = false;
+
     // 如果提供了新的播放项，则更新当前播放项
     if (item) {
       queueStore.setCurrentTrack(item);
@@ -69,8 +73,12 @@ export const usePlayerStore = defineStore('player', () => {
         queueStore.setLoading(true);
         
         try {
+          // 判断是否为多P, 合集没有多P视频
+          const isMultiPage = typeof currentItem.page === "number" && currentItem.page > 1;
+          const cid = isMultiPage
+            ? await getCid(currentItem.id, 1) // 需要用户选择 P 数
+            : currentItem.ugc?.first_cid || await getCid(currentItem.id, 1);
           // 获取播放地址
-          const cid = await getCid(currentItem.id);   
           const url = await getAudioUrl({
             avid: currentItem.id,
             cid,

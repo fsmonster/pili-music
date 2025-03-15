@@ -8,12 +8,13 @@ import { AudioQuality } from '../types';
 /**
  * @desc 获取视频cid
  * @param aid 视频avid
+ * @param page 视频P数
  * @returns 视频cid
  */
-export async function getCid(aid: number): Promise<number> {
+export async function getCid(aid: number, page?: number): Promise<number> {
   try {
     const res = await request.get<ApiResponse<CidInfo[]>>('/audioInfo/player/pagelist', {
-      params: { aid }
+      params: { aid, page }
     });
     if(res.data.code !== 0) {
       throw new Error(res.data.message || '获取视频信息失败');

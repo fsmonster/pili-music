@@ -118,44 +118,6 @@ export const useFavoriteStore = defineStore('favorite', () => {
     }
   };
 
-  interface FavoriteContentListParams {
-    /**
-     * 搜索关键字
-     */
-    keyword?: string;
-    media_id: number;
-    /**
-     * 按收藏时间:mtime；按播放量: view；按投稿时间：pubtime
-     */
-    order?: string;
-    /**
-     * 平台标识
-     * 可为web（影响内容列表类型）
-     */
-    platform?: string;
-    /**
-     * 页码，默认为1
-     */
-    pn: number;
-    /**
-     * 每页数量，定义域：1-20
-     */
-    ps?: number;
-    /**
-     * 分区tid
-     */
-    tid?: number;
-    /**
-     * 查询范围
-     * 0：当前收藏夹（对应media_id）
-     * 1：全部收藏夹
-     */
-    type?: number;
-    [property: string]: any;
-  }
-
-
-
   /**
    * @desc 获取收藏夹内容(媒体列表) - 初始加载
    * @param mediaId 收藏夹ID
@@ -167,15 +129,13 @@ export const useFavoriteStore = defineStore('favorite', () => {
     // 重置列表状态
     baseList.reset();
     currentFavoriteId.value = mediaId;
-
-    const params: FavoriteContentListParams = {
+    
+    // 获取收藏夹内容（第一页）
+    const items = await favoriteApi.getFavoriteContent({
       media_id: mediaId,
       pn: 0,
       ps: baseList.pageSize.value
-    };
-    
-    // 获取收藏夹内容（第一页）
-    const items = await favoriteApi.getFavoriteContent(params);
+    });
     
     // 设置当前收藏夹
     currentFavorite.value = allFavorites.value.find(f => f.id === mediaId) || null;
