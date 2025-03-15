@@ -23,8 +23,6 @@ interface AuthRequest extends Request {
  * @access Public - 不需要JWT认证
  */
 router.get("/url", async (req: Request, res: Response) => {
-  console.log("用户信息:", JSON.stringify(req.user));
-
   const { url, token } = req.query;
   const range = req.headers.range; // 获取前端传来的 Range 头
 
@@ -47,16 +45,12 @@ router.get("/url", async (req: Request, res: Response) => {
         const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
         if (decoded && decoded.sessdata) {
           headers.Cookie = `SESSDATA=${decoded.sessdata}`;
-          console.log("从令牌中提取到 SESSDATA");
         }
       } catch (err) {
         const error = err as Error;
         console.error("解析令牌失败:", error.message);
       }
     }
-    
-    // 调试信息：打印请求头
-    console.log("请求头:", JSON.stringify(headers));
     
     if (range) {
       headers.Range = range; // 透传前端的 Range 请求头

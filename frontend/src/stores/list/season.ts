@@ -9,6 +9,11 @@ import { createBaseListStore } from './baseList';
  * 订阅合集状态管理
  */
 export const useSeasonStore = defineStore('season', () => {
+    // 用户状态
+    const userStore = useUserStore();
+    const mid = computed(() => userStore.mid);
+    const isLoggedIn = computed(() => userStore.isLoggedIn);
+    
     // 基础列表功能
     const baseList = createBaseListStore();
     
@@ -17,34 +22,34 @@ export const useSeasonStore = defineStore('season', () => {
     const displaySeasonIds = ref<number[]>([]);
     const currentSeason = ref<Season | null>(null);
     const currentSeasonId = ref<number | null>(null);
+    const isLoaded = ref(false);
     
     // 存储完整的合集内容数据（用于前端分页）
     const allMediaItems = ref<MediaItem[]>([]);
-
-    const userStore = useUserStore();
-    const mid = computed(() => userStore.mid);
 
     // 计算属性：当前显示的订阅合集
     const seasons = computed(() =>
         allSeasons.value.filter(s => displaySeasonIds.value.includes(s.id))
     );
 
+    // 获取订阅合集显示设置
+    const fetchDisplaySeasons = async () => displaySeasonIds.value = await seasonApi.getDisplaySeasons();
+
     // 更新订阅合集显示设置
-    const updateSeasonSettings = (ids: number[]) => {
+    const updateSeasonSettings = async (ids: number[]) => {
         displaySeasonIds.value = ids;
+        await seasonApi.updateDisplaySeasons(ids);
     };
 
     // 获取订阅合集列表
     const fetchSeasons = async () => {
-        if (!mid.value) {
-            throw new Error('用户未登录');
-        }
         baseList.loading.value = true;
         baseList.error.value = '';
+        isLoaded.value = false;
 
         try {
             allSeasons.value = await seasonApi.getSeasonList({
-                up_mid: mid.value,
+                up_mid: mid.value!,
                 pn: 1,
                 ps: 40
             });
@@ -53,6 +58,14 @@ export const useSeasonStore = defineStore('season', () => {
             console.error(error);
         } finally {
             baseList.loading.value = false;
+            isLoaded.value = true;
+        }
+    };
+
+    // 获取订阅合集列表（如果未加载）
+    const fetchSeasonsIfNeeded = async () => {
+        if (isLoggedIn.value && !isLoaded.value && mid.value) {
+            await fetchSeasons();
         }
     };
 
@@ -110,6 +123,7 @@ export const useSeasonStore = defineStore('season', () => {
 
     // 重置状态
     const reset = () => {
+        isLoaded.value = false;
         baseList.reset();
         allSeasons.value = [];
         displaySeasonIds.value = [];
@@ -126,8 +140,10 @@ export const useSeasonStore = defineStore('season', () => {
         displaySeasonIds,
         currentSeason,
         currentSeasonId,
+        isLoaded,
+        fetchDisplaySeasons,
         updateSeasonSettings,
-        fetchSeasons,
+        fetchSeasonsIfNeeded,
         fetchSeasonContent,
         loadMoreSeasonContent, // 新增：加载更多合集内容
         reset

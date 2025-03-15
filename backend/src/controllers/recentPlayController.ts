@@ -3,11 +3,11 @@ import { IRecentPlay } from '../types/models.js';
 
 /**
  * @desc 获取用户的最近播放记录
- * @param {String} mid - 用户ID
+ * @param {Number} mid - 用户ID
  * @param {Number} limit - 限制返回数量，默认100
  * @returns {Promise<IRecentPlay[]>} 最近播放记录列表
  */
-export const getUserRecentPlays = async (mid: string, limit: number = 100): Promise<IRecentPlay[]> => {
+export const getUserRecentPlays = async (mid: number, limit: number = 100): Promise<IRecentPlay[]> => {
   try {
     const recentPlays = await RecentPlay.find({ mid })
       .sort({ playedAt: -1 })
@@ -37,11 +37,11 @@ interface MediaData {
 
 /**
  * @desc 添加或更新播放记录
- * @param {String} mid - 用户ID
+ * @param {Number} mid - 用户ID
  * @param {MediaData} mediaData - 媒体数据
  * @returns {Promise<IRecentPlay>} 更新后的播放记录
  */
-export const addOrUpdateRecentPlay = async (mid: string, mediaData: MediaData): Promise<IRecentPlay> => {
+export const addOrUpdateRecentPlay = async (mid: number, mediaData: MediaData): Promise<IRecentPlay> => {
   try {
     const { bvid, aid, cid, title, cover, duration, upper } = mediaData;
     
@@ -90,13 +90,14 @@ export const addOrUpdateRecentPlay = async (mid: string, mediaData: MediaData): 
 
 /**
  * @desc 删除播放记录
- * @param {String} mid - 用户ID
- * @param {String} bvid - 视频ID
+ * @param {Number} mid - 用户ID
+ * @param {Number} avid - 视频ID
+ * @param {Number} cid - 章节ID
  * @returns {Promise<boolean>} 是否删除成功
  */
-export const deleteRecentPlay = async (mid: string, bvid: string): Promise<boolean> => {
+export const deleteRecentPlay = async (mid: number, avid: number, cid: number): Promise<boolean> => {
   try {
-    await RecentPlay.findOneAndDelete({ mid, bvid });
+    await RecentPlay.findOneAndDelete({ mid, avid, cid });
     return true;
   } catch (error) {
     console.error('删除播放记录失败:', error);
@@ -106,10 +107,10 @@ export const deleteRecentPlay = async (mid: string, bvid: string): Promise<boole
 
 /**
  * @desc 清空用户的所有播放记录
- * @param {String} mid - 用户ID
+ * @param {Number} mid - 用户ID
  * @returns {Promise<boolean>} 是否清空成功
  */
-export const clearAllRecentPlays = async (mid: string): Promise<boolean> => {
+export const clearAllRecentPlays = async (mid: number): Promise<boolean> => {
   try {
     await RecentPlay.deleteMany({ mid });
     return true;

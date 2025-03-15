@@ -1,8 +1,8 @@
 
 /**
- * @desc 视频信息
+ * @desc 视频信息 - cid信息
  */
-export interface VideoInfo {
+export interface CidInfo {
     cid: number,
     page: number,
     from: string,

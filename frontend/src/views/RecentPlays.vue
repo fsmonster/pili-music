@@ -34,7 +34,7 @@ import Layout from '@/layout/Layout.vue';
 import ListHeader from '@/components/songList/ListHeader.vue';
 import ListControls from '@/components/songList/ListControls.vue';
 import MediaTable from '@/components/songList/MediaTable.vue';
-import { useRecentPlayStore } from '@/stores/list/recentPlay';
+import { useRecentPlayStore } from '@/stores/list/recent';
 import { usePlayerStore } from '@/stores/play/player';
 import recentCover from '@/assets/image/recent.avif';
 import type { MediaItem } from '@/types';

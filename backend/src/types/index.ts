@@ -1,3 +1,5 @@
+export * from './common.js';
+
 /**
  * 通用类型定义
  */
@@ -28,7 +30,7 @@ export interface PaginatedResponse<T> {
 
 // 用户JWT载荷
 export interface JwtPayload {
-  mid: string;
+  mid: number;
   sessdata?: string;
   iat?: number;
   exp?: number;
@@ -36,7 +38,7 @@ export interface JwtPayload {
 
 // 请求中的用户信息
 export interface RequestUser {
-  mid: string;
+  mid: number;
   sessdata?: string;
 }
 

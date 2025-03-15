@@ -16,7 +16,6 @@ const router = express.Router();
 router.get('/player/pagelist', async (req: Request, res: Response) => {
   try {
     const { aid, bvid } = req.query;
-    console.log(aid, bvid);
     
     if(!aid && !bvid) {
       return res.status(400).json({ 

@@ -79,10 +79,11 @@ export const authApi = {
 
     /**
      * 登出
+     * @returns {Promise<boolean>} 登出是否成功
      */
     async logout() {
         try {
-            const response = await request.post<ApiResponse<null>>('/auth/logout');
+            const response = await request.get<ApiResponse<null>>('/user/logout');
             if(response.data.code !== 0) {
                 throw new Error(response.data.message || '登出失败');
             }

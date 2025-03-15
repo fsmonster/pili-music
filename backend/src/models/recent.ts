@@ -7,7 +7,7 @@ import { IRecentPlay } from '../types/models.js';
 const RecentPlaySchema = new Schema<IRecentPlay>({
   // 关联用户
   mid: { 
-    type: String, 
+    type: Number, 
     required: true,
     index: true
   }, // B站用户ID
@@ -17,7 +17,7 @@ const RecentPlaySchema = new Schema<IRecentPlay>({
     type: String, 
     required: true 
   }, // B站视频ID
-  aid: { 
+  avid: { 
     type: Number 
   }, // B站av号
   cid: { 
@@ -43,7 +43,7 @@ const RecentPlaySchema = new Schema<IRecentPlay>({
   // UP主信息
   upper: {
     mid: { 
-      type: String 
+      type: Number 
     }, // UP主ID
     name: { 
       type: String 
@@ -63,7 +63,7 @@ RecentPlaySchema.pre('save', async function(next) {
   try {
     // 如果是新记录，检查并删除多余的记录
     if (this.isNew) {
-      const count = await this.constructor.countDocuments({ mid: this.mid });
+      const count = await (this.constructor as Model<IRecentPlay>).countDocuments({ mid: this.mid });
       if (count >= 100) {
         // 查找并删除最早的记录，直到总数小于100
         const oldestRecords = await (this.constructor as Model<IRecentPlay>).find({ mid: this.mid })

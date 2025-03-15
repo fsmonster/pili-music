@@ -1,11 +1,11 @@
 <template>
   <!-- 使用封装的播放器组件 -->
-  <Player />
+  <PlayerControler />
 </template>
 
 <script setup lang="ts">
 // 导入封装的播放器组件
-import { Player } from '../components/player';
+import { PlayerControler } from '../components/controler';
 </script>
 
 <style lang="scss" scoped>

@@ -5,10 +5,11 @@
 import request from '../utils/request';
 import type { 
   ApiResponse, 
-  MediaItem,
   RecentPlay,
-  RecentPlayResponse
+  RecentPlayResponse,
+  MediaItem
 } from '../types';
+import { getCid } from './audio';
 
 /**
  * @desc 获取最近播放记录
@@ -37,23 +38,11 @@ export async function getRecentPlays(limit: number = 20): Promise<RecentPlay[]> 
    */
   export async function addRecentPlay(mediaItem: MediaItem): Promise<RecentPlay> {
     try {
-  
-      // 格式化为后端所需的格式
-      const formattedMediaItem = {
-        mediaData:{
-          bvid: mediaItem.bvid,
-          aid: mediaItem.id,  // 如果id是aid
-          cid: mediaItem.cid,
-          title: mediaItem.title,
-          cover: mediaItem.cover,
-          duration: mediaItem.duration,
-          upper: {
-            mid: mediaItem.upper.mid,
-            name: mediaItem.upper.name
-          }
-        }
-      };
-      const res = await request.post<ApiResponse<RecentPlay>>('/recent', formattedMediaItem);
+      if(!mediaItem.cid)
+      {
+        mediaItem.cid = await getCid(mediaItem.id);
+      }
+      const res = await request.post<ApiResponse<RecentPlay>>('/recent', mediaItem);
       if (res.data.code !== 0) {
         throw new Error(res.data.message || '添加最近播放记录失败');
       }

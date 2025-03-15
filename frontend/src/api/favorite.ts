@@ -9,12 +9,11 @@ import type { ApiResponse, Favorite, FavoriteListResponse, FavoriteContentRespon
  * @param up_mid 用户UID
  * @returns 收藏夹列表
  */
-export async function getFavoriteList(up_mid?: number): Promise<Favorite[]> {
+export async function getFavoriteList(up_mid: number): Promise<Favorite[]> {
   try {
     const res = await request.get<ApiResponse<FavoriteListResponse>>('/favorite/list', {
       params: { up_mid }
     });
-    console.log('😀😀😀😀获取收藏夹列表:', res.data);
     
     return res.data.data.list;
   } catch (error) {
@@ -73,12 +72,33 @@ export async function getFavoriteContent(
   }
 }
 
-// /**
-//  * 获取收藏夹内容明细列表
-//  * @param media_id 收藏夹mlid
-//  */
-// export async function getFavoriteIds(media_id: string | number) {
-//   return request.get<ApiResponse>('/favorite/resource/ids', {
-//     params: { media_id }
-//   });
-// }
+/**
+ * 获取用户显示的收藏夹ID列表
+ * @returns 收藏夹ID列表
+ * @access  Private - 需要登录
+ */ 
+export async function getDisplayFavorites(): Promise<number[]> {
+  try {
+    const res = await request.get<ApiResponse<number[]>>('/favorite/display');
+    return res.data.data;
+  } catch (error) {
+    console.error('获取显示收藏夹失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 更新用户显示的收藏夹ID列表
+ * @param displayIds 需要显示的收藏夹ID列表
+ * @returns 更新后的收藏夹ID列表
+ * @access  Private - 需要登录
+ */
+export async function updateDisplayFavorites(displayIds: number[]): Promise<number[]> { 
+  try {
+    const res = await request.put<ApiResponse<number[]>>('/favorite/display', { displayIds });
+    return res.data.data;
+  } catch (error) {
+    console.error('更新显示收藏夹失败:', error);
+    throw error;
+  }
+}

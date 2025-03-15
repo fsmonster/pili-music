@@ -13,7 +13,6 @@
 
 <script setup lang="ts">
 import Layout from '../layout/Layout.vue';
-// import RecentlyPlayed from '../components/songLists/RecentlyPlayed.vue';
 import Favorites from '../components/songLists/Favorites.vue';
 import Seasons from '../components/songLists/Seasons.vue';
 import MyMusic from '../components/songLists/MyMusic.vue';

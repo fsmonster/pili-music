@@ -11,14 +11,14 @@ router.use(authMiddleware);
  * 媒体数据接口
  */
 interface MediaData {
+  avid: number;
   bvid: string;
-  aid?: number;
-  cid?: number;
+  cid: number;
   title: string;
-  cover?: string;
-  duration?: number;
-  upper?: {
-    mid: string;
+  cover: string;
+  duration: number;
+  upper: {
+    mid: number;
     name: string;
   };
 }
@@ -63,7 +63,6 @@ router.get('/', async (req: Request, res: Response) => {
  * @access  Private - 需要登录
  */
 router.post('/', async (req: Request, res: Response) => {
-  console.log('添加播放记录:', req.body);  
   try {
     if (!req.user) {
       return res.status(401).json({ 
@@ -73,9 +72,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
     
     const { mid } = req.user;
-    const { mediaData } = req.body as { mediaData: MediaData };
-
-    console.log('😀😀😀添加播放记录:', JSON.stringify({ mid, mediaData }));
+    const mediaData = req.body;
     
     // 添加或更新播放记录
     const recentPlay = await recentPlayController.addOrUpdateRecentPlay(mid, mediaData);
@@ -94,12 +91,13 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 /**
- * @route   DELETE /api/recent/:bvid
+ * @route   DELETE /api/recent/:avid/:cid
  * @desc    删除单条播放记录
- * @param {String} bvid - 视频ID
+ * @param {Number} avid - 视频ID
+ * @param {Number} cid - 章节ID
  * @access  Private - 需要登录
  */
-router.delete('/:bvid', async (req: Request, res: Response) => {
+router.delete('/:avid/:cid', async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ 
@@ -109,10 +107,10 @@ router.delete('/:bvid', async (req: Request, res: Response) => {
     }
     
     const { mid } = req.user;
-    const { bvid } = req.params;
+    const { avid, cid } = req.params;
     
     // 删除播放记录
-    await recentPlayController.deleteRecentPlay(mid, bvid);
+    await recentPlayController.deleteRecentPlay(mid, Number(avid), Number(cid));
     
     res.json({
       code: 0,

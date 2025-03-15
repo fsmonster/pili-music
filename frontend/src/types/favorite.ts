@@ -1,4 +1,4 @@
-import type { MediaItem } from "./mediaItem";
+import type { MediaItem } from "./common";
 
 /** 
  * @desc  收藏夹 - 列表响应
@@ -8,6 +8,7 @@ import type { MediaItem } from "./mediaItem";
 
 export interface FavoriteListResponse {
     count: number;
+    message: string;
     list: Favorite[];
 }
   

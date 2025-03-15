@@ -26,14 +26,14 @@
           @click="playStore.toggle"
         ></i>
         <i class="ri-skip-forward-fill" @click="playStore.next"></i>
-        <i class="ri-heart-line"></i>
+        <i :class="{ 'ri-heart-line': !isLiked, 'ri-heart-fill': isLiked }" @click="toggleLike"></i>
       </div>
       <div class="progress-bar">
         <span class="time">{{ formatTime(playStore.currentTime) }}</span>
         <!-- 使用自定义进度条组件 -->
         <ProgressBar
           v-model="currentProgress"
-          @input="handleProgressInput"
+          @input="isDragging = true"
           @change="handleProgressChange"
           class="progress-slider"
         />
@@ -58,23 +58,37 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import defaultCover from '@/assets/image/music_cover.jpg';
-import { usePlayerStore } from '../../stores';
+import { usePlayerStore, useQueueStore, useLikeStore } from '../../stores';
 import { processResourceUrl } from '../../utils/processResoureUrl';
 // 导入自定义组件
 import { ProgressBar, VolumeBar } from './index';
 
-/**
- * 播放器组件
- * @desc 音乐播放器控制界面，包含播放控制、进度条、音量控制等功能
- */
-
+// 播放器 store
 const playStore = usePlayerStore();
-const progressRef = ref<HTMLElement | null>(null);
+// 播放列表 store
+const queueStore = useQueueStore();
+// 点赞 store
+const likeStore = useLikeStore();
 
 // 音量控制值
 const volumeValue = ref(playStore.volume * 100);
 // 播放进度值（0-100）
 const currentProgress = ref(0);
+
+// 当前播放项
+const currentTrack = computed(() => queueStore.currentItem);
+const currentAvid = computed(() => currentTrack.value?.id || 0);
+const currentBvid = computed(() => currentTrack.value?.bvid || '');
+const currentCid = computed(() => currentTrack.value?.cid || 0);
+const isLiked = computed(() => likeStore.checkIsLiked(currentAvid.value, currentCid.value));
+
+// const toggleLike = async () => {
+//   if (isLiked.value) {
+//     likeStore.removeLike(currentAvid.value, currentCid.value);
+//   } else {
+//     likeStore.addLike(currentAvid.value, currentBvid.value, currentCid.value);
+//   }
+// };
 
 // 监听播放时间变化，更新进度条
 watch(() => playStore.currentTime, (newTime) => {
@@ -93,23 +107,12 @@ watch(() => playStore.volume, (newVolume) => {
 // 是否正在拖动进度条
 const isDragging = ref(false);
 
-// 播放进度
-const progress = computed(() => {
-  if (!playStore.duration) return 0;
-  return (playStore.currentTime / playStore.duration) * 100;
-});
-
 // 格式化时间
 function formatTime(seconds: number) {
   if (!seconds) return '00:00';
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
-
-// 进度条拖动中处理
-function handleProgressInput(value: number) {
-  isDragging.value = true;
 }
 
 // 进度条变化处理（拖动结束时）
@@ -199,6 +202,26 @@ function toggleMute() {
       align-items: center;
       gap: 24px;
       margin-top: 8px;
+      .ri-heart-line {
+        font-size: 24px;
+        line-height: 1;
+        color: var(--el-text-color-regular);
+        transition: all 0.3s;
+
+        &:hover {
+          color: var(--el-text-color-primary);
+        }
+      }
+      .ri-heart-fill {
+        font-size: 24px;
+        line-height: 1;
+        color: var(--el-color-primary);
+        transition: all 0.3s; 
+
+        &:hover {
+          color: var(--el-color-primary);
+        }
+      }
 
       i {
         font-size: 24px;
@@ -226,7 +249,6 @@ function toggleMute() {
         }
       }
     }
-
     .progress-bar {
       width: 100%;
       display: flex;

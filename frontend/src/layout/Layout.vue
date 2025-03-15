@@ -13,15 +13,14 @@
     </div>
 
     <!-- 底部播放控制栏 -->
-    <Player class="player" />
+    <PlayerControler class="player" />
   </div>
 </template>
 
 <script setup lang="ts">
 import Sidebar from './Sidebar.vue';
 import Header from './Header.vue';
-// 使用封装后的Player组件
-import { Player } from '../components/player';
+import PlayerControler from './PlayerControler.vue';
 </script>
 
 <style lang="scss" scoped>

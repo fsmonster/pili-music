@@ -2,11 +2,13 @@ import express, { Request, Response } from 'express';
 import axios from 'axios';
 import authMiddleware from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
+import * as seasonController from '../controllers/seasonController.js';
 
 const router = express.Router();
 
 // 应用认证中间件到需要认证的路由
 router.use('/collected', authMiddleware);
+router.use('/display', authMiddleware);
 
 /**
  * @route   GET /api/season/collected/list
@@ -87,6 +89,74 @@ router.get('/season/list', async (req: Request, res: Response) => {
     res.status(500).json({ 
       code: 500, 
       message: '获取合集内容列表失败' 
+    });
+  }
+});
+
+/**
+ * @route   GET /api/season/display
+ * @desc    获取用户显示的合集ID列表
+ * @access  Private - 需要登录
+ */
+router.get('/display', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { mid } = req.user;
+    
+    // 获取用户显示的合集ID列表
+    const displayIds = await seasonController.getDisplaySeasons(mid);
+    
+    res.json({
+      code: 0,
+      message: '获取显示合集成功',
+      data: displayIds
+    });
+  } catch (error) {
+    console.error('获取显示合集失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取显示合集失败' 
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/season/display
+ * @desc    更新用户显示的合集ID列表
+ * @param {number[]} displayIds - 需要显示的合集ID列表
+ * @access  Private - 需要登录
+ */
+router.put('/display', async (req: AuthRequest, res: Response) => {
+  try {    
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const { mid } = req.user;
+    const { displayIds } = req.body;
+    
+    // 更新用户显示的合集ID列表
+    const updatedDisplayIds = await seasonController.updateDisplaySeasons(mid, displayIds);
+    
+    res.json({
+      code: 0,
+      message: '更新显示合集成功',
+      data: updatedDisplayIds
+    });
+  } catch (error) {
+    console.error('更新显示合集失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '更新显示合集失败' 
     });
   }
 });

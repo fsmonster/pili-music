@@ -84,11 +84,11 @@ export const getUserInfo = async (mid: string): Promise<IUser | null> => {
 
 /**
  * @desc 更新用户偏好设置
- * @param {string} mid - 用户ID
+ * @param {number} mid - 用户ID
  * @param {UserPreferences} preferences - 用户偏好设置
  * @returns {Promise<IUser | null>} 更新后的用户信息
  */
-export const updateUserPreferences = async (mid: string, preferences: UserPreferences): Promise<IUser | null> => {
+export const updateUserPreferences = async (mid: number, preferences: UserPreferences): Promise<IUser | null> => {
   try {
     const user = await User.findOneAndUpdate(
       { mid },
@@ -107,49 +107,28 @@ export const updateUserPreferences = async (mid: string, preferences: UserPrefer
 };
 
 /**
- * @desc 更新用户显示的收藏夹ID列表
- * @param {string} mid - 用户ID
- * @param {string[]} favoriteIds - 收藏夹ID列表
+ * @desc 登出
+ * @param {number} mid - 用户ID
  * @returns {Promise<IUser | null>} 更新后的用户信息
  */
-export const updateDisplayFavorites = async (mid: string, favoriteIds: string[]): Promise<IUser | null> => {
+export const logout = async (mid: number): Promise<IUser | null> => {
   try {
     const user = await User.findOneAndUpdate(
       { mid },
       { 
-        displayFavoriteIds: favoriteIds,
+        isLogin: false,
+        accessToken: null,
+        refreshToken: null,
+        tokenExpiry: null,
         updatedAt: new Date()
       },
       { new: true }
     );
-    
+
     return user;
   } catch (error) {
-    console.error('更新用户显示收藏夹失败:', error);
-    throw new Error('更新用户显示收藏夹失败');
+    console.error('登出失败:', error);
+    throw new Error('登出失败');
   }
 };
 
-/**
- * @desc 更新用户显示的合集ID列表
- * @param {string} mid - 用户ID
- * @param {string[]} seasonIds - 合集ID列表
- * @returns {Promise<IUser | null>} 更新后的用户信息
- */
-export const updateDisplaySeasons = async (mid: string, seasonIds: string[]): Promise<IUser | null> => {
-  try {
-    const user = await User.findOneAndUpdate(
-      { mid },
-      { 
-        displaySeasonIds: seasonIds,
-        updatedAt: new Date()
-      },
-      { new: true }
-    );
-    
-    return user;
-  } catch (error) {
-    console.error('更新用户显示合集失败:', error);
-    throw new Error('更新用户显示合集失败');
-  }
-};

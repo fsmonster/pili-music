@@ -108,45 +108,14 @@ router.put('/preferences', async (req: AuthRequest, res: Response) => {
   }
 });
 
-/**
- * @route   PUT /api/user/display-favorites
- * @desc    更新用户显示的收藏夹列表
- * @access  Private - 需要登录
- */
-router.put('/display-favorites', async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ 
-        code: 401, 
-        message: '未授权访问' 
-      });
-    }
-    
-    const { mid } = req.user;
-    const { favoriteIds } = req.body as { favoriteIds: string[] };
-    
-    // 更新用户显示的收藏夹列表
-    const updatedUser = await userController.updateDisplayFavorites(mid, favoriteIds);
-    
-    res.json({
-      code: 0,
-      data: updatedUser
-    });
-  } catch (error) {
-    console.error('更新显示收藏夹失败:', error);
-    res.status(500).json({ 
-      code: 500, 
-      message: '更新显示收藏夹失败' 
-    });
-  }
-});
 
 /**
- * @route   PUT /api/user/display-seasons
- * @desc    更新用户显示的合集列表
- * @access  Private - 需要登录
+ * @desc 登出
+ * @route GET /api/user/logout
+ * @returns {Promise<ApiResponse<boolean>>} 登出是否成功
+ * @access Private - 需要登录
  */
-router.put('/display-seasons', async (req: AuthRequest, res: Response) => {
+router.get('/logout', async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ 
@@ -154,22 +123,19 @@ router.put('/display-seasons', async (req: AuthRequest, res: Response) => {
         message: '未授权访问' 
       });
     }
-    
-    const { mid } = req.user;
-    const { seasonIds } = req.body as { seasonIds: string[] };
-    
-    // 更新用户显示的合集列表
-    const updatedUser = await userController.updateDisplaySeasons(mid, seasonIds);
-    
+
+    await userController.logout(req.user.mid);
+
     res.json({
       code: 0,
-      data: updatedUser
+      data: true,
+      message: '登出成功'
     });
   } catch (error) {
-    console.error('更新显示合集失败:', error);
+    console.error('登出失败:', error);
     res.status(500).json({ 
       code: 500, 
-      message: '更新显示合集失败' 
+      message: '登出失败' 
     });
   }
 });

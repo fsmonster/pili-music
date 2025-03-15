@@ -6,11 +6,11 @@ import { ICustomPlaylist, IPlaylistItem } from '../types/models.js';
  */
 const CustomPlaylistSchema = new Schema<ICustomPlaylist>({
   // 歌单基本信息
-  name: { 
+  title: { 
     type: String, 
     required: true 
   }, // 歌单标题
-  description: { 
+  intro: { 
     type: String 
   }, // 描述
   cover: { 
@@ -23,20 +23,20 @@ const CustomPlaylistSchema = new Schema<ICustomPlaylist>({
   
   // 关联用户
   mid: { 
-    type: String, 
+    type: Number, 
     required: true,
     index: true
   }, // B站用户ID
   
   // 包含的媒体
   items: [{
+    aid: { 
+      type: Number 
+    }, // B站av号
     bvid: { 
       type: String, 
       required: true 
     }, // B站视频ID
-    aid: { 
-      type: Number 
-    }, // B站av号
     cid: { 
       type: Number 
     }, // B站cid
@@ -52,7 +52,7 @@ const CustomPlaylistSchema = new Schema<ICustomPlaylist>({
     }, // 时长(秒)
     upper: {
       mid: { 
-        type: String 
+        type: Number 
       }, // UP主ID
       name: { 
         type: String 

@@ -12,14 +12,14 @@ router.use(authMiddleware);
  * 媒体项接口
  */
 interface MediaItem {
+  avid: number;
   bvid: string;
-  aid?: number;
-  cid?: number;
+  cid: number;
   title: string;
-  cover?: string;
-  duration?: number;
-  upper?: {
-    mid: string;
+  cover: string;
+  duration: number;
+  upper: {
+    mid: number;
     name: string;
   };
 }
@@ -27,7 +27,7 @@ interface MediaItem {
 /**
  * 创建歌单请求体接口
  */
-interface CreatePlaylistRequest {
+interface CreateCustomRequest {
   title: string;
   cover?: string;
   description?: string;
@@ -51,8 +51,6 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     
     // 获取用户的所有自建歌单
     const playlists = await customController.getUserPlaylists(mid);
-
-    console.log('获取用户歌单:', playlists);
     
     res.json({
       code: 0,
@@ -96,7 +94,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 /**
  * @route   POST /api/custom
  * @desc    创建新歌单
- * @param {CreatePlaylistRequest} playlistData - 歌单数据
+ * @param {CreateCustomRequest} playlistData - 歌单数据
  * @access  Private - 需要登录
  */
 router.post('/', async (req: AuthRequest, res: Response) => {
@@ -109,7 +107,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     }
     
     const { mid } = req.user;
-    const { title, cover, description } = req.body as CreatePlaylistRequest;
+    const { title, cover, description } = req.body as CreateCustomRequest;
     
     // 创建新歌单
     const newPlaylist = await customController.createPlaylist(mid, {
@@ -135,7 +133,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
  * @route   PUT /api/custom/:id
  * @desc    更新歌单信息
  * @param {String} id - 歌单ID
- * @param {CreatePlaylistRequest} playlistData - 歌单数据
+ * @param {CreateCustomRequest} playlistData - 歌单数据
  * @access  Private - 需要登录
  */
 router.put('/:id', async (req: AuthRequest, res: Response) => {
@@ -149,7 +147,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
     
     const { mid } = req.user;
     const { id } = req.params;
-    const { title, cover, description } = req.body as CreatePlaylistRequest;
+    const { title, cover, description } = req.body as CreateCustomRequest;
     
     // 更新歌单信息
     const updatedPlaylist = await customController.updatePlaylist(id, mid, {
@@ -213,7 +211,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
  * @access  Private - 需要登录
  */
 router.post('/:id/media', async (req: AuthRequest, res: Response) => {
-  try {
+  try {    
     if (!req.user) {
       return res.status(401).json({ 
         code: 401, 
@@ -242,13 +240,14 @@ router.post('/:id/media', async (req: AuthRequest, res: Response) => {
 });
 
 /**
- * @route   DELETE /api/custom/:id/media/:bvid
+ * @route   DELETE /api/custom/:id/media
  * @desc    从歌单移除媒体
  * @param {String} id - 歌单ID
- * @param {String} bvid - 媒体BV号
+ * @param {Number} avid - 媒体AV号
+ * @param {Number} cid - 媒体CID
  * @access  Private - 需要登录
  */
-router.delete('/:id/media/:bvid', async (req: AuthRequest, res: Response) => {
+router.delete('/:id/media', async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ 
@@ -258,10 +257,11 @@ router.delete('/:id/media/:bvid', async (req: AuthRequest, res: Response) => {
     }
     
     const { mid } = req.user;
-    const { id, bvid } = req.params;
+    const { id } = req.params;
+    const { avid, cid } = req.body;
     
     // 从歌单移除媒体
-    const updatedPlaylist = await customController.removeMediaFromPlaylist(id, mid, bvid);
+    const updatedPlaylist = await customController.removeMediaFromPlaylist(id, mid, Number(avid), Number(cid));
     
     res.json({
       code: 0,

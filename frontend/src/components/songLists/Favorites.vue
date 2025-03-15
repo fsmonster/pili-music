@@ -33,9 +33,6 @@
           <div class="cover">
             <el-skeleton v-if="favoriteStore.loading || !item.cover" :rows="1" animated />
             <img v-else :src="processResourceUrl(item.cover)" :alt="item.title">
-            <div class="play-overlay">
-              <i class="ri-play-fill"></i>
-            </div>
           </div>
           <div class="info">
             <div class="title">{{ item.title }}</div>
@@ -131,24 +128,13 @@ const saveFavoritesSettings = async () => {
   ElMessage.success('设置已保存');
 };
 
-onMounted(async () => {
-  if (!userStore.isLoggedIn) {
-    return;
-  }
-  // 获取所有收藏夹列表
-  await favoriteStore.fetchFavorites();
+onMounted(() => {
+  favoriteStore.fetchDisplayFavorites();
+  favoriteStore.fetchFavoritesIfNeeded();
 });
 
-watch(()=> userStore.isLoggedIn, async (newVal) => {
-  if (newVal) {
-    await favoriteStore.fetchFavorites();
-  }
-});
+watch(() => userStore.isLoggedIn, favoriteStore.fetchFavoritesIfNeeded);
 
-watch(checkedFavorites, async (newVal) => {
-  // 更新显示设置并获取详细信息
-  await favoriteStore.updateDisplaySettings(newVal);
-});
 </script>
 
 <style lang="scss" scoped>

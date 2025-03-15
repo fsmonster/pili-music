@@ -5,21 +5,26 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { RecentPlay, MediaItem } from '../../types';
 import * as recentApi from '../../api/recent';
+import { useUserStore } from '../../stores';
 
 export const useRecentPlayStore = defineStore('recentPlay', () => {
+  const userStore = useUserStore();
   // 状态
   const recentPlays = ref<RecentPlay[]>([]);
   const loading = ref(false);
+  const isLoaded = ref(false);
   const error = ref<string | null>(null);
 
   // 获取最近播放记录
   async function fetchRecentPlays(limit: number = 20) {
     loading.value = true;
+    isLoaded.value = false;
     error.value = null;
     
     try {
       const data = await recentApi.getRecentPlays(limit);
       recentPlays.value = data;
+      isLoaded.value = true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : '获取最近播放记录失败';
       console.error('获取最近播放记录失败:', err);
@@ -27,6 +32,13 @@ export const useRecentPlayStore = defineStore('recentPlay', () => {
       loading.value = false;
     }
   }
+
+  // 获取最近播放记录
+  const fetchRecentIfNeeded = async () => {
+    if (userStore.isLoggedIn && !isLoaded.value) {
+      await fetchRecentPlays();
+    }
+  };
 
   // 添加最近播放记录
   async function addRecentPlay(mediaItem: MediaItem) {
@@ -61,6 +73,14 @@ export const useRecentPlayStore = defineStore('recentPlay', () => {
     }
   }
 
+  // 重置状态
+  const reset = () => {
+    recentPlays.value = [];
+    loading.value = false;
+    error.value = null;
+    isLoaded.value = false;
+  };
+
   return {
     // 状态
     recentPlays,
@@ -71,7 +91,9 @@ export const useRecentPlayStore = defineStore('recentPlay', () => {
     recentPlayCount: computed(() => recentPlays.value.length),
     
     // 方法
-    fetchRecentPlays,
+    // fetchRecentPlays,
+    fetchRecentIfNeeded,
     addRecentPlay,
+    reset
   };
 });

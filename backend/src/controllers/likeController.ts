@@ -5,24 +5,17 @@ import { ILike } from '../types/models.js';
  * 媒体数据接口
  */
 interface MediaData {
-  bvid: string;
-  aid?: number;
+  avid: number;
+  bvid?: string;
   cid?: number;
-  title: string;
-  cover?: string;
-  duration?: number;
-  upper?: {
-    mid: string;
-    name: string;
-  };
 }
 
 /**
  * @desc 获取用户喜欢的所有媒体
- * @param {String} mid - 用户ID
+ * @param {number} mid - 用户ID
  * @returns {Promise<ILike[]>} 用户喜欢的媒体列表
  */
-export const getUserLikes = async (mid: string): Promise<ILike[]> => {
+export const getUserLikes = async (mid: number): Promise<ILike[]> => {
   try {
     const likes = await Like.find({ mid }).sort({ likedAt: -1 });
     return likes;
@@ -33,17 +26,34 @@ export const getUserLikes = async (mid: string): Promise<ILike[]> => {
 };
 
 /**
+ * @desc 检查媒体是否在喜欢列表中
+ * @param {number} mid - 用户ID
+ * @param {number} avid - 媒体ID
+ * @param {number} cid - 媒体ID
+ * @returns {Promise<boolean>} 是否在喜欢列表中
+ */
+export const checkIsLiked = async (mid: number, avid: number, cid: number): Promise<boolean> => {
+  try {
+    const like = await Like.findOne({ mid, avid, cid });
+    return !!like;
+  } catch (error) {
+    console.error('检查喜欢状态失败:', error);
+    throw new Error('检查喜欢状态失败');
+  }
+};
+
+/**
  * @desc 添加媒体到喜欢列表
- * @param {String} mid - 用户ID
+ * @param {number} mid - 用户ID
  * @param {MediaData} mediaData - 媒体数据
  * @returns {Promise<ILike>} 添加的喜欢记录
  */
-export const addLike = async (mid: string, mediaData: MediaData): Promise<ILike> => {
+export const addLike = async (mid: number, mediaData: MediaData): Promise<ILike> => {
   try {
-    const { bvid, aid, cid, title, cover, duration, upper } = mediaData;
+    const { bvid, avid, cid } = mediaData;
     
     // 检查是否已经喜欢过
-    const existingLike = await Like.findOne({ mid, bvid });
+    const existingLike = await Like.findOne({ mid, avid, bvid, cid });
     if (existingLike) {
       return existingLike; // 已经喜欢过，直接返回
     }
@@ -52,12 +62,8 @@ export const addLike = async (mid: string, mediaData: MediaData): Promise<ILike>
     const newLike = await Like.create({
       mid,
       bvid,
-      aid,
+      avid,
       cid,
-      title,
-      cover,
-      duration,
-      upper,
       likedAt: new Date()
     });
     
@@ -70,13 +76,14 @@ export const addLike = async (mid: string, mediaData: MediaData): Promise<ILike>
 
 /**
  * @desc 从喜欢列表移除媒体
- * @param {String} mid - 用户ID
- * @param {String} bvid - 视频ID
+ * @param {number} mid - 用户ID
+ * @param {number} avid - 媒体ID
+ * @param {number} cid - 媒体ID
  * @returns {Promise<boolean>} 是否移除成功
  */
-export const removeLike = async (mid: string, bvid: string): Promise<boolean> => {
+export const removeLike = async (mid: number, avid: number, cid: number): Promise<boolean> => {
   try {
-    await Like.findOneAndDelete({ mid, bvid });
+    await Like.findOneAndDelete({ mid, avid, cid });
     return true;
   } catch (error) {
     console.error('移除喜欢失败:', error);
@@ -84,18 +91,3 @@ export const removeLike = async (mid: string, bvid: string): Promise<boolean> =>
   }
 };
 
-/**
- * @desc 检查媒体是否在喜欢列表中
- * @param {String} mid - 用户ID
- * @param {String} bvid - 视频ID
- * @returns {Promise<boolean>} 是否在喜欢列表中
- */
-export const checkIsLiked = async (mid: string, bvid: string): Promise<boolean> => {
-  try {
-    const like = await Like.findOne({ mid, bvid });
-    return !!like;
-  } catch (error) {
-    console.error('检查喜欢状态失败:', error);
-    throw new Error('检查喜欢状态失败');
-  }
-};

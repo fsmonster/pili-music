@@ -33,9 +33,6 @@
             <el-skeleton v-if="seasonStore.loading || !item.cover" :rows="1" animated>
             </el-skeleton>
             <img v-else :src="processResourceUrl(item.cover)" :alt="item.title">
-            <div class="play-overlay">
-              <i class="ri-play-fill"></i>
-            </div>
           </div>
           <div class="info">
             <div class="title">{{ item.title }}</div>
@@ -91,15 +88,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from './ContentSection.vue';
-import { useSeasonStore } from '@/stores';
+import { useUserStore, useSeasonStore } from '@/stores';
 import { processResourceUrl } from '@/utils/processResoureUrl';
 
 const router = useRouter();
 const seasonStore = useSeasonStore();
+const userStore = useUserStore();
 
 // 对话框显示状态
 const showManageDialog = ref(false);
@@ -132,14 +130,15 @@ const saveSubscriptionsSettings = async () => {
 
 // 监听对话框打开
 const onDialogOpen = () => {
-  console.log('dialog open');  
   initManageDialog();
 };
 
-onMounted(async () => {
-  // 获取订阅合集列表
-  await seasonStore.fetchSeasons();
+onMounted(() => {
+  seasonStore.fetchDisplaySeasons();
+  seasonStore.fetchSeasonsIfNeeded();
 });
+
+watch(() => userStore.isLoggedIn, seasonStore.fetchSeasonsIfNeeded);
 
 // 监听对话框
 defineExpose({

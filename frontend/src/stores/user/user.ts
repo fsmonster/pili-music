@@ -2,6 +2,14 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { processResourceUrl } from '../../utils/processResoureUrl'
 import type { BiliUserInfo, UserInfo } from '../../types/user'
+import { 
+  useAuthStore, 
+  useFavoriteStore, 
+  useSeasonStore, 
+  useLikeStore,
+  useRecentPlayStore, 
+  useCustomStore 
+} from '../index'
 
 /**
  * 用户状态管理
@@ -33,7 +41,14 @@ export const useUserStore = defineStore('user', () => {
    */
   function logout() {
     isLoggedIn.value = false
-    userInfo.value = null
+    userInfo.value = null;
+    // 清除所有列表状态
+    useAuthStore().logout();
+    useFavoriteStore().reset();
+    useSeasonStore().reset();
+    useLikeStore().reset();
+    useRecentPlayStore().reset();
+    useCustomStore().reset();
   }
 
   // 计算属性
@@ -41,7 +56,18 @@ export const useUserStore = defineStore('user', () => {
   const username = computed(() => userInfo.value?.username || '')
   const mid = computed(() => userInfo.value?.mid || null)
 
-  return { isLoggedIn, userInfo, setUserInfo, logout, avatar, username, mid }
+  return { 
+    // 状态
+    isLoggedIn, 
+    userInfo,
+    // 计算属性
+    avatar, 
+    username, 
+    mid,
+    // 方法
+    setUserInfo, 
+    logout, 
+  }
 }, {
   persist: true // 开启状态持久化
 })

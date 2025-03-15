@@ -1,20 +1,25 @@
 /**
  * 数据模型相关类型定义
  */
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
-// 用户偏好设置接口
+/**
+ * 用户偏好设置接口
+ */
 export interface UserPreferences {
   theme?: string;
   audioQuality?: string;
   [key: string]: any;
 }
 
-// 用户模型接口
+/**
+ * 用户模型接口
+ */
 export interface IUser extends Document {
-  mid: string | number;
+  mid: number;
   username: string;
   avatar: string;
+  isLogin: boolean;
   accessToken?: string;
   refreshToken?: string;
   tokenExpiry?: Date;
@@ -26,17 +31,21 @@ export interface IUser extends Document {
   displaySeasonIds?: string[];
 }
 
-// UP主信息接口
+/**
+ * UP主信息接口
+ */
 export interface IUpper {
-  mid: string;
+  mid: number;
   name: string;
 }
 
-// 最近播放记录模型接口
+/**
+ * 最近播放记录模型接口
+ */
 export interface IRecentPlay extends Document {
-  mid: string;
+  mid: number;
   bvid: string;
-  aid?: number;
+  avid?: number;
   cid?: number;
   title: string;
   cover?: string;
@@ -47,11 +56,13 @@ export interface IRecentPlay extends Document {
   updatedAt: Date;
 }
 
-// 喜欢的音乐模型接口
+/**
+ * 喜欢的音乐模型接口
+ */
 export interface ILike extends Document {
-  mid: string;
+  mid: number;
   bvid: string;
-  aid?: number;
+  avid?: number;
   cid?: number;
   title: string;
   cover?: string;
@@ -62,11 +73,13 @@ export interface ILike extends Document {
   updatedAt: Date;
 }
 
-// 自定义播放列表模型接口
+/**
+ * 自建歌单列表模型
+ */
 export interface ICustomPlaylist extends Document {
-  mid: string;
-  name: string;
-  description?: string;
+  mid: number;
+  title: string;
+  intro?: string;
   cover?: string;
   isPublic: boolean;
   items: IPlaylistItem[];
@@ -74,10 +87,12 @@ export interface ICustomPlaylist extends Document {
   updatedAt: Date;
 }
 
-// 播放列表项目接口
+/**
+ * 自建歌单列表项目接口
+ */
 export interface IPlaylistItem {
+  avid?: number;
   bvid: string;
-  aid?: number;
   cid?: number;
   title: string;
   cover?: string;

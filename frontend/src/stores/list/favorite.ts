@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import * as favoriteApi from '../../api/favorite';
 import type { Favorite, FavoriteInfo } from '../../types';
+import * as favoriteApi from '../../api/favorite';
 import { useUserStore } from '../user/user';
 import { createBaseListStore } from './baseList';
 
@@ -9,6 +9,11 @@ import { createBaseListStore } from './baseList';
  * @desc 收藏夹状态管理
  */
 export const useFavoriteStore = defineStore('favorite', () => {
+  // 用户状态
+  const userStore = useUserStore();
+  const mid = computed(() => userStore.mid);
+  const isLoggedIn = computed(() => userStore.isLoggedIn);
+
   // 基础媒体列表功能
   const baseList = createBaseListStore();
   
@@ -17,18 +22,22 @@ export const useFavoriteStore = defineStore('favorite', () => {
   const displayFavoriteIds = ref<number[]>([]);
   const currentFavorite = ref<Favorite | null>(null);
   const currentFavoriteId = ref<number | null>(null); // 当前正在查看的收藏夹ID
-
-  const userStore = useUserStore();
-  const mid = computed(() => userStore.mid);
+  const isLoaded = ref(false);
 
   // 计算属性：当前显示的收藏夹(歌单)列表
   const favorites = computed<Favorite[]>(() =>
     allFavorites.value.filter(f => displayFavoriteIds.value.includes(f.id))
   );
 
+  // 获取收藏夹显示设置
+  const fetchDisplayFavorites = async () => displayFavoriteIds.value = await favoriteApi.getDisplayFavorites();
+
   // 更新收藏夹显示设置 并获取收藏夹基础信息(title、count、cover)
   const updateDisplaySettings = async (ids: number[]) => {
     displayFavoriteIds.value = ids;
+
+    // 更新显示设置
+    await favoriteApi.updateDisplayFavorites(ids);
     
     // 获取新选中收藏夹的基础信息
     const newIds = ids.filter(id => 
@@ -67,16 +76,12 @@ export const useFavoriteStore = defineStore('favorite', () => {
    * @desc 获取收藏夹列表
    */
   const fetchFavorites = async () => {
-    if (!mid.value) {
-      baseList.error.value = '请先登录';
-      return;
-    }
-
     baseList.loading.value = true;
     baseList.error.value = '';
+    isLoaded.value = false;
 
     // 获取收藏夹列表基本信息（不包含封面）
-    const favoriteList = await favoriteApi.getFavoriteList(mid.value);
+    const favoriteList = await favoriteApi.getFavoriteList(mid.value!);
 
     // 合并原有收藏夹的 cover 信息
     allFavorites.value = favoriteList.map(newFav => {
@@ -94,6 +99,16 @@ export const useFavoriteStore = defineStore('favorite', () => {
     }
     
     baseList.loading.value = false;
+    isLoaded.value = true;
+  };
+
+  /**
+   * @desc 获取收藏夹列表
+   */
+  const fetchFavoritesIfNeeded = async () => {
+    if (isLoggedIn.value && !isLoaded.value && mid.value) {
+      await fetchFavorites();
+    }
   };
 
   /**
@@ -145,6 +160,7 @@ export const useFavoriteStore = defineStore('favorite', () => {
 
   // 重置状态
   const reset = () => {
+    isLoaded.value = false;
     baseList.reset();
     allFavorites.value = [];
     displayFavoriteIds.value = [];
@@ -161,8 +177,10 @@ export const useFavoriteStore = defineStore('favorite', () => {
     displayFavoriteIds,
     currentFavorite,
     currentFavoriteId,
+    isLoaded,
+    fetchDisplayFavorites,
     updateDisplaySettings,
-    fetchFavorites,
+    fetchFavoritesIfNeeded,
     fetchFavoriteContent,
     loadMoreFavoriteContent,
     reset

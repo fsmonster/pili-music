@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { MediaItem } from '../../types';
-import { getVideoInfo, getAudioUrl } from '../../api';
+import { getCid, getAudioUrl } from '../../api';
 import { processResourceUrl } from '../../utils';
 import { useQueueStore } from './queue';
-import { useRecentPlayStore } from '../list/recentPlay'; // 导入最近播放 store
+import { useRecentPlayStore } from '../list'; // 导入最近播放 store
 
 export const usePlayerStore = defineStore('player', () => {
   // 获取播放列表存储
@@ -81,7 +81,7 @@ export const usePlayerStore = defineStore('player', () => {
         
         try {
           // 获取播放地址
-          const cid = await getVideoInfo(currentItem.id);   
+          const cid = await getCid(currentItem.id);   
           const url = await getAudioUrl({
             avid: currentItem.id,
             cid,

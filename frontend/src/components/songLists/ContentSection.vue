@@ -7,6 +7,7 @@
           <i class="ri-folder-music-line"></i>
         </slot>
         <h3>{{ title }}</h3>
+        <!-- 标题后缀插槽 -->
         <slot name="title-suffix"></slot>
       </div>
       <div class="actions">

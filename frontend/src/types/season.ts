@@ -1,4 +1,4 @@
-import type { MediaItem } from './mediaItem'
+import type { MediaItem } from './common'
 
 // 合集 - 列表响应
 export interface SeasonListResponse {
@@ -21,11 +21,11 @@ export interface SeasonContentResponse {
 }
   
 // 合集 - 详细信息
-export interface SeasonInfo extends Season {
-  upper: {
-    mid: number;
-    name: string;
-    face: string;
-  };
-}
+// export interface SeasonInfo extends Season {
+//   upper: {
+//     mid: number;
+//     name: string;
+//     face: string;
+//   };
+// }
   

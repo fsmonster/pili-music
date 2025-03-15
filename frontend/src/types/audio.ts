@@ -47,31 +47,7 @@ export interface DashAudioResponse {
     code: number;
     message: string;
     ttl: number;
-    data: {
-        from: string;
-        result: string;
-        message: string;
-        quality: number;
-        format: string;
-        timelength: number;
-        accept_format: string;
-        accept_description: string[];
-        accept_quality: number[];
-        video_codecid: number;
-        seek_param: string;
-        seek_type: string;
-        dash: {
-            duration: number;
-            minBufferTime: number;
-            min_buffer_time: number;
-            video: any[];
-            audio: DashAudio[];
-        };
-        support_formats: any[];
-        high_format: any;
-        last_play_time: number;
-        last_play_cid: number;
-    };
+    data: DashAudio[];
 }
 
 /**

@@ -43,3 +43,34 @@ export async function getSeasonList(params: {
     throw error;
   }
 }
+
+/**
+ * 获取用户显示的合集ID列表
+ * @returns 合集ID列表
+ * @access  Private - 需要登录
+ */
+export async function getDisplaySeasons(): Promise<number[]> {
+  try {
+    const res = await request.get<ApiResponse<number[]>>('/season/display');
+    return res.data.data;
+  } catch (error) {
+    console.error('获取显示合集失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 更新用户显示的合集ID列表
+ * @param displayIds 需要显示的合集ID列表
+ * @returns 更新后的合集ID列表
+ * @access  Private - 需要登录
+ */
+export async function updateDisplaySeasons(displayIds: number[]): Promise<number[]> { 
+  try {
+    const res = await request.put<ApiResponse<number[]>>('/season/display', { displayIds });
+    return res.data.data;
+  } catch (error) {
+    console.error('更新显示合集失败:', error);
+    throw error;
+  }
+}

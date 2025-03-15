@@ -2,17 +2,17 @@
  * 播放列表相关API
  */
 import request from '../utils/request';
-import type { ApiResponse, VideoInfo, DashAudioResponse, DashAudio } from '../types';
+import type { ApiResponse, CidInfo, DashAudioResponse } from '../types';
 import { AudioQuality } from '../types';
 
 /**
- * @desc 获取视频信息
+ * @desc 获取视频cid
  * @param aid 视频avid
  * @returns 视频cid
  */
-export async function getVideoInfo(aid: number): Promise<number> {
+export async function getCid(aid: number): Promise<number> {
   try {
-    const res = await request.get<ApiResponse<VideoInfo[]>>('/audioInfo/player/pagelist', {
+    const res = await request.get<ApiResponse<CidInfo[]>>('/audioInfo/player/pagelist', {
       params: { aid }
     });
     if(res.data.code !== 0) {

@@ -10,7 +10,10 @@
     v-loading="loading"
     @row-dblclick="handleRowDblClick"
   >
+    <!-- 索引列 -->
     <el-table-column type="index" width="50" />
+
+    <!-- 封面列 -->
     <el-table-column label="歌曲" min-width="70" width="70">
       <template #default="{ row }">
         <div class="media-info">
@@ -24,20 +27,23 @@
       </template>
     </el-table-column>
 
+    <!-- 歌曲名列 -->
     <el-table-column min-width="250">
       <template #default="{ row }">
         <div class="media-text">
-            <div class="media-title">{{ row.title }}</div>
-          </div>
+          <div class="media-title">{{ row.title }}</div>
+        </div>
       </template>
     </el-table-column>
 
+    <!-- up主列 -->
     <el-table-column label="up" min-width="50">
       <template #default="{ row }">
         <div class="media-up">{{ row.upper?.name }}</div>
       </template>
     </el-table-column>
 
+    <!-- 时长列 -->
     <el-table-column label="时长" width="120">
       <template #default="{ row }">
         {{ formatDuration(row.duration) }}
@@ -64,6 +70,9 @@ defineProps<{
   data: MediaItem[];
   loading?: boolean;
   maxHeight?: number;
+  options?: {
+
+  }
 }>();
 
 const emit = defineEmits<{

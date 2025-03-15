@@ -3,24 +3,29 @@
  */
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { CustomPlaylist, MediaItem, CreatePlaylistParams, UpdatePlaylistParams } from '../../types';
+import type { Custom, MediaItem, CreateCustomParams, UpdateCustomParams } from '../../types';
 import * as playlistApi from '../../api';
+import { useUserStore } from '../../stores';
 
-export const useCustomPlaylistStore = defineStore('customPlaylist', () => {
+export const useCustomStore = defineStore('custom', () => {
+  const userStore = useUserStore();
   // 状态
-  const customPlaylists = ref<CustomPlaylist[]>([]);
-  const currentPlaylist = ref<CustomPlaylist | null>(null);
+  const customPlaylists = ref<Custom[]>([]);
+  const currentPlaylist = ref<Custom | null>(null);
   const loading = ref(false);
+  const isLoaded = ref(false);
   const error = ref<string | null>(null);
 
   // 获取用户的所有自建歌单
   async function fetchUserPlaylists() {
     loading.value = true;
+    isLoaded.value = false;
     error.value = null;
     
     try {
       const data = await playlistApi.getUserPlaylists();
       customPlaylists.value = data;
+      isLoaded.value = true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : '获取歌单失败';
       console.error('获取歌单失败:', err);
@@ -28,6 +33,13 @@ export const useCustomPlaylistStore = defineStore('customPlaylist', () => {
       loading.value = false;
     }
   }
+
+  // 获取用户的所有自建歌单
+  const fetchUserPlaylistsIfNeeded = async () => {
+    if (userStore.isLoggedIn && !isLoaded.value) {
+      await fetchUserPlaylists();
+    }
+  };
 
   // 获取单个歌单详情
   async function fetchPlaylistById(playlistId: string) {
@@ -52,7 +64,7 @@ export const useCustomPlaylistStore = defineStore('customPlaylist', () => {
   }
 
   // 创建新歌单
-  async function createPlaylist(playlistData: CreatePlaylistParams) {
+  async function createPlaylist(playlistData: CreateCustomParams) {
     loading.value = true;
     error.value = null;
     
@@ -70,7 +82,7 @@ export const useCustomPlaylistStore = defineStore('customPlaylist', () => {
   }
 
   // 更新歌单信息
-  async function updatePlaylist(playlistId: string, updateData: UpdatePlaylistParams) {
+  async function updatePlaylist(playlistId: string, updateData: UpdateCustomParams) {
     loading.value = true;
     error.value = null;
     
@@ -154,12 +166,12 @@ export const useCustomPlaylistStore = defineStore('customPlaylist', () => {
   }
 
   // 从歌单移除媒体
-  async function removeMediaFromPlaylist(playlistId: string, bvid: string) {
+  async function removeMediaFromPlaylist(playlistId: string, avid: number, cid: number) {
     loading.value = true;
     error.value = null;
     
     try {
-      const data = await playlistApi.removeMediaFromPlaylist(playlistId, bvid);
+      const data = await playlistApi.removeMediaFromPlaylist(playlistId, avid, cid);
       
       // 更新本地缓存
       const index = customPlaylists.value.findIndex(p => p._id === playlistId);
@@ -183,9 +195,18 @@ export const useCustomPlaylistStore = defineStore('customPlaylist', () => {
   }
 
   // 设置当前歌单
-  function setCurrentPlaylist(playlist: CustomPlaylist | null) {
+  function setCurrentPlaylist(playlist: Custom | null) {
     currentPlaylist.value = playlist;
   }
+
+  // 重置状态
+  const reset = () => {
+    customPlaylists.value = [];
+    currentPlaylist.value = null;
+    loading.value = false;
+    error.value = null;
+    isLoaded.value = false;
+  };
 
   return {
     // 状态
@@ -199,6 +220,7 @@ export const useCustomPlaylistStore = defineStore('customPlaylist', () => {
     
     // 方法
     fetchUserPlaylists,
+    fetchUserPlaylistsIfNeeded,
     fetchPlaylistById,
     createPlaylist,
     updatePlaylist,
@@ -206,5 +228,6 @@ export const useCustomPlaylistStore = defineStore('customPlaylist', () => {
     addMediaToPlaylist,
     removeMediaFromPlaylist,
     setCurrentPlaylist,
+    reset
   };
 });

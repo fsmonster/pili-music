@@ -3,10 +3,10 @@
  */
 import ProgressBar from './ProgressBar.vue';
 import VolumeBar from './VolumeBar.vue';
-import Player from './Player.vue';
+import PlayerControler from './PlayerControler.vue';
 
 export {
   ProgressBar,
   VolumeBar,
-  Player
+  PlayerControler
 };

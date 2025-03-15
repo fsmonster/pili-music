@@ -17,7 +17,10 @@ const UserSchema = new Schema<IUser>({
   avatar: { 
     type: String 
   }, // 头像URL
-  
+  isLogin: { 
+    type: Boolean, 
+    default: false 
+  }, // 登录状态
   // 认证信息
   accessToken: {
     type: String
