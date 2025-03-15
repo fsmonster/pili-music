@@ -8,6 +8,3 @@ export * from './favorite';
 export * from './season';
 export * from './video';
 export * from './audio';
-export * from './custom';
-export * from './like';
-export * from './recent';

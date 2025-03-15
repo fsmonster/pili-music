@@ -6,12 +6,12 @@ const router = express.Router();
 /**
  * 用户认证请求接口扩展
  */
-interface AuthRequest extends Request {
-  user?: {
-    mid: string;
-    sessdata: string;
-  };
-}
+// interface AuthRequest extends Request {
+//   user?: {
+//     mid: string;
+//     sessdata: string;
+//   };
+// }
 
 /**
  * @desc 音频流代理接口

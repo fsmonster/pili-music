@@ -5,6 +5,6 @@
 
 // 导出所有控制器
 export * as userController from './userController.js';
-export * as likeController from './likeController.js';
-export * as recentPlayController from './recentPlayController.js';
-export * as customController from './customController.js';
+export * as favoriteController from './favoriteController.js';
+export * as seasonController from './seasonController.js';
+

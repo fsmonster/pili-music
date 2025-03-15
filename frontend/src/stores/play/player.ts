@@ -4,13 +4,10 @@ import type { MediaItem } from '../../types';
 import { getCid, getAudioUrl } from '../../api';
 import { processResourceUrl } from '../../utils';
 import { useQueueStore } from './queue';
-import { useRecentPlayStore } from '../list'; // 导入最近播放 store
 
 export const usePlayerStore = defineStore('player', () => {
   // 获取播放列表存储
   const queueStore = useQueueStore();
-  // 获取最近播放记录存储
-  const recentPlayStore = useRecentPlayStore();
   
   // 音频实例
   const audio = new Audio();
@@ -60,14 +57,6 @@ export const usePlayerStore = defineStore('player', () => {
     if (item) {
       queueStore.setCurrentTrack(item);
       audioLoaded.value = false; // 新的播放项需要重新加载
-      
-      // 添加到最近播放记录
-      try {
-        await recentPlayStore.addRecentPlay(item);
-      } catch (error) {
-        console.error('添加最近播放记录失败:', error);
-        // 不影响正常播放流程，所以不抛出异常
-      }
     }
 
     const currentItem = queueStore.currentItem;

@@ -7,7 +7,7 @@ import { IUser } from '../types/models.js';
 const UserSchema = new Schema<IUser>({
   // 用户基本信息
   mid: { 
-    type: String, 
+    type: Number, 
     required: true 
   }, // B站用户ID
   username: { 

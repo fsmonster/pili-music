@@ -22,16 +22,6 @@ const router = createRouter({
       name: 'playlist',
       component: () => import('../views/Songlist.vue')
     },
-    {
-      path: '/recent',
-      name: 'recent',
-      component: () => import('../views/RecentPlays.vue')
-    },
-    {
-      path: '/like',
-      name: 'like',
-      component: () => import('../views/LikedMusic.vue')
-    }
   ]
 });
 

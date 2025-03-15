@@ -2,8 +2,6 @@
   <Layout>
     <template #main>
       <div class="home-content">
-        <!-- <RecentlyPlayed /> -->
-        <MyMusic />
         <Favorites />
         <Seasons />
       </div>
@@ -15,7 +13,6 @@
 import Layout from '../layout/Layout.vue';
 import Favorites from '../components/songLists/Favorites.vue';
 import Seasons from '../components/songLists/Seasons.vue';
-import MyMusic from '../components/songLists/MyMusic.vue';
 </script>
 
 <style lang="scss" scoped>

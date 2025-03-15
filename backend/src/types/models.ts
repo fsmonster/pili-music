@@ -40,54 +40,6 @@ export interface IUpper {
 }
 
 /**
- * 最近播放记录模型接口
- */
-export interface IRecentPlay extends Document {
-  mid: number;
-  bvid: string;
-  avid?: number;
-  cid?: number;
-  title: string;
-  cover?: string;
-  duration?: number;
-  playedAt: Date;
-  upper?: IUpper;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
- * 喜欢的音乐模型接口
- */
-export interface ILike extends Document {
-  mid: number;
-  bvid: string;
-  avid?: number;
-  cid?: number;
-  title: string;
-  cover?: string;
-  duration?: number;
-  upper?: IUpper;
-  likedAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
- * 自建歌单列表模型
- */
-export interface ICustomPlaylist extends Document {
-  mid: number;
-  title: string;
-  intro?: string;
-  cover?: string;
-  isPublic: boolean;
-  items: IPlaylistItem[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
  * 自建歌单列表项目接口
  */
 export interface IPlaylistItem {

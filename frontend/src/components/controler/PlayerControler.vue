@@ -26,7 +26,7 @@
           @click="playStore.toggle"
         ></i>
         <i class="ri-skip-forward-fill" @click="playStore.next"></i>
-        <i :class="{ 'ri-heart-line': !isLiked, 'ri-heart-fill': isLiked }" @click="toggleLike"></i>
+        <i class="ri-heart-line"></i>
       </div>
       <div class="progress-bar">
         <span class="time">{{ formatTime(playStore.currentTime) }}</span>
@@ -58,7 +58,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import defaultCover from '@/assets/image/music_cover.jpg';
-import { usePlayerStore, useQueueStore, useLikeStore } from '../../stores';
+import { usePlayerStore, useQueueStore } from '../../stores';
 import { processResourceUrl } from '../../utils/processResoureUrl';
 // 导入自定义组件
 import { ProgressBar, VolumeBar } from './index';
@@ -67,8 +67,6 @@ import { ProgressBar, VolumeBar } from './index';
 const playStore = usePlayerStore();
 // 播放列表 store
 const queueStore = useQueueStore();
-// 点赞 store
-const likeStore = useLikeStore();
 
 // 音量控制值
 const volumeValue = ref(playStore.volume * 100);
@@ -77,18 +75,6 @@ const currentProgress = ref(0);
 
 // 当前播放项
 const currentTrack = computed(() => queueStore.currentItem);
-const currentAvid = computed(() => currentTrack.value?.id || 0);
-const currentBvid = computed(() => currentTrack.value?.bvid || '');
-const currentCid = computed(() => currentTrack.value?.cid || 0);
-const isLiked = computed(() => likeStore.checkIsLiked(currentAvid.value, currentCid.value));
-
-// const toggleLike = async () => {
-//   if (isLiked.value) {
-//     likeStore.removeLike(currentAvid.value, currentCid.value);
-//   } else {
-//     likeStore.addLike(currentAvid.value, currentBvid.value, currentCid.value);
-//   }
-// };
 
 // 监听播放时间变化，更新进度条
 watch(() => playStore.currentTime, (newTime) => {
