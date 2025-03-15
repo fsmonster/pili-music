@@ -1,45 +1,58 @@
 /**
  * 合集相关API
  */
-import request from '../utils/request';
-import type { ApiResponse, SeasonListResponse, SeasonContentResponse, Season, MediaItem } from '../types';
+import request from "../utils/request";
+import type { 
+  ApiResponse,
+  MediaItem,
+  SeasonListParams,
+  SeasonListResponse,
+  SeasonList,
+  SeasonContentParams,
+  SeasonContentResponse
+} from "../types";
 
 /**
  * 获取订阅合集列表
  */
-export async function getSeasonList(params: {
-    up_mid: number;  // 用户UID
-    pn?: number;  // 页码
-    ps?: number;  // 每页项数
-  }):Promise<Season[]> {
-    try {
-      const res = await request.get<ApiResponse<SeasonListResponse>>('/season/collected/list', {
-        params
-      });
-      return res.data.data.list;
-    } catch (error) {
-      console.error('获取订阅合集列表失败:', error);
-      throw error;
-    }
+export async function getSeasonList(
+  params: SeasonListParams
+): Promise<SeasonList[]> {
+  try {
+    const res = await request.get<ApiResponse<SeasonListResponse>>(
+      "/season/collected/list",
+      {
+        params,
+      }
+    );
+    return res.data.data.list;
+  } catch (error) {
+    console.error("获取订阅合集列表失败:", error);
+    throw error;
   }
-  
-  /**
-   * @desc 获取当前订阅 - 内容明细列表
-   * @param season_id 订阅合集ID
-   * @returns 返回合集中的所有媒体项
-   */
-  export async function getSeasonDetail(season_id: number): Promise<MediaItem[]> {
-    try {
-      // 注意：虽然我们传递了pn和ps参数，但B站API会返回所有内容
-      // 前端将负责处理分页逻辑
-      const res = await request.get<ApiResponse<SeasonContentResponse>>('/season/season/list', {
-        params: { 
-          season_id
-       }
-    })
+}
+
+
+/**
+ * @desc 获取当前订阅 - 内容明细列表
+ * @param params 合集ID
+ * @returns 返回合集中的所有媒体项
+ */
+export async function getSeasonDetail(
+  params: SeasonContentParams
+): Promise<MediaItem[]> {
+  try {
+    // 注意：虽然我们传递了pn和ps参数，但B站API会返回所有内容
+    // 前端将负责处理分页逻辑
+    const res = await request.get<ApiResponse<SeasonContentResponse>>(
+      "/season/season/list",
+      {
+        params,
+      }
+    );
     return res.data.data.medias;
   } catch (error) {
-    console.error('获取订阅合集内容失败:', error);
+    console.error("获取订阅合集内容失败:", error);
     throw error;
   }
 }
@@ -51,10 +64,10 @@ export async function getSeasonList(params: {
  */
 export async function getDisplaySeasons(): Promise<number[]> {
   try {
-    const res = await request.get<ApiResponse<number[]>>('/season/display');
+    const res = await request.get<ApiResponse<number[]>>("/season/display");
     return res.data.data;
   } catch (error) {
-    console.error('获取显示合集失败:', error);
+    console.error("获取显示合集失败:", error);
     throw error;
   }
 }
@@ -65,12 +78,16 @@ export async function getDisplaySeasons(): Promise<number[]> {
  * @returns 更新后的合集ID列表
  * @access  Private - 需要登录
  */
-export async function updateDisplaySeasons(displayIds: number[]): Promise<number[]> { 
+export async function updateDisplaySeasons(
+  displayIds: number[]
+): Promise<number[]> {
   try {
-    const res = await request.put<ApiResponse<number[]>>('/season/display', { displayIds });
+    const res = await request.put<ApiResponse<number[]>>("/season/display", {
+      displayIds,
+    });
     return res.data.data;
   } catch (error) {
-    console.error('更新显示合集失败:', error);
+    console.error("更新显示合集失败:", error);
     throw error;
   }
 }

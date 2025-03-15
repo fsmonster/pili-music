@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import * as seasonApi from '../../api/season';
-import type { Season, MediaItem } from '../../types';
+import type { SeasonList, MediaItem } from '../../types';
 import { useUserStore } from '../user/user';
 import { createBaseListStore } from './baseList';
 
@@ -18,9 +18,9 @@ export const useSeasonStore = defineStore('season', () => {
     const baseList = createBaseListStore();
     
     // 合集特有状态
-    const allSeasons = ref<Season[]>([]);
+    const allSeasons = ref<SeasonList[]>([]);
     const displaySeasonIds = ref<number[]>([]);
-    const currentSeason = ref<Season | null>(null);
+    const currentSeason = ref<SeasonList | null>(null);
     const currentSeasonId = ref<number | null>(null);
     const isLoaded = ref(false);
     
@@ -53,7 +53,8 @@ export const useSeasonStore = defineStore('season', () => {
             allSeasons.value = await seasonApi.getSeasonList({
                 up_mid: mid.value!,
                 pn: 1,
-                ps: 40
+                ps: 40,
+                platform: 'web',
             });
         } catch (error) {
             baseList.error.value = '获取订阅合集列表失败';
@@ -80,7 +81,9 @@ export const useSeasonStore = defineStore('season', () => {
 
         try {
             // 获取所有数据
-            const items = await seasonApi.getSeasonDetail(season_id);
+            const items: MediaItem[] = await seasonApi.getSeasonDetail({
+                season_id,
+            });
             
             // 存储完整数据
             allMediaItems.value = items;
