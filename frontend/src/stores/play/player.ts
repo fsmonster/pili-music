@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { MediaItem } from '../../types';
+import type { MediaItem, CidInfo } from '../../types';
 import { getCid, getAudioUrl } from '../../api';
 import { processResourceUrl } from '../../utils';
 import { useQueueStore, useMultiPageQueueStore } from './index';
@@ -41,7 +41,21 @@ export const usePlayerStore = defineStore('player', () => {
 
     // 播放结束
     audio.addEventListener('ended', () => {
-      next();
+      // 如果是多P视频，尝试播放下一P
+      if (multiPageQueueStore.isMultiPage) {
+        if (multiPageQueueStore.nextPage()) {
+          // 重置加载状态
+          audioLoaded.value = false;
+          // 播放下一P
+          play();
+        } else {
+          // 如果已经是最后一P，则播放下一个媒体项
+          next();
+        }
+      } else {
+        // 单P视频或音频，直接播放下一个
+        next();
+      }
     });
 
     // 错误处理
@@ -54,13 +68,12 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 播放指定项
   async function play(item?: MediaItem) {
-    // 先重置
-    multiPageQueueStore.isMultiPage = false;
-
     // 如果提供了新的播放项，则更新当前播放项
     if (item) {
       queueStore.setCurrentTrack(item);
       audioLoaded.value = false; // 新的播放项需要重新加载
+      // 重置多P状态
+      multiPageQueueStore.reset();
     }
 
     const currentItem = queueStore.currentItem;
@@ -73,11 +86,50 @@ export const usePlayerStore = defineStore('player', () => {
         queueStore.setLoading(true);
         
         try {
-          // 判断是否为多P, 合集没有多P视频
+          let cid: number;
+          
+          // 判断是否为多P视频（page > 1 表示有多个分P）
           const isMultiPage = typeof currentItem.page === "number" && currentItem.page > 1;
-          const cid = isMultiPage
-            ? await getCid(currentItem.id, 1) // 需要用户选择 P 数
-            : currentItem.ugc?.first_cid || await getCid(currentItem.id, 1);
+          
+          if (isMultiPage) {
+            // 如果是多P视频且还没有加载页面列表
+            if (!multiPageQueueStore.isMultiPage || multiPageQueueStore.currentAid !== currentItem.id) {
+              // 获取分P列表
+              const pageListResponse = await getCid({
+                aid: currentItem.id,
+              }, true); // 传入true表示获取完整的分P列表
+              
+              // 确保 pageListResponse 是 CidInfo[] 类型
+              if (Array.isArray(pageListResponse)) {
+                // 设置多P播放队列
+                multiPageQueueStore.setPageList(currentItem.id, pageListResponse);
+              } else {
+                throw new Error('获取分P列表失败');
+              }
+            }
+            
+            // 使用当前选中页的cid
+            const currentPageCid = multiPageQueueStore.currentCid;
+            if (!currentPageCid) {
+              throw new Error('无法获取视频cid');
+            }
+            cid = currentPageCid;
+          } else {
+            // 单P视频或音频
+            // 优先使用 ugc?.first_cid（如果存在）
+            const cidResponse = await getCid({
+              aid: currentItem.id,
+            });
+            
+            // 确保 cidResponse 是 number 类型
+            if (typeof cidResponse === 'number') {
+              cid = currentItem.ugc?.first_cid || cidResponse;
+            } else {
+              // 如果返回的是数组，取第一个元素的 cid
+              cid = currentItem.ugc?.first_cid || (Array.isArray(cidResponse) ? cidResponse[0].cid : 0);
+            }
+          }
+          
           // 获取播放地址
           const url = await getAudioUrl({
             avid: currentItem.id,
@@ -132,6 +184,15 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 上一曲
   function prev() {
+    // 如果是多P视频，先尝试切换到上一P
+    if (multiPageQueueStore.isMultiPage && currentTime.value < 3) { // 如果播放时间小于3秒，切换到上一P
+      if (multiPageQueueStore.prevPage()) {
+        audioLoaded.value = false; // 重置加载状态
+        play();
+        return;
+      }
+    }
+    
     const prevIdx = queueStore.prevIndex();
     if (prevIdx === -1) return;
     
@@ -154,7 +215,7 @@ export const usePlayerStore = defineStore('player', () => {
         if (!playing.value) {
           loading.value = false;
           return;
-    }
+        }
     
         // 如果是播放状态，确保继续播放
         try {
@@ -188,6 +249,15 @@ export const usePlayerStore = defineStore('player', () => {
   function setVolume() {
     audio.volume = volume.value;
   }
+  
+  // 切换到指定分P
+  async function switchToPage(pageNumber: number) {
+    if (!multiPageQueueStore.isMultiPage) return;
+    
+    multiPageQueueStore.setSelectedPage(pageNumber);
+    audioLoaded.value = false; // 重置加载状态
+    await play(); // 重新加载并播放
+  }
 
   // 初始化事件监听
   initAudioEvents();
@@ -201,7 +271,12 @@ export const usePlayerStore = defineStore('player', () => {
     volume,
     audioLoaded,
     
-    // 播放列表状态 (从playlistStore获取)
+    // 多P相关
+    isMultiPage: computed(() => multiPageQueueStore.isMultiPage),
+    currentPage: computed(() => multiPageQueueStore.selectedPage),
+    pageList: computed(() => multiPageQueueStore.pageList),
+    
+    // 播放列表状态 (从queueStore获取)
     currentItem: computed(() => queueStore.currentItem),
     queue: computed(() => queueStore.queue),
     currentIndex: computed(() => queueStore.currentIndex),
@@ -214,6 +289,7 @@ export const usePlayerStore = defineStore('player', () => {
     prev,
     seek,
     setVolume,
+    switchToPage,
     
     // 播放列表方法
     setQueue: queueStore.setQueue,

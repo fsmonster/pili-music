@@ -18,9 +18,14 @@ const router = createRouter({
       component: () => import('../views/Login.vue')
     },
     {
-      path: '/playlist/:type/:id',
-      name: 'playlist',
-      component: () => import('../views/Songlist.vue')
+      path: '/favorite/:id',
+      name: 'favorite',
+      component: () => import('../views/Favorite.vue')
+    },
+    {
+      path: '/season/:id',
+      name: 'season',
+      component: () => import('../views/Season.vue')
     },
   ]
 });

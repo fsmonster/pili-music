@@ -21,7 +21,8 @@
             />
 
             <!-- 表格 -->
-            <MediaTable
+            <MediaTable2
+              type="season"
               :data="store.items"
               :loading="store.loading"
               @play="handlePlay"
@@ -52,61 +53,30 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
 import { ref, computed, onBeforeMount, onMounted, onUnmounted, nextTick } from 'vue';
-import { useFavoriteStore, useSeasonStore, usePlayerStore, useQueueStore } from '../stores';
+import { useSeasonStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
-import MediaTable from '../components/songList/MediaTable.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
 import type { MediaItem } from '../types';
+import MediaTable2 from '@/components/songList/MediaTable.vue';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
+const store = useSeasonStore();
 
-const { type, id } = route.params;
-
-// 判断 store 类型
-function isFavoriteStore(type: string | string[], _store: any): _store is ReturnType<typeof useFavoriteStore> {
-  if (type == 'favorite') {
-    return true;
-  }
-  return false;
-}
-
-function isSeasonStore(type: string | string[], _store: any): _store is ReturnType<typeof useSeasonStore> {
-  if (type == 'season') {
-    return true;
-  }
-  return false;
-}
+const { id } = route.params;
 
 // 滚动容器引用
 const scrollRef = ref<HTMLElement | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 
 /**
- * @desc 根据路由类型获取当前store
- */
-const store = computed(() => {
-  if (type == 'favorite') {
-    return useFavoriteStore();
-  } else if (type == 'season') {
-    return useSeasonStore();
-  }
-  return useFavoriteStore();
-});
-
-/**
  * @desc 获取当前内容信息
  */
 const currentInfo = computed(() => {
-  if (isFavoriteStore(type, store.value)) {
-    return store.value.currentFavorite;
-  } else if (isSeasonStore(type, store.value)) {
-    return store.value.currentSeason;
-  }
-  return null;
+  return store.currentSeason;
 });
 
 /**
@@ -114,23 +84,15 @@ const currentInfo = computed(() => {
  */
 async function loadContent() {  
   if (!id) return;
-  if (isFavoriteStore(type, store.value))
-      await store.value.fetchFavoriteContent(Number(id));
-  if (isSeasonStore(type, store.value))
-      await store.value.fetchSeasonContent(Number(id));
+  await store.fetchSeasonContent(Number(id));
 }
 
 /**
  * @desc 移除内容
  */
 function removeContent() {
-  store.value.items = [];
-  if (isFavoriteStore(type, store.value)) {
-    store.value.currentFavorite = null;
-  } else if (isSeasonStore(type, store.value)) {
-    store.value.currentSeason = null;
-  }
-  console.log(store.value.items);  
+  store.items = [];
+  store.currentSeason = null;
 }
 
 // 添加一个标志位，防止连续触发加载
@@ -140,7 +102,7 @@ const isLoadingMore = ref(false);
  * @desc 加载更多内容
  */
 async function loadMoreContent() {
-  if (!store.value.hasMore || store.value.loading || isLoadingMore.value) return;
+  if (!store.hasMore || store.loading || isLoadingMore.value) return;
   
   // 设置标志位，防止连续触发
   isLoadingMore.value = true;
@@ -148,11 +110,8 @@ async function loadMoreContent() {
   // 记录当前滚动位置
   const scrollPosition = scrollRef.value?.scrollTop || 0;
   
-  if (isFavoriteStore(type, store.value)) {
-      await store.value.loadMoreFavoriteContent();
-
-  } else if (isSeasonStore(type, store.value)) {
-      await store.value.loadMoreSeasonContent?.();
+  if (store.loadMoreSeasonContent) {
+    await store.loadMoreSeasonContent();
   }
   
   // 使用 nextTick 确保 DOM 更新后再恢复滚动位置
@@ -164,11 +123,9 @@ async function loadMoreContent() {
         scrollRef.value.scrollTop = scrollPosition;
       }
       
-      // 延迟重置标志位，防止快速连续触发
-      // setTimeout(() => {
-        isLoadingMore.value = false;
-      // }, 200);
-    },50);
+      // 重置标志位
+      isLoadingMore.value = false;
+    }, 50);
   });
 }
 
@@ -190,9 +147,9 @@ function handleScroll() {
  * @desc 播放全部
  */
 function handlePlayAll() {
-  if (store.value.items.length > 0) {
-    queueStore.setQueue(store.value.items);
-    playerStore.play(store.value.items[0]);
+  if (store.items.length > 0) {
+    queueStore.setQueue(store.items);
+    playerStore.play(store.items[0]);
   }
 }
 
@@ -200,24 +157,14 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  queueStore.setQueue(store.value.items);
+  queueStore.setQueue(store.items);
   playerStore.play(item);
 }
-
-/**
- * @desc 搜索处理
- */
-// function handleSearch(value: string) {
-//   store.value.searchKeyword = value;
-//   // 重新加载数据
-//   loadContent();
-// }
 
 /**
  * @desc 排序处理
  */
 function handleSort(value: 'desc' | 'asc') {
-  // store.value.sortOrder = value;
   console.log(value);  
   // 重新加载数据
   loadContent();

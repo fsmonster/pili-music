@@ -27,7 +27,7 @@
           v-for="item in seasonStore.seasons" 
           :key="item.id" 
           class="music-item"
-          @click="goToPlaylist('season', item.id)"
+          @click="goToPlaylist(item.id)"
         >
           <div class="cover">
             <el-skeleton v-if="seasonStore.loading || !item.cover" :rows="1" animated>
@@ -105,8 +105,8 @@ const showManageDialog = ref(false);
 const checkedSeasons = ref<number[]>([]);
 
 // 跳转到播放列表
-const goToPlaylist = (type: 'favorite' | 'season', id: number) => {
-  router.push(`/playlist/${type}/${id}`);
+const goToPlaylist = (id: number) => {
+  router.push(`/season/${id}`);
 };
 
 // 打开管理对话框时，初始化选中状态

@@ -2,23 +2,30 @@
  * 播放列表相关API
  */
 import request from '../utils/request';
-import type { ApiResponse, CidInfo, DashAudioResponse } from '../types';
+import type { ApiResponse, AudioParams, CidInfo, DashAudioResponse } from '../types';
 import { AudioQuality } from '../types';
 
 /**
  * @desc 获取视频cid
- * @param aid 视频avid
- * @param page 视频P数
- * @returns 视频cid
+ * @param params 视频参数，包含aid或bvid
+ * @param fullList 是否返回完整分P列表，默认false只返回第一P的cid
+ * @returns 如果fullList为true，返回完整的分P列表；否则返回第一P的cid
  */
-export async function getCid(aid: number, page?: number): Promise<number> {
+export async function getCid(params: AudioParams, fullList: boolean = false): Promise<number | CidInfo[]> {
   try {
     const res = await request.get<ApiResponse<CidInfo[]>>('/audioInfo/player/pagelist', {
-      params: { aid, page }
+      params
     });
     if(res.data.code !== 0) {
       throw new Error(res.data.message || '获取视频信息失败');
     }
+    
+    // 如果请求完整列表，返回所有分P信息
+    if (fullList) {
+      return res.data.data;
+    }
+    
+    // 否则只返回第一P的cid
     return res.data.data[0].cid;
   } catch (error) {
     console.error('获取视频信息失败:', error);

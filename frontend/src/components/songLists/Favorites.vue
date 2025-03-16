@@ -28,7 +28,7 @@
           v-for="item in favoriteStore.favorites" 
           :key="item.id" 
           class="music-item"
-          @click="goToPlaylist('favorite', item.id)"
+          @click="goToPlaylist(item.id)"
         >
           <div class="cover">
             <el-skeleton v-if="favoriteStore.loading || !item.cover" :rows="1" animated />
@@ -104,8 +104,8 @@ const showManageDialog = ref(false);
 const checkedFavorites = ref<number[]>([]);
 
 // 跳转到播放列表
-const goToPlaylist = (type: 'favorite' | 'playlist', id: number) => {
-  router.push(`/playlist/${type}/${id}`);
+const goToPlaylist = (id: number) => {
+  router.push(`/favorite/${id}`);
 };
 
 // 打开管理对话框时，初始化选中状态

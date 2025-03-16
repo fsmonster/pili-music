@@ -9,3 +9,4 @@ export * from './list/season'
 // 播放
 export * from './play/player'
 export * from './play/queue'
+export * from './play/multiPageQueue'

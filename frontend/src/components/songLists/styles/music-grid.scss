@@ -19,6 +19,7 @@
   .cover {
     position: relative;
     width: 100%;
+    box-sizing: border-box;
     // padding-bottom: 56.25%; 
     aspect-ratio: 16 / 9;  /* 或 aspect-ratio: 1.7777 */
     padding: 10px;
