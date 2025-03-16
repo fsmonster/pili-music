@@ -1,10 +1,6 @@
 <template>
-  <ContentSection 
-    title="订阅合集" 
-    :show-manage="true" 
-    :isEmpty="!seasonStore.seasons.length && !seasonStore.loading"
-    @manage="showManageDialog = true"
-  >
+  <ContentSection title="订阅合集" :show-manage="true" :isEmpty="!seasonStore.seasons.length && !seasonStore.loading"
+    @manage="showManageDialog = true">
     <template #icon>
       <i class="ri-stack-line"></i>
     </template>
@@ -16,19 +12,13 @@
       </span>
     </template>
 
-    <!-- 自定义操作按钮 -->
-    <template #customActions>
-
-    </template>
-
     <template #content>
       <div class="music-grid">
         <div 
-          v-for="item in seasonStore.seasons" 
-          :key="item.id" 
-          class="music-item"
-          @click="goToPlaylist(item.id)"
-        >
+        v-for="item in seasonStore.seasons" 
+        :key="item.id" 
+        class="music-item" 
+        @click="goToPlaylist(item.id)">
           <div class="cover">
             <el-skeleton v-if="seasonStore.loading || !item.cover" :rows="1" animated>
             </el-skeleton>
@@ -45,46 +35,35 @@
     <!-- 空状态提示 -->
     <template #empty>
       <div class="empty-tip">
-        <p>点击右上角的<i class="ri-settings-3-line"></i>添加订阅合集</p>
-      </div>
-    </template>
-
-    <!-- 底部内容 -->
-    <template #footer v-if="seasonStore.seasons.length > 9">
-      <div class="view-more">
-        <el-button link type="primary" @click="showManageDialog = true">
-          查看更多订阅合集
-          <i class="ri-arrow-right-line"></i>
-        </el-button>
+        <p>点击右上角的<i class="ri-list-settings-line"></i>添加订阅合集</p>
       </div>
     </template>
   </ContentSection>
 
-      <!-- 管理对话框 -->
-      <el-dialog 
-      v-model="showManageDialog" 
-      title="管理订阅合集" 
-      width="500px"
-      :close-on-click-modal="false"
-      @open="onDialogOpen"
-    >
-      <div class="seasons-manage">
-        <el-checkbox-group v-model="checkedSeasons">
-          <el-checkbox 
-            v-for="item in seasonStore.allSeasons" 
-            :key="item.id" 
-            :value="item.id"
-          >
-            {{ item.title }}
-            <span class="count">({{ item.media_count }}个内容)</span>
-          </el-checkbox>
-        </el-checkbox-group>
-      </div>
-      <template #footer>
-        <el-button @click="cancelManage">取消</el-button>
-        <el-button type="primary" @click="saveSubscriptionsSettings">确定</el-button>
-      </template>
-    </el-dialog>
+  <!-- 管理对话框 -->
+  <el-dialog 
+    v-model="showManageDialog" 
+    title="管理订阅合集" 
+    width="500px" 
+    :close-on-click-modal="false" 
+    @open="onDialogOpen"
+  >
+    <div class="seasons-manage">
+      <el-checkbox-group v-model="checkedSeasons">
+        <el-checkbox 
+          v-for="item in seasonStore.allSeasons" 
+          :key="item.id" 
+          :value="item.id">
+          <div class="title">{{ item.title }}</div>
+          <div class="count">({{ item.media_count }}个内容)</div>
+        </el-checkbox>
+      </el-checkbox-group>
+    </div>
+    <div class="dialog-footer">
+      <el-button @click="cancelManage">取消</el-button>
+      <el-button type="primary" @click="saveSubscriptionsSettings">确定</el-button>
+    </div>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -111,7 +90,7 @@ const goToPlaylist = (id: number) => {
 
 // 打开管理对话框时，初始化选中状态
 const initManageDialog = () => {
-  checkedSeasons.value = [...seasonStore.displaySeasonIds] 
+  checkedSeasons.value = [...seasonStore.displaySeasonIds]
 };
 
 // 取消管理
@@ -167,15 +146,31 @@ defineExpose({
   padding: 0 20px;
 
   :deep(.el-checkbox) {
-    display: block;
+    display: flex;
+    align-items: center;
     margin-bottom: 12px;
-    
-    .count {
-      color: var(--el-text-color-secondary);
-      font-size: 12px;
-      margin-left: 4px;
+
+    .el-checkbox__label {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      .title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .count {
+        color: var(--el-text-color-secondary);
+        font-size: 12px;
+        margin-left: 4px;
+      }
     }
   }
+}
+
+.dialog-footer {
+  text-align: right;
+  margin-top: 16px;
 }
 
 .count-badge {
