@@ -150,9 +150,112 @@ export interface Ugc {
 /**
  * UP主信息
  */
+export type Upper = MediaUpper;
+
 export interface MediaUpper {
+  /**
+   * 创建者头像 URL
+   */
   face: string;
+  /**
+   * 是否已关注创建者
+   */
+  followed?: boolean;
+  /**
+   * 创建者mid
+   */
   mid: number;
+  /**
+   * 创建者昵称
+   */
+  name: string;
+  vip_statue?: number;
+  /**
+   * 会员类别（0：无，1：月大会员，2：年度及以上大会员）
+   */
+  vip_type?: number;
+  [property: string]: any;
+}
+
+/**
+ * 收藏夹基本信息
+ */
+export interface Info {
+  /**
+   * 收藏夹统计信息
+   */
+  cnt_info: InfoCntInfo;
+  /**
+   * 收藏夹封面图片 URL
+   */
+  cover: string;
+  /**
+   * 是否启用虚拟化（未知用途）
+   */
+  enable_vt: number;
+  /**
+   * 收藏夹 ID
+   */
+  id: number;
+  /**
+   * 收藏夹简介
+   */
+  intro: string;
+  /**
+   * 收藏夹内资源数量
+   */
+  media_count: number;
+  /**
+   * 收藏夹类型（例如视频、番剧等）
+   */
+  season_type: number;
+  /**
+   * 收藏夹名称
+   */
+  title: string;
+  /**
+   * 收藏夹创建者信息
+   */
+  upper: InfoUpper;
+  [property: string]: any;
+}
+
+/**
+ * 收藏夹统计信息
+ */
+export interface InfoCntInfo {
+  /**
+   * 收藏量
+   */
+  collect: number;
+  /**
+   * 弹幕量
+   */
+  danmaku: number;
+  /**
+   * 播放量
+   */
+  play: number;
+  /**
+   * 未知字段，可能是虚拟观看数
+   */
+  vt: number;
+  [property: string]: any;
+}
+
+/**
+ * 收藏夹创建者信息
+ */
+export interface InfoUpper {
+  /**
+   * 创建者 UID
+   */
+  mid: number;
+  /**
+   * 创建者昵称
+   */
   name: string;
   [property: string]: any;
 }
+
+

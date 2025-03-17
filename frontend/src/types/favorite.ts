@@ -1,4 +1,4 @@
-import type { MediaItem } from './common';
+import type { MediaItem, Info, Upper } from './common';
 
 /**
  * 收藏夹 - 列表参数
@@ -179,34 +179,6 @@ export interface CntInfo {
   [property: string]: any;
 }
 
-/**
- * 创建者信息
- */
-export interface Upper {
-  /**
-   * 创建者头像 URL
-   */
-  face: string;
-  /**
-   * 是否已关注创建者
-   */
-  followed: boolean;
-  /**
-   * 创建者mid
-   */
-  mid: number;
-  /**
-   * 创建者昵称
-   */
-  name: string;
-  vip_statue: number;
-  /**
-   * 会员类别（0：无，1：月大会员，2：年度及以上大会员）
-   */
-  vip_type: number;
-  [property: string]: any;
-}
-
 export interface FavoriteContentListParams {
   /**
    * 搜索关键字
@@ -265,130 +237,130 @@ export interface FavoriteContentResponse {
   [property: string]: any;
 }
 
-/**
- * 收藏夹元数据
- */
-export interface Info {
-  /**
-   * 属性
-   */
-  attr: number;
-  /**
-   * 收藏夹状态数
-   */
-  cnt_info: InfoCntInfo;
-  /**
-   * 收藏夹封面图片url
-   */
-  cover: string;
-  /**
-   * 封面图类别（？）
-   */
-  cover_type: number;
-  /**
-   * 创建时间
-   */
-  ctime: number;
-  /**
-   * 收藏夹收藏状态，已收藏收藏夹：1
-   * 未收藏收藏夹：0
-   * 需要登录
-   */
-  fav_state: number;
-  /**
-   * 收藏夹原始id
-   */
-  fid: number;
-  /**
-   * 收藏夹mlid（完整id），收藏夹原始id+创建者mid尾号2位
-   */
-  id: number;
-  /**
-   * 收藏夹简介
-   */
-  intro: string;
-  is_top: boolean;
-  /**
-   * 点赞状态，已点赞：1
-   * 未点赞：0
-   * 需要登录
-   */
-  like_state: number;
-  /**
-   * 收藏夹内容数量
-   */
-  media_count: number;
-  /**
-   * 创建者mid
-   */
-  mid: number;
-  /**
-   * 收藏时间
-   */
-  mtime: number;
-  state: number;
-  /**
-   * 收藏夹标题
-   */
-  title: string;
-  type: number;
-  /**
-   * 创建者信息
-   */
-  upper: InfoUpper;
-  [property: string]: any;
-}
+// /**
+//  * 收藏夹元数据
+//  */
+// export interface Info {
+//   /**
+//    * 属性
+//    */
+//   attr: number;
+//   /**
+//    * 收藏夹状态数
+//    */
+//   cnt_info: InfoCntInfo;
+//   /**
+//    * 收藏夹封面图片url
+//    */
+//   cover: string;
+//   /**
+//    * 封面图类别（？）
+//    */
+//   cover_type: number;
+//   /**
+//    * 创建时间
+//    */
+//   ctime: number;
+//   /**
+//    * 收藏夹收藏状态，已收藏收藏夹：1
+//    * 未收藏收藏夹：0
+//    * 需要登录
+//    */
+//   fav_state: number;
+//   /**
+//    * 收藏夹原始id
+//    */
+//   fid: number;
+//   /**
+//    * 收藏夹mlid（完整id），收藏夹原始id+创建者mid尾号2位
+//    */
+//   id: number;
+//   /**
+//    * 收藏夹简介
+//    */
+//   intro: string;
+//   is_top: boolean;
+//   /**
+//    * 点赞状态，已点赞：1
+//    * 未点赞：0
+//    * 需要登录
+//    */
+//   like_state: number;
+//   /**
+//    * 收藏夹内容数量
+//    */
+//   media_count: number;
+//   /**
+//    * 创建者mid
+//    */
+//   mid: number;
+//   /**
+//    * 收藏时间
+//    */
+//   mtime: number;
+//   state: number;
+//   /**
+//    * 收藏夹标题
+//    */
+//   title: string;
+//   type: number;
+//   /**
+//    * 创建者信息
+//    */
+//   upper: InfoUpper;
+//   [property: string]: any;
+// }
 
-/**
- * 收藏夹状态数
- */
-export interface InfoCntInfo {
-  /**
-   * 收藏数
-   */
-  collect: number;
-  /**
-   * 播放数
-   */
-  play: number;
-  /**
-   * 分享数
-   */
-  share: number;
-  /**
-   * 点赞数
-   */
-  thumb_up: number;
-  [property: string]: any;
-}
+// /**
+//  * 收藏夹状态数
+//  */
+// export interface InfoCntInfo {
+//   /**
+//    * 收藏数
+//    */
+//   collect: number;
+//   /**
+//    * 播放数
+//    */
+//   play: number;
+//   /**
+//    * 分享数
+//    */
+//   share: number;
+//   /**
+//    * 点赞数
+//    */
+//   thumb_up: number;
+//   [property: string]: any;
+// }
 
-/**
- * 创建者信息
- */
-export interface InfoUpper {
-  /**
-   * 创建者头像url
-   */
-  face: string;
-  /**
-   * 是否已关注创建者
-   */
-  followed: boolean;
-  /**
-   * 创建者mid
-   */
-  mid: number;
-  /**
-   * 创建者昵称
-   */
-  name: string;
-  /**
-   * 会员开通状态
-   */
-  vip_statue: number;
-  /**
-   * 会员类别
-   */
-  vip_type: number;
-  [property: string]: any;
-}
+// /**
+//  * 创建者信息
+//  */
+// export interface InfoUpper {
+//   /**
+//    * 创建者头像url
+//    */
+//   face: string;
+//   /**
+//    * 是否已关注创建者
+//    */
+//   followed: boolean;
+//   /**
+//    * 创建者mid
+//    */
+//   mid: number;
+//   /**
+//    * 创建者昵称
+//    */
+//   name: string;
+//   /**
+//    * 会员开通状态
+//    */
+//   vip_statue: number;
+//   /**
+//    * 会员类别
+//    */
+//   vip_type: number;
+//   [property: string]: any;
+// }
