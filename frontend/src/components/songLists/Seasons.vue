@@ -31,13 +31,6 @@
         </div>
       </div>
     </template>
-
-    <!-- 空状态提示 -->
-    <template #empty>
-      <div class="empty-tip">
-        <p>点击右上角的<i class="ri-list-settings-line"></i>添加订阅合集</p>
-      </div>
-    </template>
   </ContentSection>
 
   <!-- 管理对话框 -->

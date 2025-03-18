@@ -4,7 +4,7 @@ import { useUserStore } from '../user/user';
 import { createBaseListStore } from './baseList';
 import * as sectionApi from '../../api/section';
 import * as favoriteApi from '../../api/favorite';
-import type { Section } from '../../api/section';
+import type { Section, SectionContent } from '../../api/section';
 import type { MediaItem } from '../../types';
 
 /**
@@ -36,6 +36,9 @@ export const useSectionStore = defineStore('section', () => {
   const currentSectionId = ref<string | null>(null);
   const isLoaded = ref(false);
   
+  // 存储分区内容
+  const sectionContents = ref<Record<string, SectionContent>>({});
+  
   /**
    * @desc 获取用户所有 📦 自定义分区
    */
@@ -49,12 +52,24 @@ export const useSectionStore = defineStore('section', () => {
       // 获取分区列表
       const sectionList = await sectionApi.getUserSections();
       
-      // 转换为内部格式
+      // 转换为内部格式并初始化 media_count 为 0
+      // 实际的 media_count 需要在获取分区内容后更新
       sections.value = sectionList.map(section => ({
         ...section,
         title: section.name,
-        media_count: section.mediaIds.length
+        media_count: 0
       }));
+      
+      // 获取每个分区的内容以更新 media_count
+      for (const section of sections.value) {
+        try {
+          const content = await sectionApi.getSectionContent(section._id);
+          sectionContents.value[section._id] = content;
+          section.media_count = content.mediaIds.length;
+        } catch (error) {
+          console.error(`获取分区 ${section._id} 内容失败:`, error);
+        }
+      }
       
       isLoaded.value = true;
     } catch (error) {
@@ -78,16 +93,22 @@ export const useSectionStore = defineStore('section', () => {
     currentSectionId.value = sectionId;
     
     try {
-      // 获取分区详情
+      // 获取分区基本信息
       const section = await sectionApi.getSectionById(sectionId);
+      
+      // 获取分区内容
+      const content = await sectionApi.getSectionContent(sectionId);
+      sectionContents.value[sectionId] = content;
+      
+      // 更新当前分区信息
       currentSection.value = {
         ...section,
         title: section.name,
-        media_count: section.mediaIds.length
+        media_count: content.mediaIds.length
       };
       
       // 如果分区没有 📂 收藏夹，直接返回
-      if (section.mediaIds.length === 0) {
+      if (content.mediaIds.length === 0) {
         baseList.loading.value = false;
         return;
       }
@@ -96,7 +117,7 @@ export const useSectionStore = defineStore('section', () => {
       const folderItems: MediaItem[] = [];
       
       // 对每个收藏夹ID单独获取信息
-      for (const mediaId of section.mediaIds) {
+      for (const mediaId of content.mediaIds) {
         try {
           // 使用 📂 收藏夹 API 获取 📂 收藏夹 信息
           const folderInfo = await favoriteApi.getFavoriteInfo({
@@ -162,7 +183,24 @@ export const useSectionStore = defineStore('section', () => {
       
       // 如果缓存中没有，则从服务器获取
       const section = await sectionApi.getSectionById(sectionId);
-      return section;
+      
+      // 获取分区内容以更新 media_count
+      try {
+        const content = await sectionApi.getSectionContent(sectionId);
+        sectionContents.value[sectionId] = content;
+        return {
+          ...section,
+          title: section.name,
+          media_count: content.mediaIds.length
+        };
+      } catch (error) {
+        console.error(`获取分区 ${sectionId} 内容失败:`, error);
+        return {
+          ...section,
+          title: section.name,
+          media_count: 0
+        };
+      }
     } catch (error) {
       console.error('获取分区详情失败:', error);
       throw error;
@@ -214,31 +252,32 @@ export const useSectionStore = defineStore('section', () => {
     
     try {
       // 构建更新参数
-      const updateParams: sectionApi.SectionParams = {};
+      const updateParams: { name?: string; description?: string } = {};
       if (name !== undefined) updateParams.name = name;
       if (description !== undefined) updateParams.description = description;
       
       // 更新分区
       const updatedSection = await sectionApi.updateSection(sectionId, updateParams);
       
-      // 更新本地分区列表
+      // 更新本地缓存
       const index = sections.value.findIndex(s => s._id === sectionId);
       if (index !== -1) {
+        // 保留原有的 media_count
+        const mediaCount = sections.value[index].media_count || 0;
+        
         sections.value[index] = {
           ...updatedSection,
           title: updatedSection.name,
-          media_count: updatedSection.mediaIds.length,
-          cover: sections.value[index].cover // 保留原有封面
+          media_count: mediaCount
         };
       }
       
-      // 如果是当前选中的分区，也更新当前分区
-      if (currentSectionId.value === sectionId) {
+      // 如果更新的是当前分区，也更新 currentSection
+      if (currentSectionId.value === sectionId && currentSection.value) {
         currentSection.value = {
           ...updatedSection,
           title: updatedSection.name,
-          media_count: updatedSection.mediaIds.length,
-          cover: currentSection.value?.cover // 保留原有封面
+          media_count: currentSection.value.media_count || 0
         };
       }
       
@@ -266,14 +305,19 @@ export const useSectionStore = defineStore('section', () => {
       // 删除分区
       await sectionApi.deleteSection(sectionId);
       
-      // 从分区列表中移除
+      // 从本地缓存中移除
       sections.value = sections.value.filter(s => s._id !== sectionId);
       
-      // 如果是当前选中的分区，清空当前分区
+      // 如果删除的是当前分区，重置当前分区
       if (currentSectionId.value === sectionId) {
-        currentSection.value = null;
         currentSectionId.value = null;
+        currentSection.value = null;
         baseList.items.value = [];
+      }
+      
+      // 从分区内容缓存中移除
+      if (sectionContents.value[sectionId]) {
+        delete sectionContents.value[sectionId];
       }
       
       return true;
@@ -292,34 +336,30 @@ export const useSectionStore = defineStore('section', () => {
    * @param folderIds 📂 收藏夹 ID 列表
    */
   const addMediaToSection = async (sectionId: string, folderIds: number[]) => {
-    if (!isLoggedIn.value) return;
+    if (!isLoggedIn.value || !folderIds.length) return;
     
     baseList.loading.value = true;
     baseList.error.value = '';
     
     try {
       // 添加收藏夹到分区
-      const updatedSection = await sectionApi.addMediaToSection(sectionId, folderIds);
+      const updatedContent = await sectionApi.addMediaToSection(sectionId, folderIds);
       
-      // 更新本地分区列表
+      // 更新本地缓存
+      sectionContents.value[sectionId] = updatedContent;
+      
+      // 更新分区的 media_count
       const index = sections.value.findIndex(s => s._id === sectionId);
       if (index !== -1) {
-        sections.value[index].mediaIds = updatedSection.mediaIds;
-        sections.value[index].media_count = updatedSection.mediaIds.length;
+        sections.value[index].media_count = updatedContent.mediaIds.length;
       }
       
-      // 如果是当前选中的分区，也更新当前分区
+      // 如果添加到当前分区，刷新分区内容
       if (currentSectionId.value === sectionId) {
-        if (currentSection.value) {
-          currentSection.value.mediaIds = updatedSection.mediaIds;
-          currentSection.value.media_count = updatedSection.mediaIds.length;
-        }
-        
-        // 重新获取分区内容
         await fetchSectionContent(sectionId);
       }
       
-      return updatedSection;
+      return updatedContent;
     } catch (error) {
       baseList.error.value = error instanceof Error ? error.message : '添加收藏夹失败';
       console.error('添加收藏夹失败:', error);
@@ -335,36 +375,35 @@ export const useSectionStore = defineStore('section', () => {
    * @param folderIds 📂 收藏夹 ID 列表
    */
   const removeMediaFromSection = async (sectionId: string, folderIds: number[]) => {
-    if (!isLoggedIn.value) return;
+    if (!isLoggedIn.value || !folderIds.length) return;
     
     baseList.loading.value = true;
     baseList.error.value = '';
     
     try {
       // 从分区移除收藏夹
-      const updatedSection = await sectionApi.removeMediaFromSection(sectionId, folderIds);
+      const updatedContent = await sectionApi.removeMediaFromSection(sectionId, folderIds);
       
-      // 更新本地分区列表
+      // 更新本地缓存
+      sectionContents.value[sectionId] = updatedContent;
+      
+      // 更新分区的 media_count
       const index = sections.value.findIndex(s => s._id === sectionId);
       if (index !== -1) {
-        sections.value[index].mediaIds = updatedSection.mediaIds;
-        sections.value[index].media_count = updatedSection.mediaIds.length;
+        sections.value[index].media_count = updatedContent.mediaIds.length;
       }
       
-      // 如果是当前选中的分区，也更新当前分区
-      if (currentSectionId.value === sectionId) {
-        if (currentSection.value) {
-          currentSection.value.mediaIds = updatedSection.mediaIds;
-          currentSection.value.media_count = updatedSection.mediaIds.length;
-        }
+      // 如果从当前分区移除，更新当前分区的 media_count
+      if (currentSectionId.value === sectionId && currentSection.value) {
+        currentSection.value.media_count = updatedContent.mediaIds.length;
         
         // 从当前列表中移除
         baseList.items.value = baseList.items.value.filter(
-          item => !folderIds.includes(item.id)
+          item => !folderIds.includes(Number(item.id))
         );
       }
       
-      return updatedSection;
+      return updatedContent;
     } catch (error) {
       baseList.error.value = error instanceof Error ? error.message : '移除收藏夹失败';
       console.error('移除收藏夹失败:', error);
@@ -385,31 +424,28 @@ export const useSectionStore = defineStore('section', () => {
     baseList.error.value = '';
     
     try {
-      // 清空分区内的收藏夹
-      const updatedSection = await sectionApi.clearSectionMedia(sectionId);
+      // 清空分区内的所有收藏夹
+      const updatedContent = await sectionApi.clearSectionMedia(sectionId);
       
-      // 更新本地分区列表
+      // 更新本地缓存
+      sectionContents.value[sectionId] = updatedContent;
+      
+      // 更新分区的 media_count
       const index = sections.value.findIndex(s => s._id === sectionId);
       if (index !== -1) {
-        sections.value[index].mediaIds = [];
         sections.value[index].media_count = 0;
       }
       
-      // 如果是当前选中的分区，也更新当前分区
-      if (currentSectionId.value === sectionId) {
-        if (currentSection.value) {
-          currentSection.value.mediaIds = [];
-          currentSection.value.media_count = 0;
-        }
-        
-        // 清空当前列表
+      // 如果清空当前分区，更新当前分区的 media_count 并清空列表
+      if (currentSectionId.value === sectionId && currentSection.value) {
+        currentSection.value.media_count = 0;
         baseList.items.value = [];
       }
       
-      return updatedSection;
+      return updatedContent;
     } catch (error) {
-      baseList.error.value = error instanceof Error ? error.message : '清空收藏夹失败';
-      console.error('清空收藏夹失败:', error);
+      baseList.error.value = error instanceof Error ? error.message : '清空分区失败';
+      console.error('清空分区失败:', error);
       throw error;
     } finally {
       baseList.loading.value = false;
@@ -433,6 +469,7 @@ export const useSectionStore = defineStore('section', () => {
     currentSection.value = null;
     currentSectionId.value = null;
     isLoaded.value = false;
+    sectionContents.value = {};
     baseList.reset();
   };
   
@@ -444,20 +481,19 @@ export const useSectionStore = defineStore('section', () => {
     currentSection,
     currentSectionId,
     isLoaded,
+    sectionContents,
     
     // 方法
     fetchSections,
     fetchSectionContent,
-    fetchSectionsIfNeeded,
+    getSectionById,
     createSection,
     updateSection,
     deleteSection,
     addMediaToSection,
     removeMediaFromSection,
     clearSectionMedia,
-    getSectionById,
+    fetchSectionsIfNeeded,
     reset
   };
-},{
-  persist: true
 });

@@ -20,7 +20,7 @@ import seasonRoutes from './routes/season.js'; // 合集路由
 import infoRoutes from './routes/audioInfo.js'; // 音频信息路由
 import playRoutes from './routes/play.js'; // 音频代理路由
 import userRoutes from './routes/user.js'; // 用户路由
-import customRoutes from './routes/custom.js'; // 自定义路由
+import sectionRoutes from './routes/section.js'; // 自定义路由
 
 const app = express();
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
@@ -52,7 +52,7 @@ app.use('/api/season', seasonRoutes); // 注册合集路由
 app.use('/api/audioInfo', infoRoutes); // 注册音频信息路由
 app.use('/api/play', playRoutes); // 注册音频代理路由
 app.use('/api/user', userRoutes); // 注册用户路由
-app.use('/api/custom', customRoutes); // 注册自定义路由
+app.use('/api/section', sectionRoutes); // 注册自定义路由
 
 // B站API代理
 const biliProxyOptions: Options = {

@@ -1,7 +1,7 @@
 <template>
   <!-- 循环渲染自定义分区 -->
   <div v-if="sections.length > 0">
-    <Custom 
+    <SectionContents 
       v-for="section in sections" 
       :key="section._id" 
       :sectionId="section._id" 
@@ -16,7 +16,7 @@
 import { onMounted } from 'vue';
 import { useSectionStore } from '@/stores/list/section';
 import { storeToRefs } from 'pinia';
-import Custom from './SectionContents.vue';
+import SectionContents from './SectionContents.vue';
 
 // 获取自定义分区数据
 const sectionStore = useSectionStore();

@@ -39,13 +39,6 @@
         </div>
       </div>
     </template>
-
-    <!-- 空状态提示 -->
-    <template #empty>
-      <div class="empty-tip">
-        <p>点击右上角的<i class="ri-list-settings-line"></i>添加收藏夹</p>
-      </div>
-    </template>
   </ContentSection>
 
   <!-- 管理对话框 -->
@@ -157,18 +150,6 @@ watch(() => userStore.isLoggedIn, favoriteStore.fetchFavoritesIfNeeded);
 .dialog-footer {
   text-align: right;
   margin-top: 16px;
-}
-
-.empty-tip {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
-  color: var(--el-text-color-secondary);
-
-  i {
-    margin: 0 4px;
-  }
 }
 
 .count-badge {

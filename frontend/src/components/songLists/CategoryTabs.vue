@@ -39,69 +39,62 @@
         <i class="ri-album-line"></i> 合集
       </div>
       
-      <!-- 添加自定义按钮 -->
-      <div class="action-button add-button" @click="handleAddCustom">
-        <i class="ri-folder-add-line"></i> 添加
-      </div>
-      
-      <!-- 管理自定义按钮 -->
-      <div class="action-button manage-button" @click="handleManageCustom">
-        <i class="ri-settings-line"></i> 管理
+      <!-- 设置按钮 -->
+      <div class="action-button settings-button" @click="handleSettings">
+        <i class="ri-settings-line"></i> 设置
       </div>
     </div>
     
-    <!-- 添加自定义分区对话框 -->
+    <!-- 分区设置对话框 -->
     <el-dialog
-      v-model="showAddDialog"
-      title="添加自定义分区"
-      width="30%"
-      :close-on-click-modal="false"
-    >
-      <el-form :model="newSection" label-width="80px">
-        <el-form-item label="名称">
-          <el-input v-model="newSection.name" placeholder="请输入分区名称"></el-input>
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input 
-            v-model="newSection.description" 
-            type="textarea" 
-            placeholder="请输入分区描述"
-          ></el-input>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="showAddDialog = false">取消</el-button>
-          <el-button type="primary" @click="createSection" :loading="creating">
-            创建
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
-    
-    <!-- 管理自定义分区对话框 -->
-    <el-dialog
-      v-model="showManageDialog"
-      title="管理自定义分区"
+      v-model="showSettingsDialog"
+      title="分区设置"
       width="50%"
       :close-on-click-modal="false"
     >
-      <el-table :data="sections" style="width: 100%">
-        <el-table-column prop="name" label="名称" width="180"></el-table-column>
-        <el-table-column prop="description" label="描述"></el-table-column>
-        <el-table-column label="操作" width="150">
-          <template #default="scope">
-            <el-button 
-              type="danger" 
-              size="small" 
-              @click="confirmDeleteSection(scope.row)"
-              :disabled="deleting"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <!-- 对话框标签页 -->
+      <el-tabs v-model="activeSettingsTab">
+        <!-- 添加分区标签页 -->
+        <el-tab-pane label="添加分区" name="add">
+          <el-form :model="newSection" label-width="80px">
+            <el-form-item label="名称">
+              <el-input v-model="newSection.name" placeholder="请输入分区名称"></el-input>
+            </el-form-item>
+            <el-form-item label="描述">
+              <el-input 
+                v-model="newSection.description" 
+                type="textarea" 
+                placeholder="请输入分区描述"
+              ></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="createSection" :loading="creating">
+                创建
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        
+        <!-- 管理分区标签页 -->
+        <el-tab-pane label="管理分区" name="manage">
+          <el-table :data="sections" style="width: 100%">
+            <el-table-column prop="name" label="名称" width="180"></el-table-column>
+            <el-table-column prop="description" label="描述"></el-table-column>
+            <el-table-column label="操作" width="150">
+              <template #default="scope">
+                <el-button 
+                  type="danger" 
+                  size="small" 
+                  @click="confirmDeleteSection(scope.row)"
+                  :disabled="deleting"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-tab-pane>
+      </el-tabs>
     </el-dialog>
     
     <!-- 确认删除对话框 -->
@@ -142,11 +135,11 @@ const selectedCategories = ref<string[]>([]);
 const isAllSelected = computed(() => selectedCategories.value.length === 0);
 
 // 对话框状态
-const showAddDialog = ref(false);
-const showManageDialog = ref(false);
+const showSettingsDialog = ref(false);
 const showConfirmDialog = ref(false);
 const creating = ref(false);
 const deleting = ref(false);
+const activeSettingsTab = ref('add'); // 默认显示添加分区标签页
 
 // 新分区表单
 const newSection = ref({
@@ -178,19 +171,14 @@ function toggleCategory(category: string) {
   emitChange();
 }
 
-// 处理添加自定义分区
-function handleAddCustom() {
+// 处理设置按钮点击
+function handleSettings() {
   // 重置表单
   newSection.value = {
     name: '',
     description: ''
   };
-  showAddDialog.value = true;
-}
-
-// 处理管理自定义分区
-function handleManageCustom() {
-  showManageDialog.value = true;
+  showSettingsDialog.value = true;
 }
 
 // 创建新分区
@@ -200,14 +188,21 @@ async function createSection() {
     return;
   }
   
+  creating.value = true;
+  
   try {
-    creating.value = true;
     await sectionStore.createSection(
       newSection.value.name,
       newSection.value.description
     );
-    ElMessage.success('分区创建成功');
-    showAddDialog.value = false;
+    
+    ElMessage.success('创建分区成功');
+    
+    // 重置表单
+    newSection.value = {
+      name: '',
+      description: ''
+    };
   } catch (error) {
     console.error('创建分区失败:', error);
     ElMessage.error('创建分区失败');
@@ -226,18 +221,20 @@ function confirmDeleteSection(section: Section) {
 async function deleteSection() {
   if (!sectionToDelete.value) return;
   
+  deleting.value = true;
+  
   try {
-    deleting.value = true;
     await sectionStore.deleteSection(sectionToDelete.value._id);
-    ElMessage.success('分区删除成功');
-    showConfirmDialog.value = false;
     
-    // 如果删除的分区在当前选中的分类中，需要移除
+    // 如果删除的分区在选中列表中，移除它
     const index = selectedCategories.value.indexOf(sectionToDelete.value._id);
     if (index !== -1) {
       selectedCategories.value.splice(index, 1);
       emitChange();
     }
+    
+    ElMessage.success('删除分区成功');
+    showConfirmDialog.value = false;
   } catch (error) {
     console.error('删除分区失败:', error);
     ElMessage.error('删除分区失败');
@@ -253,91 +250,95 @@ const emit = defineEmits<{
 
 // 发送变更事件
 function emitChange() {
-  emit('change', [...selectedCategories.value]);
+  emit('change', selectedCategories.value);
 }
 
 // 监听分区变化，更新选中状态
 watch(sections, () => {
   // 移除不存在的分区ID
   selectedCategories.value = selectedCategories.value.filter(id => {
-    // 如果是系统分类（favorite, season）或存在于自定义分区中，则保留
-    return ['favorite', 'season'].includes(id) || 
-      sections.value.some((section: Section) => section._id === id);
+    // 如果是内置分类，保留
+    if (id === 'favorite' || id === 'season') return true;
+    
+    // 如果是自定义分区，检查是否存在
+    return sections.value.some(section => section._id === id);
   });
+  
+  // 发送变更事件
   emitChange();
 }, { deep: true });
 
-onMounted(() => {
-  // 获取自定义分区列表
-  sectionStore.fetchSectionsIfNeeded();
+// 初始化
+onMounted(async () => {
+  // 获取分区列表
+  if (sections.value.length === 0) {
+    await sectionStore.fetchSections();
+  }
 });
 </script>
 
 <style lang="scss" scoped>
 .category-tabs {
-  margin-bottom: 24px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.tabs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.tab-item {
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: var(--el-fill-color-light);
+  color: var(--el-text-color-regular);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   
-  .tabs-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    
-    .tab-item {
-      padding: 6px 16px;
-      border-radius: 16px;
-      font-size: 14px;
-      cursor: pointer;
-      background-color: var(--el-fill-color-light);
-      color: var(--el-text-color-regular);
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      
-      i {
-        font-size: 16px;
-      }
-      
-      &:hover {
-        background-color: var(--el-fill-color-darker);
-      }
-      
-      &.active {
-        background-color: var(--el-color-primary);
-        color: white;
-      }
-    }
-    
-    .action-button {
-      padding: 6px 16px;
-      border-radius: 16px;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: all 0.2s ease;
-      
-      i {
-        font-size: 16px;
-      }
-      
-      &:hover {
-        opacity: 0.8;
-      }
-    }
-    
-    .add-button {
-      background-color: var(--el-color-success);
-      color: white;
-      margin-left: auto;
-    }
-    
-    .manage-button {
-      background-color: var(--el-color-info);
-      color: white;
-    }
+  i {
+    font-size: 16px;
   }
+  
+  &:hover {
+    background-color: var(--el-fill-color-darker);
+  }
+
+  &.active {
+    background-color: var(--el-color-primary);
+    color: white;
+  }
+}
+
+.action-button {
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  margin-left: auto;
+  
+  i {
+    font-size: 16px;
+  }
+  
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.settings-button {
+  background-color: var(--el-color-info);
+  color: white;
 }
 
 .dialog-footer {

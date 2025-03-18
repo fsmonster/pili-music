@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useUserStore } from '../user/user';
 import * as favoriteApi from '../../api/favorite';
-import * as sectionApi from '../../api/sectionContents';
+import * as sectionApi from '../../api/section';
 import type { MediaItem } from '../../types';
 
 /**
@@ -58,11 +58,11 @@ export const useSectionContentsStore = defineStore('sectionContents', () => {
     currentSectionId.value = sectionId;
     
     try {
-      // 获取分区详情
-      const section = await sectionApi.getSectionById(sectionId);
+      // 获取分区内容
+      const sectionContent = await sectionApi.getSectionContent(sectionId);
       
       // 如果分区没有收藏夹，直接返回
-      if (section.mediaIds.length === 0) {
+      if (!sectionContent || sectionContent.mediaIds.length === 0) {
         sectionContents.value[sectionId].loading = false;
         return;
       }
@@ -71,7 +71,7 @@ export const useSectionContentsStore = defineStore('sectionContents', () => {
       const folderItems: MediaItem[] = [];
       
       // 对每个收藏夹ID单独获取信息
-      for (const mediaId of section.mediaIds) {
+      for (const mediaId of sectionContent.mediaIds) {
         try {
           // 使用收藏夹API获取收藏夹信息
           const folderInfo = await favoriteApi.getFavoriteInfo({

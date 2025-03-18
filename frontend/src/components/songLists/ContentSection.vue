@@ -30,7 +30,10 @@
       <div v-if="isEmpty" class="empty-hint">
         <!-- 空状态提示插槽 -->
         <slot name="empty">
-          暂无内容 <(＿　＿)>
+          <div class="empty-tip">
+            <p>暂无内容 (。_。)</p>
+            <p>试试右上角的<i class="ri-list-settings-line"></i>吧</p>
+          </div>
         </slot>
       </div>
     </div>
@@ -99,7 +102,18 @@ defineSlots<{
   .empty-hint {
     text-align: center;
     color: var(--el-text-color-secondary);
-    padding: 32px 0;
+    .empty-tip {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--el-text-color-secondary);
+      & > :first-child {
+        padding-right: 8px;
+      }
+      i {
+        margin: 0 4px;
+      }
+    }
   }
 }
 </style>
