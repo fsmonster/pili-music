@@ -3,16 +3,7 @@ import { ref, computed } from 'vue';
 import { useUserStore } from '../user/user';
 import * as favoriteApi from '../../api/favorite';
 import * as sectionApi from '../../api/section';
-import type { MediaItem } from '../../types';
-
-/**
- * 分区内容状态
- */
-export interface SectionContentState {
-  favorites: MediaItem[];  // 收藏夹列表
-  loading: boolean;        // 加载状态
-  error: string;           // 错误信息
-}
+import type { MediaItem, SectionContentState } from '../../types';
 
 /**
  * @desc 分区内容状态管理
@@ -168,4 +159,6 @@ export const useSectionContentsStore = defineStore('sectionContents', () => {
     extractFavoriteIdFromUrl,
     reset
   };
+},{
+  persist: true
 });

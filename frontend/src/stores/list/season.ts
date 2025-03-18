@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 import * as seasonApi from '../../api/season';
 import type { SeasonList, MediaItem } from '../../types';
 import { useUserStore } from '../user/user';
-import { createBaseListStore } from './baseList';
 
 /**
  * 订阅合集状态管理
@@ -14,8 +13,15 @@ export const useSeasonStore = defineStore('season', () => {
     const mid = computed(() => userStore.mid);
     const isLoggedIn = computed(() => userStore.isLoggedIn);
     
-    // 基础列表功能
-    const baseList = createBaseListStore();
+    // 基础状态
+    const items = ref<MediaItem[]>([]);
+    const loading = ref(false);
+    const error = ref('');
+    
+    // 懒加载状态
+    const pageSize = ref(20); // 每次加载的数量
+    const hasMore = ref(true); // 是否还有更多数据
+    const currentOffset = ref(0); // 当前加载的偏移量，合集特有
     
     // 合集特有状态
     const allSeasons = ref<SeasonList[]>([]);
@@ -31,6 +37,30 @@ export const useSeasonStore = defineStore('season', () => {
     const seasons = computed(() =>
         allSeasons.value.filter(s => displaySeasonIds.value.includes(s.id))
     );
+    
+    /**
+     * @desc 设置列表数据（初始加载或重置时使用）
+     * @param newItems 
+     */
+    function setItems(newItems: MediaItem[]) {
+      items.value = newItems;
+      currentOffset.value = newItems.length;
+      hasMore.value = true; // 重置懒加载状态
+    }
+    
+    /**
+     * @desc 添加更多列表数据（懒加载时使用）
+     * @param moreItems 
+     */
+    function appendItems(moreItems: MediaItem[]) {
+      items.value = [...items.value, ...moreItems];
+      currentOffset.value += moreItems.length;
+      
+      // 如果返回的数据少于请求的数量，说明没有更多数据了
+      if (moreItems.length < pageSize.value) {
+        hasMore.value = false;
+      }
+    }
 
     // 获取订阅合集显示设置
     const fetchDisplaySeasons = async () => {
@@ -45,8 +75,8 @@ export const useSeasonStore = defineStore('season', () => {
 
     // 获取订阅合集列表
     const fetchSeasons = async () => {
-        baseList.loading.value = true;
-        baseList.error.value = '';
+        loading.value = true;
+        error.value = '';
         isLoaded.value = false;
 
         try {
@@ -57,10 +87,9 @@ export const useSeasonStore = defineStore('season', () => {
                 platform: 'web',
             });
         } catch (error) {
-            baseList.error.value = '获取订阅合集列表失败';
             console.error(error);
         } finally {
-            baseList.loading.value = false;
+            loading.value = false;
             isLoaded.value = true;
         }
     };
@@ -75,8 +104,8 @@ export const useSeasonStore = defineStore('season', () => {
 
     // 获取订阅合集内容 - 一次性获取所有数据但只显示部分
     const fetchSeasonContent = async (season_id: number) => {
-        baseList.loading.value = true;
-        baseList.error.value = '';
+        loading.value = true;
+        error.value = '';
         currentSeasonId.value = season_id;
 
         try {
@@ -89,69 +118,82 @@ export const useSeasonStore = defineStore('season', () => {
             allMediaItems.value = items;
             
             // 只显示第一批数据
-            const firstBatch = items.slice(0, baseList.pageSize.value);
-            baseList.setItems(firstBatch);
+            const firstBatch = items.slice(0, pageSize.value);
+            setItems(firstBatch);
             
             // 设置是否有更多数据
-            baseList.hasMore.value = items.length > baseList.pageSize.value;
+            hasMore.value = items.length > pageSize.value;
             
             // 设置当前合集
             currentSeason.value = allSeasons.value.find(s => s.id === season_id) || null;
         } catch (error) {
-            baseList.error.value = '获取合集内容失败';
-            console.error(error);
+            console.error('获取合集内容失败:', error);
         } finally {
-            baseList.loading.value = false;
+            loading.value = false;
         }
     };
 
     // 加载更多内容 - 从缓存中加载，不需要请求 API
-    const loadMoreSeasonContent = () => {
-        if (!baseList.hasMore.value || baseList.loading.value || !currentSeasonId.value) return;
+    const loadMoreSeasonContent = async () => {
+        if (!hasMore.value || loading.value) return;
         
-        baseList.loading.value = true;
+        loading.value = true;
         
-        // 模拟异步加载，提供更好的用户体验
-        setTimeout(() => {
+        try {
+            // 从缓存中加载下一批数据
             const nextBatch = allMediaItems.value.slice(
-                baseList.currentOffset.value, 
-                baseList.currentOffset.value + baseList.pageSize.value
+                currentOffset.value,
+                currentOffset.value + pageSize.value
             );
             
-            // 追加数据
-            baseList.appendItems(nextBatch);
-            
-            // 检查是否还有更多数据
-            baseList.hasMore.value = baseList.currentOffset.value < allMediaItems.value.length;
-            baseList.loading.value = false;
-        }, 100);
+            // 添加到显示列表
+            appendItems(nextBatch);
+        } catch (error) {
+            console.error('加载更多内容失败:', error);
+        } finally {
+            loading.value = false;
+        }
     };
 
     // 重置状态
     const reset = () => {
-        isLoaded.value = false;
-        baseList.reset();
-        allSeasons.value = [];
-        displaySeasonIds.value = [];
+        items.value = [];
+        loading.value = false;
+        error.value = '';
+        currentOffset.value = 0;
+        hasMore.value = true;
+        allMediaItems.value = [];
         currentSeason.value = null;
         currentSeasonId.value = null;
-        allMediaItems.value = [];
     };
 
     return {
-        ...baseList, // 导出基础列表功能
-        // 合集特有状态和方法
+        // 状态
+        items,
+        loading,
+        error,
+        pageSize,
+        hasMore,
+        currentOffset,
+        
+        // 合集特有状态
         seasons,
         allSeasons,
         displaySeasonIds,
         currentSeason,
         currentSeasonId,
         isLoaded,
+        allMediaItems,
+        
+        // 方法
+        setItems,
+        appendItems,
         fetchDisplaySeasons,
         updateSeasonSettings,
+        fetchSeasons,
         fetchSeasonsIfNeeded,
         fetchSeasonContent,
-        loadMoreSeasonContent, // 新增：加载更多合集内容
+        loadMoreSeasonContent,
         reset
     };
 }, {

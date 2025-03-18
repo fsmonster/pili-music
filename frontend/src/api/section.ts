@@ -1,37 +1,6 @@
 import request from '../utils/request';
 import type { ApiResponse } from '../types';
-
-/**
- * 自定义分区接口参数
- */
-export interface SectionParams {
-  name?: string;
-  description?: string;
-}
-
-/**
- * 自定义分区基本信息
- */
-export interface Section {
-  _id: string;
-  mid: number;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * 分区内容信息
- */
-export interface SectionContent {
-  _id: string;
-  sectionId: string;
-  mid: number;
-  mediaIds: number[];
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Section, SectionContent, SectionParams } from '../types/section';
 
 /**
  * 获取用户所有自定义分区

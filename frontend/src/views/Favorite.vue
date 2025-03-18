@@ -14,33 +14,33 @@
           <div class="playlist-content">
             <!-- 控制栏 -->
             <ListControls
-              :disabled="!store.items.length"
+              :disabled="!favoriteStore.medias.length"
               @update:sort="handleSort"
               @play-all="handlePlayAll"
               @sort="handleSort"
             />
 
             <!-- 表格 -->
-            <MediaTable2
-              :data="store.items"
+            <MediaTable
+              :data="favoriteStore.medias"
               type="favorite"
-              :loading="store.loading"
+              :loading="favoriteStore.loading"
               @play="handlePlay"
             />
 
             <!-- 加载状态 -->
-            <div v-if="store.loading" class="loading-more">
+            <div v-if="favoriteStore.loading" class="loading-more">
               <el-icon class="is-loading"><Loading /></el-icon>
               <span>加载中...</span>
             </div>
 
             <!-- 无更多数据 -->
-            <div v-if="!store.hasMore && store.items.length > 0" class="no-more">
+            <div v-if="!favoriteStore.hasMore && favoriteStore.medias.length > 0" class="no-more">
               没有更多数据了
             </div>
 
             <!-- 无数据 -->
-            <div v-if="!store.loading && store.items.length === 0" class="empty-data">
+            <div v-if="!favoriteStore.loading && favoriteStore.medias.length === 0" class="empty-data">
               暂无数据
             </div>
           </div>
@@ -51,33 +51,32 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
 import { ref, computed, onBeforeMount, onMounted, onUnmounted, nextTick } from 'vue';
 import { useFavoriteStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
-// import MediaTable from '../components/songList/MediaTable.vue';
-import MediaTable2 from '@/components/songList/MediaTable.vue';
+import MediaTable from '../components/songList/MediaTable.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
+import { useRoute } from 'vue-router';
 import type { MediaItem } from '../types';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
-const store = useFavoriteStore();
+const favoriteStore = useFavoriteStore();
 
 const { id } = route.params;
 
-// 滚动容器引用
-const scrollRef = ref<HTMLElement | null>(null);
+// 容器和滚动区域引用
 const containerRef = ref<HTMLElement | null>(null);
+const scrollRef = ref<HTMLElement | null>(null);
 
 /**
  * @desc 获取当前内容信息
  */
 const currentInfo = computed(() => {
-  return store.currentFavorite;
+  return favoriteStore.currentFavorite;
 });
 
 /**
@@ -85,15 +84,14 @@ const currentInfo = computed(() => {
  */
 async function loadContent() {  
   if (!id) return;
-  await store.fetchFavoriteContent(Number(id));
+  await favoriteStore.fetchFavoriteContent(Number(id));
 }
 
 /**
  * @desc 移除内容
  */
 function removeContent() {
-  store.items = [];
-  store.currentFavorite = null;
+  favoriteStore.reset();
 }
 
 // 添加一个标志位，防止连续触发加载
@@ -103,7 +101,7 @@ const isLoadingMore = ref(false);
  * @desc 加载更多内容
  */
 async function loadMoreContent() {
-  if (!store.hasMore || store.loading || isLoadingMore.value) return;
+  if (!favoriteStore.hasMore || favoriteStore.loading || isLoadingMore.value) return;
   
   // 设置标志位，防止连续触发
   isLoadingMore.value = true;
@@ -111,20 +109,18 @@ async function loadMoreContent() {
   // 记录当前滚动位置
   const scrollPosition = scrollRef.value?.scrollTop || 0;
   
-  await store.loadMoreFavoriteContent();
+  await favoriteStore.loadMoreFavoriteContent();
   
   // 使用 nextTick 确保 DOM 更新后再恢复滚动位置
   nextTick(() => {
-    // 延迟一点时间，确保 DOM 完全渲染
+    if (scrollRef.value) {
+      scrollRef.value.scrollTop = scrollPosition;
+    }
+    
+    // 重置标志位
     setTimeout(() => {
-      // 恢复滚动位置
-      if (scrollRef.value) {
-        scrollRef.value.scrollTop = scrollPosition;
-      }
-      
-      // 重置标志位
       isLoadingMore.value = false;
-    }, 50);
+    }, 200);
   });
 }
 
@@ -132,11 +128,11 @@ async function loadMoreContent() {
  * @desc 处理滚动事件，实现触底加载
  */
 function handleScroll() {
-  if (!scrollRef.value || isLoadingMore.value) return;
+  if (!scrollRef.value) return;
   
   const { scrollTop, scrollHeight, clientHeight } = scrollRef.value;
   
-  // 当滚动到距离底部100px时触发加载更多
+  // 距离底部 100px 时加载更多
   if (scrollHeight - scrollTop - clientHeight < 100) {
     loadMoreContent();
   }
@@ -146,9 +142,9 @@ function handleScroll() {
  * @desc 播放全部
  */
 function handlePlayAll() {
-  if (store.items.length > 0) {
-    queueStore.setQueue(store.items);
-    playerStore.play(store.items[0]);
+  if (favoriteStore.medias.length > 0) {
+    queueStore.setQueue(favoriteStore.medias);
+    playerStore.play(favoriteStore.medias[0]);
   }
 }
 
@@ -156,7 +152,7 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  queueStore.setQueue(store.items);
+  queueStore.setQueue(favoriteStore.medias);
   playerStore.play(item);
 }
 
@@ -164,24 +160,28 @@ function handlePlay(item: MediaItem) {
  * @desc 排序处理
  */
 function handleSort(value: 'desc' | 'asc') {
-  console.log(value);  
-  // 重新加载数据
-  loadContent();
+  console.log('排序:', value);
+  // TODO: 实现排序功能
+  // 可能需要调用 API 重新获取数据
 }
 
 // 表格最大高度
 const tableMaxHeight = ref(500);
 
-// 计算表格高度
+/**
+ * 计算表格高度
+ */
 function calculateTableHeight() {
-  // 获取视窗高度
-  const windowHeight = window.innerHeight;
-  // 减去其他元素的高度（头部、控制栏、分页等）
-  // 预留 padding 和其他元素的空间
-  tableMaxHeight.value = windowHeight - 400; // 根据实际情况调整
+  if (containerRef.value) {
+    const windowHeight = window.innerHeight;
+    // 减去其他元素的高度，如头部、控制栏等
+    tableMaxHeight.value = windowHeight - 200;
+  }
 }
 
-// 监听窗口大小变化
+/**
+ * 监听窗口大小变化
+ */
 function handleResize() {
   calculateTableHeight();
 }
@@ -193,7 +193,6 @@ onBeforeMount(() => {
 
 onMounted(() => {
   loadContent();
-  console.log(route.params);
 });
 
 onUnmounted(() => {
@@ -202,60 +201,42 @@ onUnmounted(() => {
 });
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .playlist-container {
+  width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  .playlist-scroll {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    .playlist-content {
-      flex: 1;
-      overflow: visible;
-      position: relative;
-      /* 加载更多样式 */
-      .loading-more {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px 0;
-        color: var(--el-text-color-secondary);
-      }
+  position: relative;
+}
 
-      .loading-more .el-icon {
-        margin-right: 5px;
-      }
-      .no-more {
-        text-align: center;
-        padding: 20px 0;
-        color: var(--el-text-color-secondary);
-        font-size: 14px;
-      }
+.playlist-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px;
+}
 
-      .empty-data {
-        text-align: center;
-        padding: 40px 0;
-        color: var(--el-text-color-secondary);
-        font-size: 14px;
-      }
-    }
-  }
-  /* 滚动条样式 */
-  .playlist-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
+.playlist-content {
+  margin-top: 20px;
+}
 
-  .playlist-scroll::-webkit-scrollbar-thumb {
-    background: var(--el-border-color-darker);
-    border-radius: 3px;
-  }
+.loading-more,
+.no-more,
+.empty-data {
+  text-align: center;
+  padding: 20px 0;
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+}
 
-  .playlist-scroll::-webkit-scrollbar-track {
-    background: var(--el-border-color-light);
-    border-radius: 3px;
-  }
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.empty-data {
+  padding: 40px 0;
+  font-size: 16px;
 }
 </style>

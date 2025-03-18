@@ -7,9 +7,6 @@
       :sectionId="section._id" 
     />
   </div>
-  <div v-else class="empty-sections">
-    <p>暂无自定义分区</p>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -29,9 +26,5 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-.empty-sections {
-  text-align: center;
-  padding: 40px 0;
-  color: var(--el-text-color-secondary);
-}
+
 </style>

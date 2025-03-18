@@ -21,7 +21,7 @@
             />
 
             <!-- 表格 -->
-            <MediaTable2
+            <MediaTable
               type="season"
               :data="store.items"
               :loading="store.loading"
@@ -59,7 +59,7 @@ import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
 import type { MediaItem } from '../types';
-import MediaTable2 from '@/components/songList/MediaTable.vue';
+import MediaTable from '../components/songList/MediaTable.vue';
 
 const route = useRoute();
 const playerStore = usePlayerStore();

@@ -6,8 +6,7 @@ import type { ApiResponse,
   FavoriteListParams, FavoriteInfoParams, FavoriteContentListParams,
   FavoriteListResponse, FavoriteList,
   FavoriteInfoResponse,
-  FavoriteContentResponse,
-  MediaItem
+  FavoriteContentResponse,  
 } from '../types';
 
 /**
@@ -55,7 +54,7 @@ export async function getFavoriteInfo(params: FavoriteInfoParams): Promise<Favor
  * @param params 参数
  * @returns 媒体列表
  */
-export async function getFavoriteContent(params: FavoriteContentListParams): Promise<MediaItem[]> {
+export async function getFavoriteContent(params: FavoriteContentListParams): Promise<FavoriteContentResponse> {
   try {
     const res = await request.get<ApiResponse<FavoriteContentResponse>>('/favorite/resource/list', {
       params
@@ -63,7 +62,7 @@ export async function getFavoriteContent(params: FavoriteContentListParams): Pro
     if(res.data.code !== 0) {
       throw new Error(res.data.message || '获取收藏夹内容失败');
     }
-    return res.data.data.medias || [];
+    return res.data.data;
   } catch (error) {
     console.error('获取收藏夹内容失败:', error);
     throw error;

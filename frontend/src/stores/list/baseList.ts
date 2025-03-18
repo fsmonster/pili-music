@@ -13,7 +13,8 @@ export function createBaseListStore() {
   // 懒加载状态
   const pageSize = ref(20); // 每次加载的数量
   const hasMore = ref(true); // 是否还有更多数据
-  const currentOffset = ref(0); // 当前加载的偏移量
+  const page = ref(1); // 当前页码，收藏夹特有
+  const currentOffset = ref(0); // 当前加载的偏移量，合集特有
   
   // 计算属性：列表
   const paginatedItems = computed(() => {
@@ -60,6 +61,7 @@ export function createBaseListStore() {
     error,
     pageSize,
     hasMore,
+    page,
     currentOffset,
     paginatedItems,
     

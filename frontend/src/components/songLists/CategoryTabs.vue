@@ -39,6 +39,11 @@
         <i class="ri-album-line"></i> 合集
       </div>
       
+      <!-- 添加分区 -->
+      <div class="tab-item add-tab" @click="handleAddSection">
+        <i class="ri-add-line"></i> 添加
+      </div>
+      
       <!-- 设置按钮 -->
       <div class="action-button settings-button" @click="handleSettings">
         <i class="ri-settings-line"></i> 设置
@@ -52,49 +57,48 @@
       width="50%"
       :close-on-click-modal="false"
     >
-      <!-- 对话框标签页 -->
-      <el-tabs v-model="activeSettingsTab">
-        <!-- 添加分区标签页 -->
-        <el-tab-pane label="添加分区" name="add">
-          <el-form :model="newSection" label-width="80px">
-            <el-form-item label="名称">
-              <el-input v-model="newSection.name" placeholder="请输入分区名称"></el-input>
-            </el-form-item>
-            <el-form-item label="描述">
-              <el-input 
-                v-model="newSection.description" 
-                type="textarea" 
-                placeholder="请输入分区描述"
-              ></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="createSection" :loading="creating">
-                创建
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-        
-        <!-- 管理分区标签页 -->
-        <el-tab-pane label="管理分区" name="manage">
-          <el-table :data="sections" style="width: 100%">
-            <el-table-column prop="name" label="名称" width="180"></el-table-column>
-            <el-table-column prop="description" label="描述"></el-table-column>
-            <el-table-column label="操作" width="150">
-              <template #default="scope">
-                <el-button 
-                  type="danger" 
-                  size="small" 
-                  @click="confirmDeleteSection(scope.row)"
-                  :disabled="deleting"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-      </el-tabs>
+      <el-table :data="sections" style="width: 100%">
+        <el-table-column prop="name" label="名称" width="180"></el-table-column>
+        <el-table-column prop="description" label="描述"></el-table-column>
+        <el-table-column label="操作" width="150">
+          <template #default="scope">
+            <el-button 
+              type="danger" 
+              size="small" 
+              @click="confirmDeleteSection(scope.row)"
+              :disabled="deleting"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+    
+    <!-- 添加分区对话框 -->
+    <el-dialog
+      v-model="showAddDialog"
+      title="添加分区"
+      width="30%"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="newSection" label-width="80px">
+        <el-form-item label="名称">
+          <el-input v-model="newSection.name" placeholder="请输入分区名称"></el-input>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input 
+            v-model="newSection.description" 
+            type="textarea" 
+            placeholder="请输入分区描述"
+          ></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="createSection" :loading="creating">
+            创建
+          </el-button>
+        </el-form-item>
+      </el-form>
     </el-dialog>
     
     <!-- 确认删除对话框 -->
@@ -122,7 +126,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useSectionStore } from '@/stores/list/section';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
-import type { Section } from '@/api/section';
+import type { Section } from '@/types';
 
 // 获取自定义分区数据
 const sectionStore = useSectionStore();
@@ -135,11 +139,11 @@ const selectedCategories = ref<string[]>([]);
 const isAllSelected = computed(() => selectedCategories.value.length === 0);
 
 // 对话框状态
+const showAddDialog = ref(false);
 const showSettingsDialog = ref(false);
 const showConfirmDialog = ref(false);
 const creating = ref(false);
 const deleting = ref(false);
-const activeSettingsTab = ref('add'); // 默认显示添加分区标签页
 
 // 新分区表单
 const newSection = ref({
@@ -171,13 +175,18 @@ function toggleCategory(category: string) {
   emitChange();
 }
 
-// 处理设置按钮点击
-function handleSettings() {
+// 处理添加分区
+function handleAddSection() {
   // 重置表单
   newSection.value = {
     name: '',
     description: ''
   };
+  showAddDialog.value = true;
+}
+
+// 处理设置按钮点击
+function handleSettings() {
   showSettingsDialog.value = true;
 }
 
@@ -203,6 +212,9 @@ async function createSection() {
       name: '',
       description: ''
     };
+    
+    // 关闭对话框
+    showAddDialog.value = false;
   } catch (error) {
     console.error('创建分区失败:', error);
     ElMessage.error('创建分区失败');
@@ -313,6 +325,15 @@ onMounted(async () => {
   &.active {
     background-color: var(--el-color-primary);
     color: white;
+  }
+}
+
+.add-tab {
+  background-color: var(--el-color-success-light-9);
+  color: var(--el-color-success);
+  
+  &:hover {
+    background-color: var(--el-color-success-light-8);
   }
 }
 

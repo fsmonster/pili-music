@@ -15,7 +15,7 @@
     <!-- 中间：播放控制 -->
     <div class="player-controls">
       <div class="control-buttons">
-        <i class="ri-repeat-line" @click="playStore.toggle"></i>
+        <i class="ri-shuffle-line"></i>
         <i class="ri-skip-back-fill" @click="playStore.prev"></i>
         <i 
           class="play-btn"
@@ -26,7 +26,7 @@
           @click="playStore.toggle"
         ></i>
         <i class="ri-skip-forward-fill" @click="playStore.next"></i>
-        <i class="ri-heart-line"></i>
+        <i class="ri-repeat-one-line"></i>
       </div>
       <div class="progress-bar">
         <span class="time">{{ formatTime(playStore.currentTime) }}</span>
@@ -43,6 +43,7 @@
 
     <!-- 右侧：音量控制等 -->
     <div class="player-options">
+      <i class="ri-play-list-line"></i>
       <i :class="[playStore.volume === 0 ? 'ri-volume-mute-line' : 'ri-volume-up-line']" @click="toggleMute"></i>
       <!-- 使用自定义音量控制组件 -->
       <VolumeBar
@@ -50,7 +51,7 @@
         @change="handleVolumeChange"
         class="volume-slider"
       />
-      <i class="ri-playlist-line"></i>
+      <i class="ri-expand-diagonal-2-line"></i>
     </div>
   </div>
 </template>
@@ -151,7 +152,6 @@ function toggleMute() {
     display: flex;
     align-items: center;
     gap: 12px;
-    width: 300px;
 
     img {
       width: 56px;
@@ -187,30 +187,8 @@ function toggleMute() {
       display: flex;
       align-items: center;
       gap: 24px;
-      margin-top: 8px;
-      .ri-heart-line {
-        font-size: 24px;
-        line-height: 1;
-        color: var(--el-text-color-regular);
-        transition: all 0.3s;
-
-        &:hover {
-          color: var(--el-text-color-primary);
-        }
-      }
-      .ri-heart-fill {
-        font-size: 24px;
-        line-height: 1;
-        color: var(--el-color-primary);
-        transition: all 0.3s; 
-
-        &:hover {
-          color: var(--el-color-primary);
-        }
-      }
-
       i {
-        font-size: 24px;
+        font-size: 20px;
         cursor: pointer;
         color: var(--el-text-color-regular);
         transition: all 0.3s;

@@ -1,31 +1,45 @@
 /**
  * 自定义分区相关类型定义
  */
-import type { CustomSection } from '../api/sectionContents';
 import type { MediaItem } from './index';
 
 /**
- * 📦 自定义分区项目（包含 📂 收藏夹信息）
- * 📦 自定义分区 - 用户创建的分类，用于组织 📂 收藏夹
- * 📂 收藏夹 - B站的收藏夹，包含多个 🎵 媒体
- * 🎵 媒体 - 具体的视频/音频内容
+ * 自定义分区接口参数
  */
-export interface CustomSectionWithInfo extends CustomSection {
-  cover?: string;
-  title?: string;
-  media_count?: number;
+export interface SectionParams {
+  name?: string;
+  description?: string;
 }
 
 /**
- * 📦 自定义分区内容响应
+ * 自定义分区基本信息
  */
-export interface SectionContentResponse {
-  info: CustomSectionWithInfo;
-  items: MediaItem[];
+export interface Section {
+  _id: string;
+  mid: number;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**
- * 📂 收藏夹项目
- * 注意：实际使用时，直接使用 MediaItem 类型
+ * 分区内容信息
  */
-export type FavoriteItem = MediaItem;
+export interface SectionContent {
+  _id: string;
+  sectionId: string;
+  mid: number;
+  mediaIds: number[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * 分区内容状态
+ */
+export interface SectionContentState {
+  favorites: MediaItem[];  // 收藏夹列表
+  loading: boolean;        // 加载状态
+  error: string;           // 错误信息
+}

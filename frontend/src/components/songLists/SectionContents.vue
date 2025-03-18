@@ -123,6 +123,7 @@ import ContentSection from '../songLists/ContentSection.vue';
 import { useSectionContentsStore } from '../../stores/list/sectionContents';
 import { useSectionStore } from '../../stores/list/section';
 import { processResourceUrl } from '../../utils/processResoureUrl';
+import type { MediaItem, Section } from '../../types';
 
 // 接收分区ID参数
 const props = defineProps<{
@@ -137,8 +138,8 @@ const sectionStore = useSectionStore();
 const sectionContentsStore = useSectionContentsStore();
 
 // 状态
-const section = ref<any>(null);
-const favorites = ref<any[]>([]);
+const section = ref<Section | null>(null);
+const favorites = ref<MediaItem[]>([]);
 const loading = ref(false);
 const error = ref('');
 

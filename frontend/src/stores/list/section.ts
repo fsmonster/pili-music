@@ -4,7 +4,7 @@ import { useUserStore } from '../user/user';
 import { createBaseListStore } from './baseList';
 import * as sectionApi from '../../api/section';
 import * as favoriteApi from '../../api/favorite';
-import type { Section, SectionContent } from '../../api/section';
+import type { Section, SectionContent } from '../../types';
 import type { MediaItem } from '../../types';
 
 /**
@@ -496,4 +496,6 @@ export const useSectionStore = defineStore('section', () => {
     fetchSectionsIfNeeded,
     reset
   };
+},{
+  persist: true
 });
