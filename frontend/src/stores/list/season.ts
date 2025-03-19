@@ -94,6 +94,13 @@ export const useSeasonStore = defineStore('season', () => {
         }
     };
 
+    // 刷新订阅合集
+    const refreshSeasons = async () => {
+        await fetchDisplaySeasons();
+        await fetchSeasons();
+    };
+
+
     // 获取订阅合集相关内容（如果未加载）
     const fetchSeasonsIfNeeded = async () => {
         if (isLoggedIn.value && !isLoaded.value && mid.value) {
@@ -192,6 +199,7 @@ export const useSeasonStore = defineStore('season', () => {
         updateSeasonSettings,
         fetchSeasons,
         fetchSeasonsIfNeeded,
+        refreshSeasons,
         fetchSeasonContent,
         loadMoreSeasonContent,
         reset

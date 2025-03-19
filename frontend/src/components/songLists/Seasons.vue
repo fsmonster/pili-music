@@ -1,6 +1,11 @@
 <template>
-  <ContentSection title="订阅合集" :show-manage="true" :isEmpty="!seasonStore.seasons.length && !seasonStore.loading"
-    @manage="showManageDialog = true">
+  <ContentSection 
+    title="订阅合集" 
+    :show-manage="true" 
+    :show-refresh="true" 
+    :isEmpty="!seasonStore.seasons.length && !seasonStore.loading"
+    @manage="showManageDialog = true"
+    @refresh="seasonStore.fetchSeasonsIfNeeded()">
     <template #icon>
       <i class="ri-stack-line"></i>
     </template>

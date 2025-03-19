@@ -14,7 +14,7 @@
           <div class="playlist-content">
             <!-- 控制栏 -->
             <ListControls
-              :disabled="!favoriteStore.medias.length"
+              :disabled="!favoriteContentStore.medias.length"
               @update:sort="handleSort"
               @play-all="handlePlayAll"
               @sort="handleSort"
@@ -22,25 +22,25 @@
 
             <!-- 表格 -->
             <MediaTable
-              :data="favoriteStore.medias"
+              :data="favoriteContentStore.medias"
               type="favorite"
-              :loading="favoriteStore.loading"
+              :loading="favoriteContentStore.loading"
               @play="handlePlay"
             />
 
             <!-- 加载状态 -->
-            <div v-if="favoriteStore.loading" class="loading-more">
+            <div v-if="favoriteContentStore.loading" class="loading-more">
               <el-icon class="is-loading"><Loading /></el-icon>
               <span>加载中...</span>
             </div>
 
             <!-- 无更多数据 -->
-            <div v-if="!favoriteStore.hasMore && favoriteStore.medias.length > 0" class="no-more">
+            <div v-if="!favoriteContentStore.hasMore && favoriteContentStore.medias.length > 0" class="no-more">
               没有更多数据了
             </div>
 
             <!-- 无数据 -->
-            <div v-if="!favoriteStore.loading && favoriteStore.medias.length === 0" class="empty-data">
+            <div v-if="!favoriteContentStore.loading && favoriteContentStore.medias.length === 0" class="empty-data">
               暂无数据
             </div>
           </div>
@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onBeforeMount, onMounted, onUnmounted, nextTick } from 'vue';
-import { useFavoriteStore, usePlayerStore, useQueueStore } from '../stores';
+import { useFavoriteContentStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import MediaTable from '../components/songList/MediaTable.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
@@ -60,11 +60,12 @@ import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
 import type { MediaItem } from '../types';
+import * as favoriteApi from '../api/favorite';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
-const favoriteStore = useFavoriteStore();
+const favoriteContentStore = useFavoriteContentStore();
 
 const { id } = route.params;
 
@@ -72,26 +73,32 @@ const { id } = route.params;
 const containerRef = ref<HTMLElement | null>(null);
 const scrollRef = ref<HTMLElement | null>(null);
 
-/**
- * @desc 获取当前内容信息
- */
-const currentInfo = computed(() => {
-  return favoriteStore.currentFavorite;
-});
+// 当前收藏夹信息
+const currentInfo = ref<any>(null);
 
 /**
  * @desc 加载内容
  */
 async function loadContent() {  
   if (!id) return;
-  await favoriteStore.fetchFavoriteContent(Number(id));
+  
+  // 获取收藏夹信息
+  try {
+    const favoriteInfo = await favoriteApi.getFavoriteInfo({ media_id: Number(id) });
+    currentInfo.value = favoriteInfo;
+  } catch (error) {
+    console.error('获取收藏夹信息失败:', error);
+  }
+  
+  // 加载收藏夹内容
+  await favoriteContentStore.fetchFavoriteContent(Number(id));
 }
 
 /**
  * @desc 移除内容
  */
 function removeContent() {
-  favoriteStore.reset();
+  favoriteContentStore.reset();
 }
 
 // 添加一个标志位，防止连续触发加载
@@ -101,7 +108,7 @@ const isLoadingMore = ref(false);
  * @desc 加载更多内容
  */
 async function loadMoreContent() {
-  if (!favoriteStore.hasMore || favoriteStore.loading || isLoadingMore.value) return;
+  if (!favoriteContentStore.hasMore || favoriteContentStore.loading || isLoadingMore.value) return;
   
   // 设置标志位，防止连续触发
   isLoadingMore.value = true;
@@ -109,7 +116,7 @@ async function loadMoreContent() {
   // 记录当前滚动位置
   const scrollPosition = scrollRef.value?.scrollTop || 0;
   
-  await favoriteStore.loadMoreFavoriteContent();
+  await favoriteContentStore.loadMoreFavoriteContent();
   
   // 使用 nextTick 确保 DOM 更新后再恢复滚动位置
   nextTick(() => {
@@ -142,9 +149,9 @@ function handleScroll() {
  * @desc 播放全部
  */
 function handlePlayAll() {
-  if (favoriteStore.medias.length > 0) {
-    queueStore.setQueue(favoriteStore.medias);
-    playerStore.play(favoriteStore.medias[0]);
+  if (favoriteContentStore.medias.length > 0) {
+    queueStore.setQueue(favoriteContentStore.medias);
+    playerStore.play(favoriteContentStore.medias[0]);
   }
 }
 
@@ -152,7 +159,7 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  queueStore.setQueue(favoriteStore.medias);
+  queueStore.setQueue(favoriteContentStore.medias);
   playerStore.play(item);
 }
 
@@ -203,10 +210,8 @@ onUnmounted(() => {
 
 <style scoped>
 .playlist-container {
-  width: 100%;
   height: 100%;
   overflow: hidden;
-  position: relative;
 }
 
 .playlist-scroll {
@@ -219,9 +224,7 @@ onUnmounted(() => {
   margin-top: 20px;
 }
 
-.loading-more,
-.no-more,
-.empty-data {
+.loading-more, .no-more, .empty-data {
   text-align: center;
   padding: 20px 0;
   color: var(--el-text-color-secondary);
@@ -233,10 +236,5 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-}
-
-.empty-data {
-  padding: 40px 0;
-  font-size: 16px;
 }
 </style>

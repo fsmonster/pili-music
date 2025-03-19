@@ -14,6 +14,12 @@
       <div class="actions">
         <!-- 操作按钮插槽 -->
         <slot name="actions">
+          <template v-if="showRefresh">
+            <el-button @click="$emit('refresh')">
+              <i class="ri-refresh-line"></i>
+              刷新
+            </el-button>
+          </template>
           <template v-if="showManage">
             <el-button @click="$emit('manage')">
               <i class="ri-list-settings-line"></i>
@@ -43,12 +49,14 @@
 <script setup lang="ts">
 defineProps<{
   title: string;
+  showRefresh?: boolean;
   showManage?: boolean;
   isEmpty?: boolean;
 }>();
 
 defineEmits<{
   (e: 'manage'): void;
+  (e: 'refresh'): void;
 }>();
 
 defineSlots<{

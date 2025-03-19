@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useUserStore } from '../user/user';
 import * as sectionApi from '../../api/section';
 import * as favoriteApi from '../../api/favorite';
-import type { FavoriteInfo, Section, SectionWithFavorites } from '../../types';
+import type { Section, SectionWithFavorites } from '../../types';
 
 /**
  * 📦 自定义分区项目（包含 📂 收藏夹信息）
@@ -21,7 +21,7 @@ export const useSectionStore = defineStore('section', () => {
   const isLoggedIn = computed(() => userStore.isLoggedIn);
   
   // 📦 自定义分区特有状态
-  const sections = ref<Section[]>([]);
+  const sections = ref<SectionWithFavorites[]>([]);
   const isLoaded = ref(false);
   
   /**
@@ -38,7 +38,8 @@ export const useSectionStore = defineStore('section', () => {
       sections.value = sectionList.map(section => ({
         ...section,
         name: section.name,
-        media_count: section.mediaIds.length
+        media_count: section.mediaIds.length,
+        favorites: [] // 添加空的 favorites 数组
       }));
       
       isLoaded.value = true;
@@ -57,12 +58,19 @@ export const useSectionStore = defineStore('section', () => {
     if (!isLoggedIn.value) return [];
     
     try {
+      // 首先检查持久化的 sections 中是否已有该分区的收藏夹信息
+      const existingSection = sections.value.find(s => s._id === sectionId);
+      if (existingSection && existingSection.favorites && existingSection.favorites.length > 0) {
+        console.log('使用缓存的收藏夹信息:', existingSection.favorites);
+        return existingSection.favorites;
+      }
+      
       // 获取分区基本信息（如果没有提供）
       const section = sectionData || await sectionApi.getSectionById(sectionId);
       
       // 获取收藏夹基本信息
       const favoriteIds = section.mediaIds;
-      const favorites: FavoriteInfo[] = [];
+      const favorites: SectionWithFavorites['favorites'] = [];
       
       // 直接获取收藏夹信息
       for (const id of favoriteIds) {
@@ -75,6 +83,15 @@ export const useSectionStore = defineStore('section', () => {
         } catch (error) {
           console.error(`获取收藏夹 ${id} 信息失败:`, error);
         }
+      }
+      
+      // 更新持久化的 sections 数据
+      const index = sections.value.findIndex(s => s._id === sectionId);
+      if (index !== -1) {
+        sections.value[index] = {
+          ...sections.value[index],
+          favorites
+        };
       }
       
       return favorites;
@@ -147,7 +164,8 @@ export const useSectionStore = defineStore('section', () => {
       sections.value.push({
         ...newSection,
         name: newSection.name,
-        media_count: 0
+        media_count: 0,
+        favorites: [] // 添加空的 favorites 数组
       });
       
       return newSection;
@@ -178,7 +196,8 @@ export const useSectionStore = defineStore('section', () => {
         sections.value[index] = {
           ...updatedSection,
           name: updatedSection.name,
-          media_count: updatedSection.mediaIds.length
+          media_count: updatedSection.mediaIds.length,
+          favorites: sections.value[index].favorites || [] // 保留原有的 favorites 或使用空数组
         };
       }
       return updatedSection;
@@ -219,11 +238,13 @@ export const useSectionStore = defineStore('section', () => {
       // 更新列表中的分区
       const index = sections.value.findIndex(s => s._id === sectionId);
       if (index !== -1) {
-        sections.value[index] = {
+        const updatedSectionData = {
           ...updatedSection,
           name: updatedSection.name,
-          media_count: updatedSection.mediaIds.length
+          media_count: updatedSection.mediaIds.length,
+          favorites: sections.value[index].favorites || [] // 保留原有的 favorites 或使用空数组
         };
+        sections.value[index] = updatedSectionData;
       }
       return updatedSection;
     } catch (error) {
@@ -246,11 +267,13 @@ export const useSectionStore = defineStore('section', () => {
       // 更新列表中的分区
       const index = sections.value.findIndex(s => s._id === sectionId);
       if (index !== -1) {
-        sections.value[index] = {
+        const updatedSectionData = {
           ...updatedSection,
           name: updatedSection.name,
-          media_count: updatedSection.mediaIds.length
+          media_count: updatedSection.mediaIds.length,
+          favorites: sections.value[index].favorites || [] // 保留原有的 favorites 或使用空数组
         };
+        sections.value[index] = updatedSectionData;
       }
       return updatedSection;
     } catch (error) {
@@ -272,8 +295,12 @@ export const useSectionStore = defineStore('section', () => {
       // 更新列表中的分区
       const index = sections.value.findIndex(s => s._id === sectionId);
       if (index !== -1) {
-        sections.value[index].mediaIds = [];
-        sections.value[index].media_count = 0;
+        sections.value[index] = {
+          ...updatedSection,
+          name: updatedSection.name,
+          media_count: 0,
+          favorites: [] // 清空 favorites 数组
+        };
       }
       
       return updatedSection;

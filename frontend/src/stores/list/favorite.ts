@@ -124,48 +124,66 @@ export const useFavoriteStore = defineStore('favorite', () => {
     error.value = '';
     isLoaded.value = false;
 
-    // 获取收藏夹列表基本信息（不包含封面）
-    const favoriteList = await favoriteApi.getFavoriteList({
-      up_mid: mid.value!
-    });
-
-    // 合并原有收藏夹的 cover 信息
-    allFavorites.value = favoriteList.map(newFav => {
-      const oldFav = allFavorites.value.find(f => f.id === newFav.id);
-      return oldFav && oldFav.cover ? { ...newFav, cover: oldFav.cover } : newFav;
-    });
-
-    // 只请求 cover 为空的收藏夹信息
-    const needUpdateIds = allFavorites.value
-      .filter(f => displayFavoriteIds.value.includes(f.id) && !f.cover)
-      .map(f => f.id);
-
-    if (needUpdateIds.length > 0) {
-      // 获取收藏夹 - 信息(主要是 cover)
-      const updatedFavorites = await Promise.all(
-        needUpdateIds.map(async (id) => {
-          const favorite = allFavorites.value.find(f => f.id === id);
-          if (!favorite) return null;
-          
-          const folderInfo: FavoriteInfo | null = await favoriteApi.getFavoriteInfo({
-            media_id: id
-          });
-          return {
-            ...favorite,
-            ...folderInfo
-          };
-        })
-      );
-      
-      // 更新收藏夹信息
-      allFavorites.value = allFavorites.value.map(favorite => {
-        const updated = updatedFavorites.find(f => f?.id === favorite.id);
-        return updated || favorite;
+    try {
+      // 获取收藏夹列表基本信息（不包含封面）
+      const favoriteList = await favoriteApi.getFavoriteList({
+        up_mid: mid.value!
       });
-    }
 
-    loading.value = false;
-    isLoaded.value = true;
+      // 合并原有收藏夹的 cover 信息（如果 allFavorites.value 不为空）
+      if (allFavorites.value.length > 0) {
+        allFavorites.value = favoriteList.map(newFav => {
+          const oldFav = allFavorites.value.find(f => f.id === newFav.id);
+          return oldFav && oldFav.cover ? { ...newFav, cover: oldFav.cover } : newFav;
+        });
+      } else {
+        // 首次加载，直接使用 API 返回的数据
+        allFavorites.value = favoriteList;
+      }
+
+      // 只请求 cover 为空的收藏夹信息
+      const needUpdateIds = allFavorites.value
+        .filter(f => displayFavoriteIds.value.includes(f.id) && !f.cover)
+        .map(f => f.id);
+
+      if (needUpdateIds.length > 0) {
+        // 获取收藏夹 - 信息(主要是 cover)
+        const updatedFavorites = await Promise.all(
+          needUpdateIds.map(async (id) => {
+            const favorite = allFavorites.value.find(f => f.id === id);
+            if (!favorite) return null;
+            
+            const folderInfo: FavoriteInfo | null = await favoriteApi.getFavoriteInfo({
+              media_id: id
+            });
+            return {
+              ...favorite,
+              ...folderInfo
+            };
+          })
+        );
+        
+        // 更新收藏夹信息
+        allFavorites.value = allFavorites.value.map(favorite => {
+          const updated = updatedFavorites.find(f => f?.id === favorite.id);
+          return updated || favorite;
+        });
+      }
+
+      loading.value = false;
+      isLoaded.value = true;
+    } catch (err) {
+      loading.value = false;
+      error.value = '获取收藏夹列表失败';
+    }
+  };
+
+  /**
+   * @desc 刷新收藏夹列表
+   */
+  const refreshFavorites = async () => {
+    await fetchDisplayFavorites();
+    await fetchFavorites();
   };
 
   /**
@@ -259,9 +277,10 @@ export const useFavoriteStore = defineStore('favorite', () => {
     fetchDisplayFavorites,
     updateDisplaySettings,
     fetchFavorites,
-    fetchFavoritesIfNeeded,
     fetchFavoriteContent,
     loadMoreFavoriteContent,
+    fetchFavoritesIfNeeded,
+    refreshFavorites,
     reset
   };
 }, {

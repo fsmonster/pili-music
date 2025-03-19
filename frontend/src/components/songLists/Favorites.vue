@@ -1,6 +1,11 @@
 <template>
-  <ContentSection title="收藏夹" :show-manage="true" :isEmpty="!favoriteStore.favorites.length && !favoriteStore.loading"
-    @manage="showManageDialog = true">
+  <ContentSection 
+    title="收藏夹" 
+    :show-manage="true" 
+    :show-refresh="true" 
+    :isEmpty="!favoriteStore.favorites.length && !favoriteStore.loading"
+    @manage="showManageDialog = true"
+    @refresh="favoriteStore.refreshFavorites()">
     <!-- 图标插槽 -->
     <template #icon>
       <i class="ri-folder-2-line"></i>
