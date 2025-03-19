@@ -1,4 +1,4 @@
-import { Section, SectionContent } from '../models/section.js';
+import { Section } from '../models/section.js';
 import mongoose from 'mongoose';
 
 /**
@@ -61,19 +61,11 @@ export const createSection = async (mid: number, name: string, description: stri
     const newSection = new Section({
       mid,
       name,
-      description
+      description,
+      mediaIds: [] // 初始化为空数组
     });
     
     await newSection.save();
-    
-    // 创建对应的分区内容记录
-    const newSectionContent = new SectionContent({
-      sectionId: newSection._id,
-      mid,
-      mediaIds: []
-    });
-    
-    await newSectionContent.save();
     
     return newSection;
   } catch (error) {
@@ -139,9 +131,6 @@ export const deleteSection = async (mid: number, sectionId: string) => {
       throw new Error('分区不存在或无权删除');
     }
     
-    // 删除对应的分区内容
-    await SectionContent.deleteOne({ sectionId, mid });
-    
     return true;
   } catch (error) {
     console.error('删除自定义分区失败:', error);
@@ -157,26 +146,13 @@ export const deleteSection = async (mid: number, sectionId: string) => {
  */
 export const getSectionContent = async (mid: number, sectionId: string) => {
   try {
-    // 检查分区是否存在
+    // 检查分区是否存在并获取内容
     const section = await Section.findOne({ _id: sectionId, mid });
     if (!section) {
       throw new Error('分区不存在或无权访问');
     }
     
-    // 获取分区内容
-    let sectionContent = await SectionContent.findOne({ sectionId, mid });
-    
-    // 如果内容不存在，创建一个空的内容记录
-    if (!sectionContent) {
-      sectionContent = new SectionContent({
-        sectionId,
-        mid,
-        mediaIds: []
-      });
-      await sectionContent.save();
-    }
-    
-    return sectionContent;
+    return section;
   } catch (error) {
     console.error('获取分区内容失败:', error);
     throw error;
@@ -198,26 +174,14 @@ export const addMediaToSection = async (mid: number, sectionId: string, mediaIds
       throw new Error('分区不存在或无权访问');
     }
     
-    // 获取分区内容
-    let sectionContent = await SectionContent.findOne({ sectionId, mid });
-    
-    // 如果内容不存在，创建一个新的内容记录
-    if (!sectionContent) {
-      sectionContent = new SectionContent({
-        sectionId,
-        mid,
-        mediaIds: []
-      });
-    }
-    
     // 添加媒体ID，确保不重复
-    const updatedContent = await SectionContent.findOneAndUpdate(
-      { sectionId, mid },
+    const updatedSection = await Section.findOneAndUpdate(
+      { _id: sectionId, mid },
       { $addToSet: { mediaIds: { $each: mediaIds } } },
-      { new: true, upsert: true }
+      { new: true }
     );
     
-    return updatedContent;
+    return updatedSection;
   } catch (error) {
     console.error('添加媒体到分区失败:', error);
     throw error;
@@ -239,18 +203,14 @@ export const removeMediaFromSection = async (mid: number, sectionId: string, med
       throw new Error('分区不存在或无权访问');
     }
     
-    // 移除媒体ID
-    const updatedContent = await SectionContent.findOneAndUpdate(
-      { sectionId, mid },
+    // 移除指定的媒体ID
+    const updatedSection = await Section.findOneAndUpdate(
+      { _id: sectionId, mid },
       { $pullAll: { mediaIds: mediaIds } },
       { new: true }
     );
     
-    if (!updatedContent) {
-      throw new Error('分区内容不存在');
-    }
-    
-    return updatedContent;
+    return updatedSection;
   } catch (error) {
     console.error('从分区移除媒体失败:', error);
     throw error;
@@ -272,13 +232,13 @@ export const clearSectionMedia = async (mid: number, sectionId: string) => {
     }
     
     // 清空媒体ID列表
-    const updatedContent = await SectionContent.findOneAndUpdate(
-      { sectionId, mid },
+    const updatedSection = await Section.findOneAndUpdate(
+      { _id: sectionId, mid },
       { $set: { mediaIds: [] } },
-      { new: true, upsert: true }
+      { new: true }
     );
     
-    return updatedContent;
+    return updatedSection;
   } catch (error) {
     console.error('清空分区媒体失败:', error);
     throw error;

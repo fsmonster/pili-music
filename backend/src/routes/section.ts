@@ -79,39 +79,39 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 
 /**
  * @route   GET /api/section/:id/content
- * @desc    获取指定自定义分区内容
+ * @desc    获取指定自定义分区内容（保留此路由以兼容旧版前端）
  * @access  Private - 需要JWT认证
  */
-router.get('/:id/content', async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ 
-        code: 401, 
-        message: '未授权访问' 
-      });
-    }
+// router.get('/:id/content', async (req: AuthRequest, res: Response) => {
+//   try {
+//     if (!req.user) {
+//       return res.status(401).json({ 
+//         code: 401, 
+//         message: '未授权访问' 
+//       });
+//     }
 
-    const { mid } = req.user;
-    const sectionId = req.params.id;
+//     const { mid } = req.user;
+//     const sectionId = req.params.id;
     
-    // 获取指定分区内容
-    const sectionContent = await sectionController.getSectionContent(mid, sectionId);
+//     // 获取指定分区内容
+//     const section = await sectionController.getSectionContent(mid, sectionId);
     
-    res.json({
-      code: 0,
-      message: '获取成功',
-      data: sectionContent
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : '获取分区内容失败';
-    const statusCode = message.includes('不存在') ? 404 : 500;
+//     res.json({
+//       code: 0,
+//       message: '获取成功',
+//       data: section
+//     });
+//   } catch (error) {
+//     const message = error instanceof Error ? error.message : '获取分区内容失败';
+//     const statusCode = message.includes('不存在') ? 404 : 500;
     
-    res.status(statusCode).json({ 
-      code: statusCode, 
-      message 
-    });
-  }
-});
+//     res.status(statusCode).json({ 
+//       code: statusCode, 
+//       message 
+//     });
+//   }
+// });
 
 /**
  * @route   POST /api/section
@@ -242,7 +242,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
 
 /**
  * @route   POST /api/section/:id/media
- * @desc    添加媒体到分区
+ * @desc    添加收藏夹到分区
  * @access  Private - 需要JWT认证
  */
 router.post('/:id/media', async (req: AuthRequest, res: Response) => {
@@ -265,13 +265,13 @@ router.post('/:id/media', async (req: AuthRequest, res: Response) => {
       });
     }
     
-    // 添加媒体到分区
-    const updatedContent = await sectionController.addMediaToSection(mid, sectionId, mediaIds);
+    // 添加收藏夹到分区
+    const updatedSection = await sectionController.addMediaToSection(mid, sectionId, mediaIds);
     
     res.json({
       code: 0,
       message: '添加成功',
-      data: updatedContent
+      data: updatedSection
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : '添加媒体到分区失败';
@@ -286,7 +286,7 @@ router.post('/:id/media', async (req: AuthRequest, res: Response) => {
 
 /**
  * @route   DELETE /api/section/:id/media
- * @desc    从分区移除媒体
+ * @desc    从分区移除收藏夹
  * @access  Private - 需要JWT认证
  */
 router.delete('/:id/media', async (req: AuthRequest, res: Response) => {
@@ -309,16 +309,16 @@ router.delete('/:id/media', async (req: AuthRequest, res: Response) => {
       });
     }
     
-    // 从分区移除媒体
-    const updatedContent = await sectionController.removeMediaFromSection(mid, sectionId, mediaIds);
+    // 从分区移除收藏夹
+    const updatedSection = await sectionController.removeMediaFromSection(mid, sectionId, mediaIds);
     
     res.json({
       code: 0,
       message: '移除成功',
-      data: updatedContent
+      data: updatedSection
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : '从分区移除媒体失败';
+    const message = error instanceof Error ? error.message : '从分区移除收藏夹失败';
     const statusCode = message.includes('不存在') ? 404 : 500;
     
     res.status(statusCode).json({ 
@@ -330,7 +330,7 @@ router.delete('/:id/media', async (req: AuthRequest, res: Response) => {
 
 /**
  * @route   DELETE /api/section/:id/media/all
- * @desc    清空分区内的所有媒体
+ * @desc    清空分区内的所有收藏夹
  * @access  Private - 需要JWT认证
  */
 router.delete('/:id/media/all', async (req: AuthRequest, res: Response) => {
@@ -346,12 +346,12 @@ router.delete('/:id/media/all', async (req: AuthRequest, res: Response) => {
     const sectionId = req.params.id;
     
     // 清空分区内的所有媒体
-    const updatedContent = await sectionController.clearSectionMedia(mid, sectionId);
+    const updatedSection = await sectionController.clearSectionMedia(mid, sectionId);
     
     res.json({
       code: 0,
       message: '清空成功',
-      data: updatedContent
+      data: updatedSection
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : '清空分区媒体失败';

@@ -1,7 +1,4 @@
-/**
- * 自定义分区相关类型定义
- */
-import type { MediaItem } from './index';
+import type { FavoriteInfo } from './favorite';
 
 /**
  * 自定义分区接口参数
@@ -19,27 +16,16 @@ export interface Section {
   mid: number;
   name: string;
   description: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * 分区内容信息
- */
-export interface SectionContent {
-  _id: string;
-  sectionId: string;
-  mid: number;
   mediaIds: number[];
+  media_count?: number;
   createdAt: string;
   updatedAt: string;
 }
 
 /**
- * 分区内容状态
+ * 自定义分区扩展信息，包含收藏夹基本信息
  */
-export interface SectionContentState {
-  favorites: MediaItem[];  // 收藏夹列表
-  loading: boolean;        // 加载状态
-  error: string;           // 错误信息
+export interface SectionWithFavorites extends Section {
+  favorites: FavoriteInfo[];
 }
+

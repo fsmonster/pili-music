@@ -283,9 +283,9 @@ watch(sections, () => {
 // 初始化
 onMounted(async () => {
   // 获取分区列表
-  if (sections.value.length === 0) {
-    await sectionStore.fetchSections();
-  }
+  // if (sections.value.length === 0) {
+  //   await sectionStore.fetchSections();
+  // }
 });
 </script>
 

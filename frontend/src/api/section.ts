@@ -1,6 +1,6 @@
 import request from '../utils/request';
 import type { ApiResponse } from '../types';
-import type { Section, SectionContent, SectionParams } from '../types/section';
+import type { Section, SectionParams } from '../types/section';
 
 /**
  * 获取用户所有自定义分区
@@ -33,24 +33,6 @@ export async function getSectionById(sectionId: string): Promise<Section> {
     return res.data.data;
   } catch (error) {
     console.error('获取分区详情失败:', error);
-    throw error;
-  }
-}
-
-/**
- * 获取指定自定义分区内容
- * @param sectionId 分区ID
- * @returns 分区内容
- */
-export async function getSectionContent(sectionId: string): Promise<SectionContent> {
-  try {
-    const res = await request.get<ApiResponse<SectionContent>>(`/section/${sectionId}/content`);
-    if (res.data.code !== 0) {
-      throw new Error(res.data.message || '获取分区内容失败');
-    }
-    return res.data.data;
-  } catch (error) {
-    console.error('获取分区内容失败:', error);
     throw error;
   }
 }
@@ -116,9 +98,9 @@ export async function deleteSection(sectionId: string): Promise<boolean> {
  * @param mediaIds 收藏夹ID列表
  * @returns 更新后的分区内容
  */
-export async function addMediaToSection(sectionId: string, mediaIds: number[]): Promise<SectionContent> {
+export async function addMediaToSection(sectionId: string, mediaIds: number[]): Promise<Section> {
   try {
-    const res = await request.post<ApiResponse<SectionContent>>(`/section/${sectionId}/media`, { mediaIds });
+    const res = await request.post<ApiResponse<Section>>(`/section/${sectionId}/media`, { mediaIds });
     if (res.data.code !== 0) {
       throw new Error(res.data.message || '添加收藏夹失败');
     }
@@ -135,9 +117,9 @@ export async function addMediaToSection(sectionId: string, mediaIds: number[]): 
  * @param mediaIds 收藏夹ID列表
  * @returns 更新后的分区内容
  */
-export async function removeMediaFromSection(sectionId: string, mediaIds: number[]): Promise<SectionContent> {
+export async function removeMediaFromSection(sectionId: string, mediaIds: number[]): Promise<Section> {
   try {
-    const res = await request.delete<ApiResponse<SectionContent>>(`/section/${sectionId}/media`, { data: { mediaIds } });
+    const res = await request.delete<ApiResponse<Section>>(`/section/${sectionId}/media`, { data: { mediaIds } });
     if (res.data.code !== 0) {
       throw new Error(res.data.message || '移除收藏夹失败');
     }
@@ -153,9 +135,9 @@ export async function removeMediaFromSection(sectionId: string, mediaIds: number
  * @param sectionId 分区ID
  * @returns 更新后的分区内容
  */
-export async function clearSectionMedia(sectionId: string): Promise<SectionContent> {
+export async function clearSectionMedia(sectionId: string): Promise<Section> {
   try {
-    const res = await request.delete<ApiResponse<SectionContent>>(`/section/${sectionId}/media/all`);
+    const res = await request.delete<ApiResponse<Section>>(`/section/${sectionId}/media/all`);
     if (res.data.code !== 0) {
       throw new Error(res.data.message || '清空收藏夹失败');
     }

@@ -123,4 +123,6 @@ export const useQueueStore = defineStore('queue', () => {
     prevIndex,
     reset
   };
+}, {
+  persist: true
 });

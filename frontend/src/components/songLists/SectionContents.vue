@@ -116,14 +116,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from '../songLists/ContentSection.vue';
-import { useSectionContentsStore } from '../../stores/list/sectionContents';
-import { useSectionStore } from '../../stores/list/section';
-import { processResourceUrl } from '../../utils/processResoureUrl';
-import type { MediaItem, Section } from '../../types';
+import { useSectionStore } from '../../stores';
+import { useFavoriteStore } from '../../stores/list/favorite';
+import { usePlayerStore } from '../../stores/play/player';
+import { processResourceUrl, extractFavoriteIdFromUrl } from '../../utils';
+import type { FavoriteInfo, SectionWithFavorites } from '../../types';
 
 // 接收分区ID参数
 const props = defineProps<{
@@ -135,20 +136,25 @@ const router = useRouter();
 
 // Store
 const sectionStore = useSectionStore();
-const sectionContentsStore = useSectionContentsStore();
+const favoriteStore = useFavoriteStore();
+const playerStore = usePlayerStore();
 
 // 状态
-const section = ref<Section | null>(null);
-const favorites = ref<MediaItem[]>([]);
+const section = ref<SectionWithFavorites | null>(null);
 const loading = ref(false);
 const error = ref('');
+const favoriteUrl = ref('');
 
 // 对话框状态
 const showManageDialog = ref(false);
 const showConfirmDialog = ref(false);
 const activeTab = ref('add');
-const favoriteUrl = ref('');
 const favoriteToRemove = ref<number | null>(null);
+
+// 计算属性：收藏夹列表
+const favorites = computed<FavoriteInfo[]>(() => {
+  return section.value?.favorites || [];
+});
 
 // 跳转到收藏夹详情
 const goToFavorite = (id: number) => {
@@ -156,8 +162,33 @@ const goToFavorite = (id: number) => {
 };
 
 // 播放收藏夹内容
-const playFavorite = (id: number) => {
-  ElMessage.success(`开始播放收藏夹 ${id}`);
+const playFavorite = async (id: number) => {
+  // try {
+  //   loading.value = true;
+    
+  //   // 加载收藏夹内容
+  //   await favoriteStore.fetchFavoriteContent(id);
+    
+  //   // 获取收藏夹内容
+  //   const favorite = favorites.value.find(f => f.id === id);
+    
+  //   if (favorite) {
+  //     // 播放收藏夹内容
+  //     playerStore.playList({
+  //       id: String(id),
+  //       title: favorite.title,
+  //       type: 'favorite',
+  //       items: favoriteStore.medias
+  //     });
+      
+  //     ElMessage.success(`开始播放收藏夹: ${favorite.title}`);
+  //   }
+  // } catch (error) {
+  //   console.error('播放收藏夹失败:', error);
+  //   ElMessage.error('播放收藏夹失败');
+  // } finally {
+  //   loading.value = false;
+  // }
 };
 
 // 加载分区数据
@@ -167,24 +198,14 @@ const loadSectionData = async () => {
   try {
     loading.value = true;
     
-    // 获取分区信息
-    section.value = await sectionStore.getSectionById(props.sectionId);
-    
-    // 获取分区内容（收藏夹列表）
-    await sectionContentsStore.fetchSectionContent(props.sectionId);
-    
-    // 从 store 获取收藏夹列表
-    const sectionContent = sectionContentsStore.sectionContents[props.sectionId];
-    if (sectionContent) {
-      favorites.value = sectionContent.favorites;
-      error.value = sectionContent.error;
-    } else {
-      favorites.value = [];
-      error.value = '';
+    // 获取分区详情（包含收藏夹信息）
+    const sectionData = await sectionStore.getSectionById(props.sectionId);
+    if (sectionData) {
+      section.value = sectionData;
     }
-  } catch (err) {
-    console.error('加载分区数据失败:', err);
-    error.value = err instanceof Error ? err.message : '加载分区数据失败';
+    
+  } catch (error) {
+    console.error('加载分区数据失败:', error);
     ElMessage.error('加载分区数据失败');
   } finally {
     loading.value = false;
@@ -199,31 +220,38 @@ const addFavorite = async () => {
   }
   
   try {
-    // 从URL或ID中提取收藏夹ID
-    const favoriteId = sectionContentsStore.extractFavoriteIdFromUrl(favoriteUrl.value);
+    loading.value = true;
+    
+    // 提取收藏夹ID
+    const favoriteId = extractFavoriteIdFromUrl(favoriteUrl.value);
     
     if (!favoriteId) {
-      ElMessage.error('无法识别的收藏夹ID或链接');
-      return;
+      // 尝试直接将输入内容作为ID
+      const directId = parseInt(favoriteUrl.value);
+      if (isNaN(directId)) {
+        ElMessage.error('无效的收藏夹ID或链接');
+        return;
+      }
+      
+      // 添加收藏夹到分区
+      await sectionStore.addMediaToSection(props.sectionId, [directId]);
+    } else {
+      // 添加收藏夹到分区
+      await sectionStore.addMediaToSection(props.sectionId, [favoriteId]);
     }
-    
-    // 检查是否已存在
-    if (favorites.value.some(f => f.id === favoriteId)) {
-      ElMessage.warning('该收藏夹已在此分区中');
-      return;
-    }
-    
-    // 添加收藏夹到分区
-    await sectionStore.addMediaToSection(props.sectionId, [favoriteId]);
     
     // 重新加载分区数据
     await loadSectionData();
     
+    // 清空输入框
+    favoriteUrl.value = '';
+    
     ElMessage.success('添加收藏夹成功');
-    favoriteUrl.value = ''; // 清空输入
   } catch (error) {
     console.error('添加收藏夹失败:', error);
     ElMessage.error('添加收藏夹失败');
+  } finally {
+    loading.value = false;
   }
 };
 
