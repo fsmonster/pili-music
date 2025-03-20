@@ -142,46 +142,5 @@ defineExpose({
   max-height: 400px;
   overflow-y: auto;
   padding: 0 20px;
-
-  :deep(.el-checkbox) {
-    display: flex;
-    align-items: center;
-    margin-bottom: 12px;
-
-    .el-checkbox__label {
-      display: flex;
-      width: 100%;
-      align-items: center;
-      .title {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .count {
-        color: var(--el-text-color-secondary);
-        font-size: 12px;
-        margin-left: 4px;
-      }
-    }
-  }
-}
-
-.dialog-footer {
-  text-align: right;
-  margin-top: 16px;
-}
-
-.count-badge {
-  background-color: var(--el-color-primary-light-8);
-  color: var(--el-color-primary);
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  margin-left: 4px;
-}
-
-.view-more {
-  text-align: center;
-  margin-top: 8px;
 }
 </style>

@@ -57,6 +57,44 @@
   }
 }
 
+:deep(.el-checkbox) {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+
+  .el-checkbox__label {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    .title {
+      padding: 4px 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .count {
+      padding: 4px 0;
+      color: var(--el-text-color-secondary);
+      font-size: 12px;
+      margin-left: 4px;
+    }
+  }
+}
+
+.dialog-footer {
+  text-align: right;
+  margin-top: 16px;
+}
+
+.count-badge {
+  background-color: var(--el-color-primary-light-8);
+  color: var(--el-color-primary);
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
 @mixin text-ellipsis {
   white-space: nowrap;
   overflow: hidden;

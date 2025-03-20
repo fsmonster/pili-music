@@ -161,6 +161,7 @@ function toggleMute() {
     }
 
     .track-info {
+      width: 250px;
       .track-name {
         font-size: 14px;
         font-weight: 500;
@@ -233,8 +234,9 @@ function toggleMute() {
   }
 
   .player-options {
-    width: 200px;
+    width: 250px;
     display: flex;
+    justify-content: end;
     align-items: center;
     gap: 8px;
 

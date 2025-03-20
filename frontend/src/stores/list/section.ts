@@ -125,26 +125,26 @@ export const useSectionStore = defineStore('section', () => {
    * @param sectionId 分区ID
    * @returns 分区信息
    */
-  const getSectionById = async (sectionId: string): Promise<SectionWithFavorites | null> => {
-    try {
-      // 获取分区基本信息
-      const section = await sectionApi.getSectionById(sectionId);
+  // const getSectionById = async (sectionId: string): Promise<SectionWithFavorites | null> => {
+  //   try {
+  //     // 获取分区基本信息
+  //     const section = await sectionApi.getSectionById(sectionId);
       
-      // 获取分区内容（收藏夹列表）
-      const favorites = await fetchSectionContent(sectionId, section);
+  //     // 获取分区内容（收藏夹列表）
+  //     const favorites = await fetchSectionContent(sectionId, section);
       
-      // 返回带有收藏夹信息的分区
-      return {
-        ...section,
-        name: section.name,
-        media_count: section.mediaIds.length,
-        favorites
-      };
-    } catch (error) {
-      console.error('获取分区详情失败:', error);
-      return null;
-    }
-  };
+  //     // 返回带有收藏夹信息的分区
+  //     return {
+  //       ...section,
+  //       name: section.name,
+  //       media_count: section.mediaIds.length,
+  //       favorites
+  //     };
+  //   } catch (error) {
+  //     console.error('获取分区详情失败:', error);
+  //     return null;
+  //   }
+  // };
   
   /**
    * @desc 创建 📦 自定义分区
@@ -336,7 +336,7 @@ export const useSectionStore = defineStore('section', () => {
     fetchSections,
     fetchSectionContent,
     loadFavoriteContent,
-    getSectionById,
+    // getSectionById,
     createSection,
     updateSection,
     deleteSection,

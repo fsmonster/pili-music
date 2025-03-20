@@ -1,6 +1,6 @@
 <template>
   <ContentSection 
-    :title="section?.name || '自定义分区'" 
+    :title="section?.name || ''" 
     :show-manage="true" 
     :isEmpty="!favorites.length"
     @manage="showManageDialog = true"
@@ -199,7 +199,8 @@ const loadSectionData = async () => {
     loading.value = true;
     
     // 获取分区详情（包含收藏夹信息）
-    const sectionData = await sectionStore.getSectionById(props.sectionId);
+    // const sectionData = await sectionStore.getSectionById(props.sectionId);
+    const sectionData = sectionStore.sections.find(s => s._id === props.sectionId);
     if (sectionData) {
       section.value = sectionData;
     }
@@ -297,15 +298,6 @@ onMounted(() => {
 
 <style scoped>
 @import './styles/music-grid.scss';
-
-.count-badge {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  background-color: var(--el-fill-color);
-  padding: 2px 6px;
-  border-radius: 10px;
-  margin-left: 8px;
-}
 
 .empty-tip {
   text-align: center;
