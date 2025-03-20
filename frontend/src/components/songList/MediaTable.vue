@@ -14,16 +14,30 @@
     :expand-row-keys="expandedRows"
   >
     <!-- 索引列 -->
-    <el-table-column type="index" width="50" />
+    <el-table-column type="index" width="50">
+      <template #default="scope">
+        <div v-if="isCurrentPlaying(scope.row)" class="playing-indicator">
+          <img src="../../assets/image/play.gif?random=123" alt="play">
+        </div>
+        <span v-else>{{ scope.$index + 1 }}</span>
+      </template>
+    </el-table-column>
 
     <!-- 封面列 -->
     <el-table-column label="歌曲" min-width="70" width="70">
       <template #default="{ row }">
         <div class="media-info">
           <div class="media-cover-container">
-            <img :src="processResourceUrl(row.cover)" :alt="row.title" class="media-cover">
+            <img 
+              :src="processResourceUrl(row.cover)" 
+              :alt="row.title" 
+              class="media-cover"
+              loading="lazy"
+              :data-src="processResourceUrl(row.cover)"
+            >
             <div class="media-cover-overlay">
-              <i class="ri-play-fill play-icon" @click.stop="$emit('play', row)"></i>
+              <i v-if="!isCurrentPlaying(row)" class="ri-play-fill play-icon" @click.stop="$emit('play', row)"></i>
+              <i v-else class="ri-music-line playing-icon"></i>
             </div>
           </div>
         </div>
@@ -34,7 +48,7 @@
     <el-table-column min-width="250">
       <template #default="{ row }">
         <div class="media-text">
-          <div class="media-title">{{ row.title }}</div>
+          <div class="media-title" :class="{ 'playing': isCurrentPlaying(row) }">{{ row.title }}</div>
           <!-- 如果是多P视频，显示展开按钮 -->
           <div v-if="isMultiPage(row)" class="multi-page-indicator">
             <el-button 
@@ -108,7 +122,10 @@
             <!-- 索引列 -->
             <el-table-column width="60">
               <template #default="{ row: pageItem }">
-                <div class="page-index">P{{ pageItem.page }}</div>
+                <div v-if="isCurrentPlayingPage(pageItem)" class="playing-indicator">
+                  <!-- <div class="living-sprite"></div> -->
+                </div>
+                <div v-else class="page-index">P{{ pageItem.page }}</div>
               </template>
             </el-table-column>
 
@@ -123,6 +140,7 @@
                     @click="playPage(row, pageItem)"
                   >
                     <i class="ri-play-fill"></i>
+                    <i v-if="isCurrentPlayingPage(pageItem)" class="ri-music-line playing-icon"></i>
                   </el-button>
                 </div>
               </template>
@@ -225,6 +243,17 @@ function isExpanded(item: MediaItem): boolean {
   return expandedRows.value.includes(item.id.toString());
 }
 
+// 检查是否是当前播放的媒体
+function isCurrentPlaying(item: MediaItem): boolean {
+  return playerStore.currentItem?.id === item.id;
+}
+
+// 检查是否是当前播放的分P
+function isCurrentPlayingPage(pageItem: CidInfo): boolean {
+  if (!isCurrentPlaying(currentMultiPageItem.value as MediaItem)) return false;
+  return multiPageQueueStore.selectedPage === pageItem.page;
+}
+
 // 切换展开/折叠状态
 async function toggleExpand(item: MediaItem) {
   const itemId = item.id.toString();
@@ -302,6 +331,15 @@ watch(() => props.data, () => {
 <style lang="scss" scoped>
 @use '../../assets/styles/_mixins.scss';
 
+/* 当前播放动画 */
+.playing-indicator {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .media-info {
   display: flex;
   align-items: center;
@@ -340,7 +378,22 @@ watch(() => props.data, () => {
         font-size: 20px;
         cursor: pointer;
       }
+      
+      .playing-icon {
+        color: white;
+        font-size: 20px;
+        animation: spin 2s linear infinite;
+      }
     }    
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }
 
@@ -353,6 +406,13 @@ watch(() => props.data, () => {
     font-size: 14px;
     margin-bottom: 4px;
     @include mixins.text-ellipsis-multi(2);
+    
+    &.playing {
+      color: var(--el-color-primary);
+    }
+    &.playing:hover {
+      text-decoration: underline;
+    }
   } 
   .multi-page-indicator {
     font-size: 12px;

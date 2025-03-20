@@ -74,9 +74,6 @@ const volumeValue = ref(playStore.volume * 100);
 // 播放进度值（0-100）
 const currentProgress = ref(0);
 
-// 当前播放项
-// const currentTrack = computed(() => queueStore.currentItem);
-
 // 监听播放时间变化，更新进度条
 watch(() => playStore.currentTime, (newTime) => {
   if (!playStore.duration) return;

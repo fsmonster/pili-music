@@ -60,27 +60,96 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
   /**
    * @desc 获取收藏夹内容(媒体列表) - 初始加载
    * @param mediaId 收藏夹ID
+   * @param loadAll 是否加载全部内容
    */
-  const fetchFavoriteContent = async (mediaId: number) => {
+  const fetchFavoriteContent = async (mediaId: number, loadAll: boolean = false) => {
     loading.value = true;
     error.value = '';
     currentFavoriteId.value = mediaId;
     
     try {
-      // 获取收藏夹内容（第一页）
-      const content = await favoriteApi.getFavoriteContent({
-        media_id: mediaId,
-        pn: 1,
-        ps: pageSize.value
-      });
-      
-      // 设置收藏夹内容
-      setFavoriteContent(content);
+      if (loadAll) {
+        // 完整加载所有收藏夹内容
+        await fetchAllFavoriteContent(mediaId);
+      } else {
+        // 获取收藏夹内容（第一页）
+        const content = await favoriteApi.getFavoriteContent({
+          media_id: mediaId,
+          pn: 1,
+          ps: pageSize.value
+        });
+        
+        // 设置收藏夹内容
+        setFavoriteContent(content);
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : '获取收藏夹内容失败';
       console.error('获取收藏夹内容失败:', err);
     } finally {
       loading.value = false;
+    }
+  };
+
+  /**
+   * @desc 完整加载所有收藏夹内容
+   * @param mediaId 收藏夹ID
+   */
+  const fetchAllFavoriteContent = async (mediaId: number) => {
+    try {
+      // 先获取第一页，了解总数
+      const firstPage = await favoriteApi.getFavoriteContent({
+        media_id: mediaId,
+        pn: 1,
+        ps: pageSize.value
+      });
+      
+      // 设置初始内容
+      setFavoriteContent(firstPage);
+      
+      // 如果没有更多内容，直接返回
+      if (!firstPage.has_more) return;
+      
+      // 计算总页数
+      const totalCount = firstPage.info.media_count;
+      const totalPages = Math.ceil(totalCount / pageSize.value);
+      
+      // 并行请求剩余页面的数据
+      const promises = [];
+      for (let p = 2; p <= totalPages; p++) {
+        promises.push(
+          favoriteApi.getFavoriteContent({
+            media_id: mediaId,
+            pn: p,
+            ps: pageSize.value
+          })
+        );
+      }
+      
+      // 等待所有请求完成
+      const results = await Promise.all(promises);
+      
+      // 合并所有结果
+      let allMedias = [...firstPage.medias];
+      for (const result of results) {
+        allMedias = [...allMedias, ...result.medias];
+      }
+      
+      // 更新状态
+      if (favoriteContent.value) {
+        favoriteContent.value = {
+          ...firstPage,
+          medias: allMedias,
+          has_more: false // 已加载全部，没有更多内容
+        };
+      }
+      
+      // 更新页码
+      page.value = totalPages;
+      
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '完整加载收藏夹内容失败';
+      console.error('完整加载收藏夹内容失败:', err);
+      throw err; // 向上传递错误
     }
   };
 
@@ -152,6 +221,7 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
     setFavoriteContent,
     appendFavoriteContent,
     fetchFavoriteContent,
+    fetchAllFavoriteContent,
     loadMoreFavoriteContent,
     fetchMoreFavoriteContent,
     reset

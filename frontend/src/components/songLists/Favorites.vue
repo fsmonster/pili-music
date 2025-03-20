@@ -36,6 +36,13 @@
               :src="processResourceUrl(item.cover)" 
               :alt="item.title"
             >
+            <!-- 私密收藏夹标识 -->
+            <div v-if="isPrivate(item)" class="private-badge">
+              <i class="ri-lock-line"></i>
+            </div>
+            <div class="play-button" @click.stop="playFavorite(item.id)">
+              <i class="ri-play-fill"></i>
+            </div>
           </div>
           <div class="info">
             <div class="title">{{ item.title }}</div>
@@ -76,12 +83,18 @@ import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElDialog, ElMessage, ElCheckbox, ElCheckboxGroup, ElButton } from 'element-plus';
 import ContentSection from './ContentSection.vue';
-import { useUserStore, useFavoriteStore } from '@/stores';
+import { useUserStore, useFavoriteStore,useFavoriteContentStore, useQueueStore, usePlayerStore } from '@/stores';
 import { processResourceUrl } from '@/utils/processResoureUrl';
 
+// 路由
 const router = useRouter();
+
+// store
 const userStore = useUserStore();
 const favoriteStore = useFavoriteStore();
+const favoriteContentStore = useFavoriteContentStore();
+const queueStore = useQueueStore();
+const playerStore = usePlayerStore();
 
 // 对话框显示状态
 const showManageDialog = ref(false);
@@ -91,6 +104,28 @@ const checkedFavorites = ref<number[]>([]);
 // 跳转到播放列表
 const goToPlaylist = (id: number) => {
   router.push(`/favorite/${id}`);
+};
+
+// 判断收藏夹是否私密
+const isPrivate = (item: any) => {
+  // 根据 attr 值判断是否为私密收藏夹
+  // attr 值为 23 或 119 表示私密收藏夹
+  return item.attr === 23 || item.attr === 119;
+};
+
+// 播放收藏夹内容
+const playFavorite = async (id: number) => {
+  try {
+    // 完整加载收藏夹内容
+    await favoriteContentStore.fetchFavoriteContent(Number(id), true);
+    if (favoriteContentStore.medias.length > 0) {
+      queueStore.setQueue(favoriteContentStore.medias);
+      playerStore.play(favoriteContentStore.medias[0]);
+    }
+  } catch (error) {
+    console.error('播放收藏夹失败:', error);
+    ElMessage.error('播放收藏夹失败');
+  }
 };
 
 // 打开管理对话框时，初始化选中状态
@@ -130,5 +165,22 @@ watch(() => userStore.isLoggedIn, favoriteStore.fetchFavoritesIfNeeded);
   padding: 0 20px;
 }
 
-
+.private-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 40px 40px;
+  border-color: transparent transparent transparent var(--el-color-primary);
+  
+  i {
+    position: absolute;
+    top: 3px;
+    left: -37px;
+    font-size: 14px;
+    color: #fff;
+  }
+}
 </style>

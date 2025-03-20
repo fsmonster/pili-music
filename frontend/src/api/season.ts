@@ -4,11 +4,11 @@
 import request from "../utils/request";
 import type { 
   ApiResponse,
-  MediaItem,
   SeasonListParams,
   SeasonListResponse,
   SeasonList,
   SeasonContentParams,
+  SeasonContent,
   SeasonContentResponse
 } from "../types";
 
@@ -40,7 +40,7 @@ export async function getSeasonList(
  */
 export async function getSeasonDetail(
   params: SeasonContentParams
-): Promise<MediaItem[]> {
+): Promise<SeasonContent> {
   try {
     // 注意：虽然我们传递了pn和ps参数，但B站API会返回所有内容
     // 前端将负责处理分页逻辑
@@ -50,7 +50,7 @@ export async function getSeasonDetail(
         params,
       }
     );
-    return res.data.data.medias;
+    return res.data.data;
   } catch (error) {
     console.error("获取订阅合集内容失败:", error);
     throw error;

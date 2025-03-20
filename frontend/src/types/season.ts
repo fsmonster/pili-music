@@ -74,6 +74,11 @@ export interface SeasonContentParams {
 }
 
 /**
+ * 合集内容
+ */
+export type SeasonContent = SeasonContentResponse;
+
+/**
  * 合集内容响应数据
  */
 export interface SeasonContentResponse {

@@ -94,7 +94,7 @@ onUnmounted(() => {
   bottom: 80px;
   width: 30%;
   min-width: 320px;
-  background-color: var(--el-bg-color);
+  background-color: rgba(#f9f9f9, 0.9);
   border: 1px solid var(--el-border-color-light);
   border-bottom: 0;
   border-radius: 10px 10px 0 0;

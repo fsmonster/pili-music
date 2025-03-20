@@ -28,6 +28,9 @@
             <el-skeleton v-if="seasonStore.loading || !item.cover" :rows="1" animated>
             </el-skeleton>
             <img v-else :src="processResourceUrl(item.cover)" :alt="item.title">
+            <div class="play-button" @click.stop="playSeason(item.id)">
+              <i class="ri-play-fill"></i>
+            </div>
           </div>
           <div class="info">
             <div class="title">{{ item.title }}</div>
@@ -65,25 +68,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from './ContentSection.vue';
-import { useUserStore, useSeasonStore } from '@/stores';
+import { useUserStore, useSeasonStore, useQueueStore, usePlayerStore } from '@/stores';
 import { processResourceUrl } from '@/utils/processResoureUrl';
 
 const router = useRouter();
 const seasonStore = useSeasonStore();
 const userStore = useUserStore();
+const queueStore = useQueueStore();
+const playerStore = usePlayerStore();
 
 // 对话框显示状态
 const showManageDialog = ref(false);
 // 选中的合集ID列表
 const checkedSeasons = ref<number[]>([]);
 
+// 选中的订阅合集内容
+const medias = computed(() => seasonStore.medias || []);
+
 // 跳转到播放列表
 const goToPlaylist = (id: number) => {
   router.push(`/season/${id}`);
+};
+
+// 播放订阅合集内容
+const playSeason = async (id: number) => {
+  try {
+    // 完整加载订阅合集内容
+    await seasonStore.fetchAllSeasonContent(Number(id));
+    if (medias.value.length > 0) {
+      queueStore.setQueue(medias.value);
+      playerStore.play(medias.value[0]);
+    }
+  } catch (error) {
+    console.error('播放订阅合集失败:', error);
+    ElMessage.error('播放订阅合集失败');
+  }
 };
 
 // 打开管理对话框时，初始化选中状态

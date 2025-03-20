@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { MediaItem, CidInfo } from '../../types';
+import type { MediaItem } from '../../types';
 import { getCid, getAudioUrl } from '../../api';
 import { processResourceUrl } from '../../utils';
 import { useQueueStore, useMultiPageQueueStore } from './index';
@@ -156,6 +156,7 @@ export const usePlayerStore = defineStore('player', () => {
         await audio.play();
       }
     }
+    setVolume();
   }
 
   // 暂停

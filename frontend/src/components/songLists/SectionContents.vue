@@ -28,7 +28,7 @@
         >
           <div class="cover">
             <el-skeleton v-if="loading" :rows="1" animated />
-            <div v-else-if="!favorite.cover" class="default-cover">
+            <div v-else-if="!favorite.cover">
               <i class="ri-star-line"></i>
             </div>
             <img v-else :src="processResourceUrl(favorite.cover)" :alt="favorite.title">
@@ -120,7 +120,7 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from '../songLists/ContentSection.vue';
-import { useSectionStore } from '../../stores';
+import { useSectionStore, useFavoriteContentStore, useQueueStore, usePlayerStore } from '../../stores';
 import { processResourceUrl, extractFavoriteIdFromUrl } from '../../utils';
 import type { FavoriteInfo, SectionWithFavorites } from '../../types';
 
@@ -134,6 +134,9 @@ const router = useRouter();
 
 // Store
 const sectionStore = useSectionStore();
+const favoriteStore = useFavoriteContentStore();
+const queueStore = useQueueStore();
+const playerStore = usePlayerStore();
 
 // 状态
 const section = ref<SectionWithFavorites | null>(null);
@@ -158,32 +161,17 @@ const goToFavorite = (id: number) => {
 
 // 播放收藏夹内容
 const playFavorite = async (id: number) => {
-  // try {
-  //   loading.value = true;
-    
-  //   // 加载收藏夹内容
-  //   await favoriteStore.fetchFavoriteContent(id);
-    
-  //   // 获取收藏夹内容
-  //   const favorite = favorites.value.find(f => f.id === id);
-    
-  //   if (favorite) {
-  //     // 播放收藏夹内容
-  //     playerStore.playList({
-  //       id: String(id),
-  //       title: favorite.title,
-  //       type: 'favorite',
-  //       items: favoriteStore.medias
-  //     });
-      
-  //     ElMessage.success(`开始播放收藏夹: ${favorite.title}`);
-  //   }
-  // } catch (error) {
-  //   console.error('播放收藏夹失败:', error);
-  //   ElMessage.error('播放收藏夹失败');
-  // } finally {
-  //   loading.value = false;
-  // }
+  try {
+    // 完整加载收藏夹内容
+    await favoriteStore.fetchFavoriteContent(Number(id), true);
+    if (favoriteStore.medias.length > 0) {
+      queueStore.setQueue(favoriteStore.medias);
+      playerStore.play(favoriteStore.medias[0]);
+    }
+  } catch (error) {
+    console.error('播放收藏夹失败:', error);
+    ElMessage.error('播放收藏夹失败');
+  }
 };
 
 // 加载分区数据
@@ -291,7 +279,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 @import './styles/music-grid.scss';
 
 .empty-tip {
@@ -315,39 +303,5 @@ onMounted(() => {
   ol {
     padding-left: 20px;
   }
-}
-
-.default-cover {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  color: var(--el-text-color-secondary);
-  background-color: var(--el-fill-color);
-}
-
-.play-button {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: var(--el-color-primary);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.music-item:hover .play-button {
-  opacity: 1;
 }
 </style>

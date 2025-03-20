@@ -2,7 +2,7 @@
   <Layout>
     <template #main>
       <div class="playlist-container" ref="containerRef">
-        <div class="playlist-scroll" @scroll="handleScroll" ref="scrollRef">
+        <div class="playlist-scroll" ref="scrollRef">
           <!-- 列表头部 -->
           <ListHeader 
             :title="currentInfo?.title"
@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onBeforeMount, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, onBeforeMount, onMounted, onUnmounted } from 'vue';
 import { useFavoriteContentStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import MediaTable from '../components/songList/MediaTable.vue';
@@ -90,8 +90,8 @@ async function loadContent() {
     console.error('获取收藏夹信息失败:', error);
   }
   
-  // 加载收藏夹内容
-  await favoriteContentStore.fetchFavoriteContent(Number(id));
+  // 完整加载收藏夹内容
+  await favoriteContentStore.fetchFavoriteContent(Number(id), true);
 }
 
 /**
@@ -99,50 +99,6 @@ async function loadContent() {
  */
 function removeContent() {
   favoriteContentStore.reset();
-}
-
-// 添加一个标志位，防止连续触发加载
-const isLoadingMore = ref(false);
-
-/**
- * @desc 加载更多内容
- */
-async function loadMoreContent() {
-  if (!favoriteContentStore.hasMore || favoriteContentStore.loading || isLoadingMore.value) return;
-  
-  // 设置标志位，防止连续触发
-  isLoadingMore.value = true;
-  
-  // 记录当前滚动位置
-  const scrollPosition = scrollRef.value?.scrollTop || 0;
-  
-  await favoriteContentStore.loadMoreFavoriteContent();
-  
-  // 使用 nextTick 确保 DOM 更新后再恢复滚动位置
-  nextTick(() => {
-    if (scrollRef.value) {
-      scrollRef.value.scrollTop = scrollPosition;
-    }
-    
-    // 重置标志位
-    setTimeout(() => {
-      isLoadingMore.value = false;
-    }, 200);
-  });
-}
-
-/**
- * @desc 处理滚动事件，实现触底加载
- */
-function handleScroll() {
-  if (!scrollRef.value) return;
-  
-  const { scrollTop, scrollHeight, clientHeight } = scrollRef.value;
-  
-  // 距离底部 100px 时加载更多
-  if (scrollHeight - scrollTop - clientHeight < 100) {
-    loadMoreContent();
-  }
 }
 
 /**

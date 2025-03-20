@@ -2,19 +2,19 @@
   <Layout>
     <template #main>
       <div class="playlist-container" ref="containerRef">
-        <div class="playlist-scroll" @scroll="handleScroll" ref="scrollRef">
+        <div class="playlist-scroll">
           <!-- 列表头部 -->
           <ListHeader 
-            :title="currentInfo?.title"
-            :cover="currentInfo?.cover"
-            :count="currentInfo?.media_count"
+            :title="info?.title"
+            :cover="info?.cover"
+            :count="info?.media_count"
           />
 
           <!-- 播放列表内容 -->
           <div class="playlist-content">
             <!-- 控制栏 -->
             <ListControls
-              :disabled="!store.items.length"
+              :disabled="!medias.length"
               @update:sort="handleSort"
               @play-all="handlePlayAll"
               @sort="handleSort"
@@ -23,24 +23,19 @@
             <!-- 表格 -->
             <MediaTable
               type="season"
-              :data="store.items"
-              :loading="store.loading"
+              :data="medias"
+              :loading="seasonStore.loading"
               @play="handlePlay"
             />
 
             <!-- 加载状态 -->
-            <div v-if="store.loading" class="loading-more">
+            <div v-if="seasonStore.loading" class="loading-more">
               <el-icon class="is-loading"><Loading /></el-icon>
               <span>加载中...</span>
             </div>
 
-            <!-- 无更多数据 -->
-            <div v-if="!store.hasMore && store.items.length > 0" class="no-more">
-              没有更多数据了
-            </div>
-
             <!-- 无数据 -->
-            <div v-if="!store.loading && store.items.length === 0" class="empty-data">
+            <div v-if="!seasonStore.loading && medias.length === 0" class="empty-data">
               暂无数据
             </div>
           </div>
@@ -52,7 +47,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, computed, onBeforeMount, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
 import { useSeasonStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
@@ -64,92 +59,40 @@ import MediaTable from '../components/songList/MediaTable.vue';
 const route = useRoute();
 const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
-const store = useSeasonStore();
+const seasonStore = useSeasonStore();
 
 const { id } = route.params;
 
 // 滚动容器引用
-const scrollRef = ref<HTMLElement | null>(null);
+// const scrollRef = ref<HTMLElement | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 
-/**
- * @desc 获取当前内容信息
- */
-const currentInfo = computed(() => {
-  return store.currentSeason;
-});
+// 计算属性
+const info = computed(() => seasonStore.seasonContents?.info || null);
+const medias = computed(() => seasonStore.seasonContents?.medias || []);
 
 /**
  * @desc 加载内容
  */
 async function loadContent() {  
   if (!id) return;
-  await store.fetchSeasonContent(Number(id));
+  await seasonStore.fetchAllSeasonContent(Number(id));
 }
 
 /**
  * @desc 移除内容
  */
 function removeContent() {
-  store.items = [];
-  store.currentSeason = null;
-}
-
-// 添加一个标志位，防止连续触发加载
-const isLoadingMore = ref(false);
-
-/**
- * @desc 加载更多内容
- */
-async function loadMoreContent() {
-  if (!store.hasMore || store.loading || isLoadingMore.value) return;
-  
-  // 设置标志位，防止连续触发
-  isLoadingMore.value = true;
-  
-  // 记录当前滚动位置
-  const scrollPosition = scrollRef.value?.scrollTop || 0;
-  
-  if (store.loadMoreSeasonContent) {
-    await store.loadMoreSeasonContent();
-  }
-  
-  // 使用 nextTick 确保 DOM 更新后再恢复滚动位置
-  nextTick(() => {
-    // 延迟一点时间，确保 DOM 完全渲染
-    setTimeout(() => {
-      // 恢复滚动位置
-      if (scrollRef.value) {
-        scrollRef.value.scrollTop = scrollPosition;
-      }
-      
-      // 重置标志位
-      isLoadingMore.value = false;
-    }, 50);
-  });
-}
-
-/**
- * @desc 处理滚动事件，实现触底加载
- */
-function handleScroll() {
-  if (!scrollRef.value || isLoadingMore.value) return;
-  
-  const { scrollTop, scrollHeight, clientHeight } = scrollRef.value;
-  
-  // 当滚动到距离底部100px时触发加载更多
-  if (scrollHeight - scrollTop - clientHeight < 100) {
-    loadMoreContent();
-  }
+  seasonStore.reset();
 }
 
 /**
  * @desc 播放全部
  */
 function handlePlayAll() {
-  if (store.items.length > 0) {
-    queueStore.setQueue(store.items);
-    playerStore.play(store.items[0]);
+  if (medias.value.length > 0) {
+    queueStore.setQueue(medias.value);
+    playerStore.play(medias.value[0]);
   }
 }
 
@@ -157,7 +100,7 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  queueStore.setQueue(store.items);
+  queueStore.setQueue(medias.value);
   playerStore.play(item);
 }
 
