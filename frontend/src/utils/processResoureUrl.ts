@@ -54,11 +54,12 @@ function processBiliAudioUrl(url: string): string {
     if (!url) return '';
     
     // 获取JWT令牌
-    const token = getToken();
+    // const token = getToken();
     
     // 将完整的原始URL作为参数传递给后端代理接口
     // 如果有令牌，则添加到URL中
-    return `/api/play/url?url=${encodeURIComponent(url)}&token=${token}`;
+    // return `/api/play/url?url=${encodeURIComponent(url)}&token=${token}`;
+    return `/api/play/url?url=${encodeURIComponent(url)}`;
 }
 
 /**

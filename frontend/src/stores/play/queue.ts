@@ -13,6 +13,7 @@ export const useQueueStore = defineStore('queue', () => {
   const error = ref<string>('');
   const audioUrl = ref<string>('');
   const currentIndex = ref(-1); // 当前播放索引
+  const isPopup = ref(false); // 队列弹出状态
 
   // 计算属性
   const isPlaying = computed(() => !!currentTrack.value && !!audioUrl.value);
@@ -90,6 +91,16 @@ export const useQueueStore = defineStore('queue', () => {
     }
   }
 
+  // 切换队列弹出状态
+  function togglePopup() {
+    isPopup.value = !isPopup.value;
+  }
+
+  // 设置队列弹出状态
+  function setPopupState(state: boolean) {
+    isPopup.value = state;
+  }
+
   // 重置状态
   function reset() {
     currentTrack.value = null;
@@ -98,6 +109,7 @@ export const useQueueStore = defineStore('queue', () => {
     error.value = '';
     audioUrl.value = '';
     currentIndex.value = -1;
+    isPopup.value = false;
   }
 
   return {
@@ -108,6 +120,7 @@ export const useQueueStore = defineStore('queue', () => {
     error,
     audioUrl,
     currentIndex,
+    isPopup,
     // 计算属性
     isPlaying,
     currentIndexComputed,
@@ -121,6 +134,8 @@ export const useQueueStore = defineStore('queue', () => {
     setCurrentIndex,
     nextIndex,
     prevIndex,
+    togglePopup,
+    setPopupState,
     reset
   };
 });

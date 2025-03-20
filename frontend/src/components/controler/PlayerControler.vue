@@ -43,7 +43,7 @@
 
     <!-- 右侧：音量控制等 -->
     <div class="player-options">
-      <i class="ri-play-list-line"></i>
+      <i class="ri-play-list-line" @click="toggleQueue"></i>
       <i :class="[playStore.volume === 0 ? 'ri-volume-mute-line' : 'ri-volume-up-line']" @click="toggleMute"></i>
       <!-- 使用自定义音量控制组件 -->
       <VolumeBar
@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import defaultCover from '@/assets/image/music_cover.jpg';
 import { usePlayerStore, useQueueStore } from '../../stores';
 import { processResourceUrl } from '../../utils/processResoureUrl';
@@ -75,7 +75,7 @@ const volumeValue = ref(playStore.volume * 100);
 const currentProgress = ref(0);
 
 // 当前播放项
-const currentTrack = computed(() => queueStore.currentItem);
+// const currentTrack = computed(() => queueStore.currentItem);
 
 // 监听播放时间变化，更新进度条
 watch(() => playStore.currentTime, (newTime) => {
@@ -136,6 +136,11 @@ function toggleMute() {
   }
   playStore.setVolume();
 }
+
+// 切换播放队列显示状态
+function toggleQueue() {
+  queueStore.togglePopup();
+}
 </script>
 
 <style lang="scss" scoped>
@@ -161,7 +166,8 @@ function toggleMute() {
     }
 
     .track-info {
-      width: 250px;
+      min-width: 15%;
+      max-width: 250px;
       .track-name {
         font-size: 14px;
         font-weight: 500;
@@ -234,7 +240,8 @@ function toggleMute() {
   }
 
   .player-options {
-    width: 250px;
+    min-width: 15%;
+    max-width: 250px;
     display: flex;
     justify-content: end;
     align-items: center;

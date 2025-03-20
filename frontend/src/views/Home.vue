@@ -17,8 +17,6 @@ import CategoryTabs from '../components/songLists/CategoryTabs.vue';
 import Favorites from '../components/songLists/Favorites.vue';
 import Seasons from '../components/songLists/Seasons.vue';
 import SectionList from '../components/songLists/SectionList.vue';
-
-
 </script>
 
 <style lang="scss" scoped>

@@ -74,10 +74,18 @@ export async function getAudioUrl(params: {
       throw new Error('没有可用的音频流');
     }
     
-    // 优先使用备用URL，如果没有则使用主URL
+    /**
+     * 优先使用备用URL
+     * 主URL相关逻辑之后在实现
+     * 相关参考：
+     *   - [解决B站PCDN卡顿问题 - 哔哩哔哩](https://www.bilibili.com/opus/973262060589678611)
+     *   - [B站卡顿优化-PC端禁用PCDN – 栋dong的个人站点](https://itdong.me/bilibili_pcdn/)
+     */
     const backupUrls = targetStream.backupUrl || targetStream.backup_url;
     if (backupUrls && backupUrls.length > 0) {
-      return backupUrls[0];
+      // 先匹配 UPOS CDN
+      const uposUrl = backupUrls.find(url => url.includes("upos-"));    
+      return uposUrl || backupUrls[0]; // 找不到就用第一个 URL
     }
     
     return targetStream.baseUrl || targetStream.base_url;

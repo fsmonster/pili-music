@@ -121,8 +121,6 @@ import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from '../songLists/ContentSection.vue';
 import { useSectionStore } from '../../stores';
-import { useFavoriteStore } from '../../stores/list/favorite';
-import { usePlayerStore } from '../../stores/play/player';
 import { processResourceUrl, extractFavoriteIdFromUrl } from '../../utils';
 import type { FavoriteInfo, SectionWithFavorites } from '../../types';
 
@@ -136,13 +134,10 @@ const router = useRouter();
 
 // Store
 const sectionStore = useSectionStore();
-const favoriteStore = useFavoriteStore();
-const playerStore = usePlayerStore();
 
 // 状态
 const section = ref<SectionWithFavorites | null>(null);
 const loading = ref(false);
-const error = ref('');
 const favoriteUrl = ref('');
 
 // 对话框状态

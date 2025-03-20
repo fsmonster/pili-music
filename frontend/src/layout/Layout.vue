@@ -14,6 +14,9 @@
 
     <!-- 底部播放控制栏 -->
     <PlayerControler class="player" />
+    
+    <!-- 播放队列 -->
+    <Queue />
   </div>
 </template>
 
@@ -21,6 +24,7 @@
 import Sidebar from './Sidebar.vue';
 import Header from './Header.vue';
 import PlayerControler from './PlayerControler.vue';
+import Queue from '@/components/queue/Queue.vue';
 </script>
 
 <style lang="scss" scoped>

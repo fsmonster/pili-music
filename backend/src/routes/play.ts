@@ -4,26 +4,16 @@ import axios from 'axios';
 const router = express.Router();
 
 /**
- * 用户认证请求接口扩展
- */
-// interface AuthRequest extends Request {
-//   user?: {
-//     mid: string;
-//     sessdata: string;
-//   };
-// }
-
-/**
  * @desc 音频流代理接口
  * @route GET /api/play/url
  * @param {string} url - 音频URL
  * @param {string} range - 前端传来的 Range 头，用于支持 Range 请求
- * @param {string} token - 令牌
  * @returns {stream} - 音频流
  * @access Public - 不需要JWT认证
  */
 router.get("/url", async (req: Request, res: Response) => {
-  const { url, token } = req.query;
+  // const { url, token } = req.query;
+  const { url } = req.query;
   const range = req.headers.range; // 获取前端传来的 Range 头
 
   if (!url) {
@@ -40,17 +30,17 @@ router.get("/url", async (req: Request, res: Response) => {
     
     // 尝试从 JWT 中获取 SESSDATA
     // 如果请求中有 token 参数，则解析它
-    if (token && typeof token === 'string') {
-      try {
-        const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-        if (decoded && decoded.sessdata) {
-          headers.Cookie = `SESSDATA=${decoded.sessdata}`;
-        }
-      } catch (err) {
-        const error = err as Error;
-        console.error("解析令牌失败:", error.message);
-      }
-    }
+    // if (token && typeof token === 'string') {
+    //   try {
+    //     const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    //     if (decoded && decoded.sessdata) {
+    //       headers.Cookie = `SESSDATA=${decoded.sessdata}`;
+    //     }
+    //   } catch (err) {
+    //     const error = err as Error;
+    //     console.error("解析令牌失败:", error.message);
+    //   }
+    // }
     
     if (range) {
       headers.Range = range; // 透传前端的 Range 请求头

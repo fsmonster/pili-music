@@ -2,8 +2,12 @@
   <div class="header">
     <div class="search-bar">
       <i class="ri-search-line"></i>
-      <input type="text" placeholder="搜索音乐 ♪(^∇^*)" />
+      <input type="text" placeholder="搜索音乐" />
     </div>
+    <!-- <div class="logo">
+      <i class="ri-bilibili-fill"></i>
+      <span>哔哩音乐 (｡･∀･)ﾉﾞ</span>
+    </div> -->
     <div class="user-info">
       <el-dropdown v-if="userStore.isLoggedIn">
         <div class="user-avatar">
@@ -62,6 +66,21 @@ const handleLogout = () => {
   padding: 16px 24px;
   background-color: var(--el-bg-color-overlay);
   border-bottom: 1px solid var(--el-border-color-light);
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;    
+    i {
+      font-size: 32px;
+      color: var(--el-color-primary);
+    }    
+    span {
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+  }
 
   .search-bar {
     display: flex;
