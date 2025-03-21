@@ -105,44 +105,18 @@ export const useSectionStore = defineStore('section', () => {
    * @desc 加载收藏夹内容
    * @param favoriteId 收藏夹ID
    */
-  const loadFavoriteContent = async (favoriteId: number) => {
-    // 这里可以直接调用 favorite API 加载收藏夹内容
-    try {
-      const content = await favoriteApi.getFavoriteContent({
-        media_id: favoriteId,
-        pn: 1,
-        ps: 20
-      });
-      return content;
-    } catch (error) {
-      console.error('加载收藏夹内容失败:', error);
-      throw error;
-    }
-  };
-  
-  /**
-   * @desc 获取分区详情
-   * @param sectionId 分区ID
-   * @returns 分区信息
-   */
-  // const getSectionById = async (sectionId: string): Promise<SectionWithFavorites | null> => {
+  // const loadFavoriteContent = async (favoriteId: number) => {
+  //   // 这里可以直接调用 favorite API 加载收藏夹内容
   //   try {
-  //     // 获取分区基本信息
-  //     const section = await sectionApi.getSectionById(sectionId);
-      
-  //     // 获取分区内容（收藏夹列表）
-  //     const favorites = await fetchSectionContent(sectionId, section);
-      
-  //     // 返回带有收藏夹信息的分区
-  //     return {
-  //       ...section,
-  //       name: section.name,
-  //       media_count: section.mediaIds.length,
-  //       favorites
-  //     };
+  //     const content = await favoriteApi.getFavoriteContent({
+  //       media_id: favoriteId,
+  //       pn: 1,
+  //       ps: 20
+  //     });
+  //     return content;
   //   } catch (error) {
-  //     console.error('获取分区详情失败:', error);
-  //     return null;
+  //     console.error('加载收藏夹内容失败:', error);
+  //     throw error;
   //   }
   // };
   
@@ -309,6 +283,14 @@ export const useSectionStore = defineStore('section', () => {
       throw error;
     }
   };
+
+  /**
+   * @desc 刷新自定义分区列表
+   */
+  const refreshSections = async () => {
+    isLoaded.value = false;
+    await fetchSections();
+  };
   
   /**
    * @desc 获取用户所有 📦 自定义分区（如果未加载）
@@ -335,7 +317,7 @@ export const useSectionStore = defineStore('section', () => {
     // 方法
     fetchSections,
     fetchSectionContent,
-    loadFavoriteContent,
+    // loadFavoriteContent,
     // getSectionById,
     createSection,
     updateSection,
@@ -344,6 +326,7 @@ export const useSectionStore = defineStore('section', () => {
     removeMediaFromSection,
     clearSectionMedia,
     fetchSectionsIfNeeded,
+    refreshSections,
     reset
   };
 }, {

@@ -42,9 +42,9 @@ export const getTokenFromRequest = (req: Request): string | null => {
   }
   
   // 2. 如果没有 Authorization 头，尝试从 URL 参数中获取
-  if (req.query && req.query.token) {
-    return req.query.token as string;
-  }
+  // if (req.query && req.query.token) {
+  //   return req.query.token as string;
+  // }
   
   return null;
 };
@@ -79,6 +79,27 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
     mid: decoded.mid,
     sessdata: decoded.sessdata
   };
+  next();
+};
+
+/**
+ * 可选鉴权中间件
+ * 验证请求中的 JWT token，并将用户信息添加到 req.user
+ */
+export const optionalAuthMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  const token = getTokenFromRequest(req);
+  
+  if (token) {
+    const decoded = verifyToken(token);
+    
+    if (decoded) {
+      // 将解码后的用户信息添加到请求对象
+      req.user = {
+        mid: decoded.mid,
+        sessdata: decoded.sessdata
+      };
+    }
+  }
   next();
 };
 

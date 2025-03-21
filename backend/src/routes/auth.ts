@@ -101,7 +101,7 @@ router.get('/qrcode/status', async (req: Request, res: Response) => {
           
           // 生成JWT令牌，包含用户ID和SESSDATA
           const token = generateToken({
-            mid: userData.mid,
+            mid: Number(userData.mid),
             // uname: userData.uname,
             sessdata: sessdata
           });
@@ -278,7 +278,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
     if (response.data.code === 0 && response.data.data && response.data.data.isLogin) {
       // SESSDATA仍然有效，生成新的JWT令牌
       const newToken = generateToken({
-        mid,
+        mid: Number(mid),
         // uname,
         sessdata
       });

@@ -17,9 +17,9 @@
     <el-table-column type="index" width="50">
       <template #default="scope">
         <div v-if="isCurrentPlaying(scope.row)" class="playing-indicator">
-          <img src="../../assets/image/play.gif?random=123" alt="play">
+          <img src="../../assets/image/playing.gif" alt="GIF">
         </div>
-        <span v-else>{{ scope.$index + 1 }}</span>
+        <div v-else class="index">{{ scope.$index + 1 }}</div>
       </template>
     </el-table-column>
 
@@ -80,7 +80,7 @@
     <el-table-column 
       v-if="type === 'season'"
       label="上传时间" 
-      min-width="120"
+      width="150"
     >
       <template #default="{ row }">
         {{ new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(row.pubtime * 1000)) }}
@@ -122,10 +122,7 @@
             <!-- 索引列 -->
             <el-table-column width="60">
               <template #default="{ row: pageItem }">
-                <div v-if="isCurrentPlayingPage(pageItem)" class="playing-indicator">
-                  <!-- <div class="living-sprite"></div> -->
-                </div>
-                <div v-else class="page-index">P{{ pageItem.page }}</div>
+                <div class="page-index">P{{ pageItem.page }}</div>
               </template>
             </el-table-column>
 
@@ -140,7 +137,6 @@
                     @click="playPage(row, pageItem)"
                   >
                     <i class="ri-play-fill"></i>
-                    <i v-if="isCurrentPlayingPage(pageItem)" class="ri-music-line playing-icon"></i>
                   </el-button>
                 </div>
               </template>
@@ -149,7 +145,7 @@
             <!-- 分P标题列 -->
             <el-table-column min-width="250">
               <template #default="{ row: pageItem }">
-                <div class="page-title">{{ pageItem.part }}</div>
+                <div class="page-title" :class="{ 'playing-page': isCurrentPlayingPage(pageItem) }">{{ pageItem.part }}</div>
               </template>
             </el-table-column>
 
@@ -338,6 +334,21 @@ watch(() => props.data, () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 5px;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 10px;
 }
 
 .media-info {
@@ -410,9 +421,6 @@ watch(() => props.data, () => {
     &.playing {
       color: var(--el-color-primary);
     }
-    &.playing:hover {
-      text-decoration: underline;
-    }
   } 
   .multi-page-indicator {
     font-size: 12px;
@@ -477,6 +485,11 @@ watch(() => props.data, () => {
     .page-title {
       font-size: 13px;
       @include mixins.text-ellipsis();
+    }
+    
+    .playing-page {
+      color: var(--el-color-primary);
+      font-style: italic;
     }
   }
   

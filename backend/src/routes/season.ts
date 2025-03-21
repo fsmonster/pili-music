@@ -1,14 +1,14 @@
 import express, { Request, Response } from 'express';
 import axios from 'axios';
-import authMiddleware from '../middleware/auth.js';
+import {authMiddleware, optionalAuthMiddleware} from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
 import * as seasonController from '../controllers/seasonController.js';
+import { getHeaders } from '../utils/getHeader.js';
 
 const router = express.Router();
 
-// 应用认证中间件到需要认证的路由
-router.use('/collected', authMiddleware);
-router.use('/display', authMiddleware);
+// 可选鉴权中间件
+router.use('/collected/list', optionalAuthMiddleware);
 
 /**
  * @route   GET /api/season/collected/list
@@ -16,21 +16,25 @@ router.use('/display', authMiddleware);
  * @param {number} up_mid - 用户uid
  * @param {number} pn - 页码
  * @param {number} ps - 每页项数
- * @access  Private - 需要JWT认证
+ * @access  Optional - 可选鉴权
  */
 router.get('/collected/list', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ 
-        code: 401, 
-        message: '未授权访问' 
-      });
-    }
+    // if (!req.user) {
+    //   return res.status(401).json({ 
+    //     code: 401, 
+    //     message: '未授权访问' 
+    //   });
+    // }
     
-    const { sessdata } = req.user;
+    // const { sessdata } = req.user;
     
     const { pn, ps, up_mid='' } = req.query;
-  
+
+    const sessdata = req.user?.sessdata; // 可能为 undefined
+
+    const headers = getHeaders(sessdata);
+
     // 调用B站API获取订阅合集列表
     const response = await axios.get('https://api.bilibili.com/x/v3/fav/folder/collected/list', {
       params: {
@@ -39,11 +43,7 @@ router.get('/collected/list', async (req: AuthRequest, res: Response) => {
         up_mid,
         platform:'web'
       },
-      headers: {
-        Cookie: `SESSDATA=${sessdata}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.bilibili.com'
-      }
+      headers
     });
   
     res.json(response.data);
@@ -92,6 +92,9 @@ router.get('/season/list', async (req: Request, res: Response) => {
     });
   }
 });
+
+// 应用认证中间件到需要认证的路由
+router.use('/display', authMiddleware);
 
 /**
  * @route   GET /api/season/display

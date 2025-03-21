@@ -138,6 +138,7 @@ export const useFavoriteStore = defineStore('favorite', () => {
    * @desc 刷新收藏夹列表
    */
   const refreshFavorites = async () => {
+    isLoaded.value = false;
     await fetchDisplayFavorites();
     await fetchFavorites();
   };

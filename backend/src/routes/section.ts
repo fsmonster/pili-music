@@ -78,42 +78,6 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 });
 
 /**
- * @route   GET /api/section/:id/content
- * @desc    获取指定自定义分区内容（保留此路由以兼容旧版前端）
- * @access  Private - 需要JWT认证
- */
-// router.get('/:id/content', async (req: AuthRequest, res: Response) => {
-//   try {
-//     if (!req.user) {
-//       return res.status(401).json({ 
-//         code: 401, 
-//         message: '未授权访问' 
-//       });
-//     }
-
-//     const { mid } = req.user;
-//     const sectionId = req.params.id;
-    
-//     // 获取指定分区内容
-//     const section = await sectionController.getSectionContent(mid, sectionId);
-    
-//     res.json({
-//       code: 0,
-//       message: '获取成功',
-//       data: section
-//     });
-//   } catch (error) {
-//     const message = error instanceof Error ? error.message : '获取分区内容失败';
-//     const statusCode = message.includes('不存在') ? 404 : 500;
-    
-//     res.status(statusCode).json({ 
-//       code: statusCode, 
-//       message 
-//     });
-//   }
-// });
-
-/**
  * @route   POST /api/section
  * @desc    创建新的自定义分区
  * @access  Private - 需要JWT认证

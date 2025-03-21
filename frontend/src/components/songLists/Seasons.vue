@@ -5,7 +5,7 @@
     :show-refresh="true" 
     :isEmpty="!seasonStore.seasons.length && !seasonStore.loading"
     @manage="showManageDialog = true"
-    @refresh="seasonStore.fetchSeasonsIfNeeded()">
+    @refresh="seasonStore.refreshSeasons()">
     <template #icon>
       <i class="ri-stack-line"></i>
     </template>

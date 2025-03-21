@@ -2,8 +2,10 @@
   <ContentSection 
     :title="section?.name || ''" 
     :show-manage="true" 
-    :isEmpty="!favorites.length"
+    :show-refresh="true" 
+    :isEmpty="!favorites.length && !loading"
     @manage="showManageDialog = true"
+    @refresh="sectionStore.refreshSections()"
   >
     <!-- 图标插槽 -->
     <template #icon>
@@ -186,6 +188,17 @@ const loadSectionData = async () => {
     const sectionData = sectionStore.sections.find(s => s._id === props.sectionId);
     if (sectionData) {
       section.value = sectionData;
+      
+      // 如果没有收藏夹信息或收藏夹信息为空，则加载收藏夹内容
+      if (!sectionData.favorites || sectionData.favorites.length === 0) {
+        // 加载分区的收藏夹内容
+        const favorites = await sectionStore.fetchSectionContent(props.sectionId, sectionData);
+        
+        // 更新当前 section 的 favorites
+        if (section.value) {
+          section.value.favorites = favorites;
+        }
+      }
     }
     
   } catch (error) {

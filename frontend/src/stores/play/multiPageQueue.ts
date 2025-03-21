@@ -13,7 +13,7 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
   const currentAid = ref<number | null>(null);
   
   // 计算属性
-  const currentPageInfo = computed(() => {
+  const currentPageInfo = computed((): CidInfo | null => {
     if (!isMultiPage.value || pageList.value.length === 0) return null;
     // 页码从1开始，数组索引从0开始
     const index = selectedPage.value - 1;
@@ -36,7 +36,7 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
     pageList.value = pages;
     isMultiPage.value = pages.length > 1;
     // 默认选择第一页
-    selectedPage.value = 1;
+      selectedPage.value = 1;
   }
   
   // 重置状态

@@ -72,6 +72,7 @@ export const useSeasonStore = defineStore('season', () => {
 
     // 刷新订阅合集
     const refreshSeasons = async () => {
+        isLoaded.value = false;
         await fetchDisplaySeasons();
         await fetchSeasons();
     };
