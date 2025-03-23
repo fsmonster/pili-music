@@ -157,19 +157,22 @@ export const useFavoriteStore = defineStore('favorite', () => {
   const reset = () => {
     loading.value = false;
     error.value = '';
+    isLoaded.value = false;
+    displayFavoriteIds.value = [];
+    allFavorites.value = [];
   };
 
   return {
     // 状态
     loading,
     error,
-    
-    // 收藏夹特有状态
     allFavorites,
     displayFavoriteIds,
-    favorites,
     isLoaded,
     
+    // 计算属性
+    favorites,
+
     // 方法
     fetchDisplayFavorites,
     updateDisplaySettings,

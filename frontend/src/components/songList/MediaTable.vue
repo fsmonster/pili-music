@@ -78,7 +78,7 @@
 
     <!-- 上传时间列 -->
     <el-table-column 
-      v-if="type === 'season'"
+      v-if="type === 'season' || type === 'series'"
       label="上传时间" 
       width="150"
     >
@@ -191,7 +191,7 @@ import type { MediaItem, CidInfo } from '../../types';
 
 const props = defineProps<{
   data: MediaItem[];
-  type:'favorite' | 'season'
+  type:'favorite' | 'season' | 'series'
   loading?: boolean;
   maxHeight?: number;
   options?: {
@@ -359,8 +359,9 @@ watch(() => props.data, () => {
   
   .media-cover-container {
     position: relative;
-    width: 40px;
+    // width: 40px;
     height: 40px;
+    aspect-ratio: 4/3;
     border-radius: 4px;
     overflow: hidden;
     

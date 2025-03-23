@@ -55,6 +55,37 @@ router.get('/collected/list', async (req: AuthRequest, res: Response) => {
     });
   }
 });
+
+/**
+ * @route   GET /api/season/meta/:season_id
+ * @desc    查询系列meta信息
+ * @param {number} season_id - 合集ID
+ * @access  Public - 不需要登录
+ */
+router.get('/meta/:season_id', async (req: Request, res: Response) => {
+  try {
+    const { season_id } = req.params;
+    
+    // 调用B站API获取系列meta信息
+    const response = await axios.get('https://api.bilibili.com/x/series/season', {
+      params: {
+        season_id
+      },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://www.bilibili.com'
+      }
+    });
+  
+    res.json(response.data);
+  } catch (error) {
+    console.error('获取系列meta信息失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取系列meta信息失败' 
+    });
+  }
+});
   
 /**
  * @route   GET /api/season/season/list

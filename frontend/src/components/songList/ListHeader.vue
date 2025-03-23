@@ -41,8 +41,9 @@ defineProps<{
 }
 
 .cover {
-  width: 200px;
-  height: 200px;
+  // width: 200px;
+  height: 150px;
+  aspect-ratio: 16/9;
   overflow: hidden;
   border-radius: 8px;
   background-color: rgb(64 158 255 / 4%);

@@ -6,6 +6,7 @@
         <SectionList :categories="selectedCategories" />
         <Favorites v-if="selectedCategories.includes('favorite') || isAllSelected"/>
         <Seasons v-if="selectedCategories.includes('season') || isAllSelected"/>
+        <Series v-if="selectedCategories.includes('series') || isAllSelected"/>
       </div>
     </template>
   </Layout>
@@ -16,6 +17,7 @@ import Layout from '../layout/Layout.vue';
 import CategoryTabs from '../components/songLists/CategoryTabs.vue';
 import Favorites from '../components/songLists/Favorites.vue';
 import Seasons from '../components/songLists/Seasons.vue';
+import Series from '../components/songLists/Series.vue';
 import SectionList from '../components/songLists/SectionList.vue';
 
 import { ref, computed } from 'vue';

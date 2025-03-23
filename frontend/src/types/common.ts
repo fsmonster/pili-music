@@ -28,7 +28,7 @@ export interface MediaItem {
   /**
    * 状态数
    */
-  cnt_info: MediaCntInfo;
+  cnt_info?: MediaCntInfo;
   /**
    * 封面url
    */
@@ -100,7 +100,7 @@ export interface MediaItem {
   /**
    * UP主信息
    */
-  upper: MediaUpper;
+  upper?: MediaUpper;
   /**
    * 🎵 是否启用 vt
    */

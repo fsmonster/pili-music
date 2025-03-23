@@ -6,6 +6,7 @@ export * from './auth';
 export * from './user';
 export * from './favorite';
 export * from './season';
+export * from './series';
+export * from './section';
 export * from './video';
 export * from './audio';
-export * from './section';

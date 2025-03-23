@@ -156,51 +156,51 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
   /**
    * @desc 加载更多收藏夹内容 - 懒加载
    */
-  const loadMoreFavoriteContent = async () => {
-    if (!hasMore.value || loading.value || !currentFavoriteId.value) return;
+  // const loadMoreFavoriteContent = async () => {
+  //   if (!hasMore.value || loading.value || !currentFavoriteId.value) return;
     
-    loading.value = true;
+  //   loading.value = true;
     
-    try {
-      // 获取下一页数据
-      const moreContent = await favoriteApi.getFavoriteContent({
-        media_id: currentFavoriteId.value,
-        pn: page.value + 1,
-        ps: pageSize.value
-      });
+  //   try {
+  //     // 获取下一页数据
+  //     const moreContent = await favoriteApi.getFavoriteContent({
+  //       media_id: currentFavoriteId.value,
+  //       pn: page.value + 1,
+  //       ps: pageSize.value
+  //     });
       
-      // 添加到列表
-      appendFavoriteContent(moreContent);
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : '加载更多收藏夹内容失败';
-      console.error('加载更多收藏夹内容失败:', err);
-    } finally {
-      loading.value = false;
-    }
-  };
+  //     // 添加到列表
+  //     appendFavoriteContent(moreContent);
+  //   } catch (err) {
+  //     error.value = err instanceof Error ? err.message : '加载更多收藏夹内容失败';
+  //     console.error('加载更多收藏夹内容失败:', err);
+  //   } finally {
+  //     loading.value = false;
+  //   }
+  // };
 
   /**
    * @desc 获取更多收藏夹内容 - 用于分页加载
    * @param favoriteId 收藏夹ID
    */
-  const fetchMoreFavoriteContent = async (favoriteId: number) => {
-    if (loading.value) return;
+  // const fetchMoreFavoriteContent = async (favoriteId: number) => {
+  //   if (loading.value) return;
     
-    // 如果是不同的收藏夹，重新加载
-    if (currentFavoriteId.value !== favoriteId) {
-      return fetchFavoriteContent(favoriteId);
-    }
+  //   // 如果是不同的收藏夹，重新加载
+  //   if (currentFavoriteId.value !== favoriteId) {
+  //     return fetchFavoriteContent(favoriteId);
+  //   }
     
-    // 否则加载更多
-    return loadMoreFavoriteContent();
-  };
+  //   // 否则加载更多
+  //   return loadMoreFavoriteContent();
+  // };
 
   // 重置状态
   const reset = () => {
-    favoriteContent.value = null;
     loading.value = false;
     error.value = '';
     page.value = 1;
+    favoriteContent.value = null;
     currentFavoriteId.value = null;
   };
 
@@ -222,8 +222,8 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
     appendFavoriteContent,
     fetchFavoriteContent,
     fetchAllFavoriteContent,
-    loadMoreFavoriteContent,
-    fetchMoreFavoriteContent,
+    // loadMoreFavoriteContent,
+    // fetchMoreFavoriteContent,
     reset
   };
 }, {

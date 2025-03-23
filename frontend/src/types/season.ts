@@ -1,4 +1,4 @@
-import type { MediaItem, Info, Upper } from "./common";
+import type { MediaItem, Info, Upper, Archive, SeasonsMeta } from "./index";
 export interface SeasonListParams {
   /**
    * 填写web 返回值才会包含用户收藏的视频合集
@@ -90,5 +90,24 @@ export interface SeasonContentResponse {
    * 收藏夹中的具体媒体列表
    */
   medias: MediaItem[];
+  [property: string]: any;
+}
+
+/**
+ * 用户合集
+ */
+export interface UserSeasonList {
+  /**
+   * 该合集下的视频列表
+   */
+  archives: Archive[];
+  /**
+   * 该合集的元数据
+   */
+  meta: SeasonsMeta;
+  /**
+   * 该合集中最近更新的视频 AV 号
+   */
+  recent_aids: number[];
   [property: string]: any;
 }

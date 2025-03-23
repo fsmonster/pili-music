@@ -110,6 +110,9 @@ export const useSeasonStore = defineStore('season', () => {
     const reset = () => {
         loading.value = false;
         error.value = '';
+        isLoaded.value = false;
+        allSeasons.value = [];
+        displaySeasonIds.value = [];
         seasonContents.value = null;
     };
 

@@ -10,15 +10,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useSectionStore } from '@/stores/list/section';
-import { storeToRefs } from 'pinia';
+import { computed, onMounted, watch } from 'vue';
+import { useUserStore, useSectionStore } from '@/stores';
 import SectionContents from './SectionContents.vue';
 
-import { computed } from 'vue';
-
-const isAllSelected = computed(() => props.categories.length === 0);
-const filteredSections = computed(() => sections.value.filter(section => props.categories.includes(section._id) || isAllSelected.value));
+const userStore = useUserStore();
 
 // 接收父组件传来的 categories
 const props = defineProps<{
@@ -27,7 +23,13 @@ const props = defineProps<{
 
 // 获取自定义分区数据
 const sectionStore = useSectionStore();
-const { sections } = storeToRefs(sectionStore);
+const sections = sectionStore.sections;
+
+const isAllSelected = computed(() => props.categories.length === 0);
+const filteredSections = computed(() => sections.filter(section => props.categories.includes(section._id) || isAllSelected.value));
+
+// 监听登录状态变化
+watch(() => userStore.isLoggedIn, sectionStore.fetchSectionsIfNeeded);
 
 // 组件挂载时加载分区数据
 onMounted(async () => {

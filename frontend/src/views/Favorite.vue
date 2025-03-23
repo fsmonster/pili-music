@@ -1,8 +1,8 @@
 <template>
   <Layout>
     <template #main>
-      <div class="playlist-container" ref="containerRef">
-        <div class="playlist-scroll" ref="scrollRef">
+      <div class="playlist-container">
+        <div class="playlist-scroll">
           <!-- 列表头部 -->
           <ListHeader 
             :title="currentInfo?.title"
@@ -34,11 +34,6 @@
               <span>加载中...</span>
             </div>
 
-            <!-- 无更多数据 -->
-            <div v-if="!favoriteContentStore.hasMore && favoriteContentStore.medias.length > 0" class="no-more">
-              没有更多数据了
-            </div>
-
             <!-- 无数据 -->
             <div v-if="!favoriteContentStore.loading && favoriteContentStore.medias.length === 0" class="empty-data">
               暂无数据
@@ -68,10 +63,6 @@ const queueStore = useQueueStore();
 const favoriteContentStore = useFavoriteContentStore();
 
 const { id } = route.params;
-
-// 容器和滚动区域引用
-const containerRef = ref<HTMLElement | null>(null);
-const scrollRef = ref<HTMLElement | null>(null);
 
 // 当前收藏夹信息
 const currentInfo = ref<any>(null);
@@ -135,11 +126,9 @@ const tableMaxHeight = ref(500);
  * 计算表格高度
  */
 function calculateTableHeight() {
-  if (containerRef.value) {
-    const windowHeight = window.innerHeight;
-    // 减去其他元素的高度，如头部、控制栏等
-    tableMaxHeight.value = windowHeight - 200;
-  }
+  const windowHeight = window.innerHeight;
+  // 减去其他元素的高度，如头部、控制栏等
+  tableMaxHeight.value = windowHeight - 200;
 }
 
 /**
@@ -164,33 +153,6 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
-.playlist-container {
-  height: 100%;
-  overflow: hidden;
-}
-
-.playlist-scroll {
-  height: 100%;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.playlist-content {
-  margin-top: 20px;
-}
-
-.loading-more, .no-more, .empty-data {
-  text-align: center;
-  padding: 20px 0;
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-}
-
-.loading-more {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
+<style lang="scss" scoped>
+@import './style/playlist.scss';
 </style>

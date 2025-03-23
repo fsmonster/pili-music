@@ -102,25 +102,6 @@ export const useSectionStore = defineStore('section', () => {
   };
   
   /**
-   * @desc 加载收藏夹内容
-   * @param favoriteId 收藏夹ID
-   */
-  // const loadFavoriteContent = async (favoriteId: number) => {
-  //   // 这里可以直接调用 favorite API 加载收藏夹内容
-  //   try {
-  //     const content = await favoriteApi.getFavoriteContent({
-  //       media_id: favoriteId,
-  //       pn: 1,
-  //       ps: 20
-  //     });
-  //     return content;
-  //   } catch (error) {
-  //     console.error('加载收藏夹内容失败:', error);
-  //     throw error;
-  //   }
-  // };
-  
-  /**
    * @desc 创建 📦 自定义分区
    * @param name 分区名称
    * @param description 分区描述
@@ -317,8 +298,6 @@ export const useSectionStore = defineStore('section', () => {
     // 方法
     fetchSections,
     fetchSectionContent,
-    // loadFavoriteContent,
-    // getSectionById,
     createSection,
     updateSection,
     deleteSection,

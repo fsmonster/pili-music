@@ -36,7 +36,16 @@
         :class="{ active: selectedCategories.includes('season') }"
         @click="toggleCategory('season')"
       >
-        <i class="ri-album-line"></i> 合集
+        <i class="ri-stack-line"></i> 合集
+      </div>
+
+      <!-- 系列标签 -->
+      <div 
+        class="tab-item" 
+        :class="{ active: selectedCategories.includes('series') }"
+        @click="toggleCategory('series')"
+      >
+        <i class="ri-list-check-2"></i> 系列
       </div>
       
       <!-- 添加分区 -->

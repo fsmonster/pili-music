@@ -1,8 +1,5 @@
 import axios from 'axios';
 import { getToken, isTokenExpired } from './token';
-// import axios, { AxiosError } from 'axios';
-// import { ElMessage } from 'element-plus';
-// import type { APIResponse } from '../types/auth';
 
 /**
  * HTTP 客户端

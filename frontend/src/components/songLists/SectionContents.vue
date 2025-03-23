@@ -184,7 +184,6 @@ const loadSectionData = async () => {
     loading.value = true;
     
     // 获取分区详情（包含收藏夹信息）
-    // const sectionData = await sectionStore.getSectionById(props.sectionId);
     const sectionData = sectionStore.sections.find(s => s._id === props.sectionId);
     if (sectionData) {
       section.value = sectionData;

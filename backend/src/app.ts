@@ -17,10 +17,12 @@ import { connectDB } from './models/db.js';
 import authRoutes from './routes/auth.js';
 import favoriteRoutes from './routes/favorite.js'; // 收藏夹路由
 import seasonRoutes from './routes/season.js'; // 合集路由
+import sectionRoutes from './routes/section.js'; // 自定义路由
+import seriesRoutes from './routes/series.js'; // 系列路由
 import infoRoutes from './routes/audioInfo.js'; // 音频信息路由
 import playRoutes from './routes/play.js'; // 音频代理路由
 import userRoutes from './routes/user.js'; // 用户路由
-import sectionRoutes from './routes/section.js'; // 自定义路由
+
 
 const app = express();
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
@@ -49,10 +51,11 @@ app.use(limiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/favorite', favoriteRoutes); // 注册收藏夹路由
 app.use('/api/season', seasonRoutes); // 注册合集路由
+app.use('/api/section', sectionRoutes); // 注册自定义路由
+app.use('/api/series', seriesRoutes); // 注册系列路由
 app.use('/api/audioInfo', infoRoutes); // 注册音频信息路由
 app.use('/api/play', playRoutes); // 注册音频代理路由
 app.use('/api/user', userRoutes); // 注册用户路由
-app.use('/api/section', sectionRoutes); // 注册自定义路由
 
 // B站API代理
 const biliProxyOptions: Options = {

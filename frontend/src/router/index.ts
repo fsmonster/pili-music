@@ -27,6 +27,11 @@ const router = createRouter({
       name: 'season',
       component: () => import('../views/Season.vue')
     },
+    {
+      path: '/series/:id',
+      name: 'series',
+      component: () => import('../views/Series.vue')
+    },
   ]
 });
 

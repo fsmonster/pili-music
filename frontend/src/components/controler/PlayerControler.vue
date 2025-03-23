@@ -7,8 +7,8 @@
         :alt="playStore.currentItem?.title || '封面'" 
       />
       <div class="track-info">
-        <div class="track-name">{{ playStore.currentItem?.title || '未在播放' }}</div>
-        <div class="artist">{{ playStore.currentItem?.upper?.name || '点击播放你喜欢的音乐吧～' }}</div>
+        <div class="track-name">{{ playStore.currentItem?.title || '点击播放你喜欢的音乐吧～' }}</div>
+        <div class="artist">{{ playStore.currentItem?.upper?.name }}</div>
       </div>
     </div>
 
@@ -156,8 +156,9 @@ function toggleQueue() {
     gap: 12px;
 
     img {
-      width: 56px;
+      // width: 56px;
       height: 56px;
+      aspect-ratio: 16/9;
       border-radius: 8px;
       object-fit: cover;
     }

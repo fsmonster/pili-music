@@ -9,8 +9,31 @@ import type {
   SeasonList,
   SeasonContentParams,
   SeasonContent,
-  SeasonContentResponse
+  SeasonContentResponse,
+  SeasonAndSeriesParams,
+  SeasonAndSeriesResponse,
+  UserSeasonList
 } from "../types";
+
+/**
+ * 获取用户的合集列表
+ */
+export async function getUserSeasonList(
+  params: SeasonAndSeriesParams
+): Promise<UserSeasonList[]> {
+  try {
+      const res = await request.get<ApiResponse<SeasonAndSeriesResponse>>(
+          "/season/series/list",
+          {
+              params,
+          }
+      );
+      return res.data.data.items_lists.seasons_list;
+  } catch (error) {
+      console.error("获取用户合集和系列列表失败:", error);
+      throw error;
+  }
+}
 
 /**
  * 获取订阅合集列表

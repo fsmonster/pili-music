@@ -6,6 +6,8 @@ import {
   useAuthStore, 
   useFavoriteStore, 
   useSeasonStore, 
+  useSeriesStore,
+  useSectionStore
 } from '../index'
 
 /**
@@ -43,6 +45,8 @@ export const useUserStore = defineStore('user', () => {
     useAuthStore().logout();
     useFavoriteStore().reset();
     useSeasonStore().reset();
+    useSeriesStore().reset();
+    useSectionStore().reset();
   }
 
   // 计算属性

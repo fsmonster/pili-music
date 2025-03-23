@@ -8,7 +8,7 @@
     @refresh="favoriteStore.refreshFavorites()">
     <!-- 图标插槽 -->
     <template #icon>
-      <i class="ri-folder-2-line"></i>
+      <i class="ri-star-line"></i>
     </template>
 
     <!-- 标题后缀 -->

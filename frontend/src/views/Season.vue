@@ -1,7 +1,7 @@
 <template>
   <Layout>
     <template #main>
-      <div class="playlist-container" ref="containerRef">
+      <div class="playlist-container">
         <div class="playlist-scroll">
           <!-- 列表头部 -->
           <ListHeader 
@@ -62,10 +62,6 @@ const queueStore = useQueueStore();
 const seasonStore = useSeasonStore();
 
 const { id } = route.params;
-
-// 滚动容器引用
-// const scrollRef = ref<HTMLElement | null>(null);
-const containerRef = ref<HTMLElement | null>(null);
 
 // 计算属性
 const info = computed(() => seasonStore.seasonContents?.info || null);
@@ -147,59 +143,5 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.playlist-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  .playlist-scroll {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    .playlist-content {
-      flex: 1;
-      overflow: visible;
-      position: relative;
-      /* 加载更多样式 */
-      .loading-more {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px 0;
-        color: var(--el-text-color-secondary);
-      }
-
-      .loading-more .el-icon {
-        margin-right: 5px;
-      }
-      .no-more {
-        text-align: center;
-        padding: 20px 0;
-        color: var(--el-text-color-secondary);
-        font-size: 14px;
-      }
-
-      .empty-data {
-        text-align: center;
-        padding: 40px 0;
-        color: var(--el-text-color-secondary);
-        font-size: 14px;
-      }
-    }
-  }
-  /* 滚动条样式 */
-  .playlist-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .playlist-scroll::-webkit-scrollbar-thumb {
-    background: var(--el-border-color-darker);
-    border-radius: 3px;
-  }
-
-  .playlist-scroll::-webkit-scrollbar-track {
-    background: var(--el-border-color-light);
-    border-radius: 3px;
-  }
-}
+@import './style/playlist.scss';
 </style>
