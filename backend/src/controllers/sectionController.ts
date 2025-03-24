@@ -1,15 +1,19 @@
-import { Section } from '../models/section.js';
-import mongoose from 'mongoose';
+import { Section as SectionModel } from '../models/section.js';
+import { Section, 
+  CollocationType, 
+  SectionParams, 
+  UpdateSectionParams, 
+  CollocationParams } from '../types/section.js';
 
 /**
  * @desc 获取用户所有自定义分区
  * @param {number} mid - 用户ID
- * @returns {Promise<Array>} 自定义分区列表
+ * @returns {Promise<Section[]>} 自定义分区列表
  */
-export const getUserSections = async (mid: number) => {
+export const getUserSections = async (mid: number): Promise<Section[]> => {
   try {
     // 获取用户所有自定义分区
-    const sections = await Section.find({ mid });
+    const sections = await SectionModel.find({ mid });
     return sections;
   } catch (error) {
     console.error('获取用户自定义分区失败:', error);
@@ -21,12 +25,12 @@ export const getUserSections = async (mid: number) => {
  * @desc 获取指定自定义分区
  * @param {number} mid - 用户ID
  * @param {string} sectionId - 分区ID
- * @returns {Promise<Object>} 分区信息
+ * @returns {Promise<Section>} 分区信息
  */
-export const getSectionById = async (mid: number, sectionId: string) => {
+export const getSectionById = async (mid: number, sectionId: string): Promise<Section> => {
   try {
     // 获取指定分区信息
-    const section = await Section.findOne({ 
+    const section = await SectionModel.findOne({ 
       _id: sectionId,
       mid: mid
     });
@@ -44,25 +48,25 @@ export const getSectionById = async (mid: number, sectionId: string) => {
 
 /**
  * @desc 创建新的自定义分区
- * @param {number} mid - 用户ID
- * @param {string} name - 分区名称
- * @param {string} description - 分区描述
- * @returns {Promise<Object>} 创建的分区信息
+ * @param {SectionParams} params - 创建分区的参数
+ * @returns {Promise<Section>} 创建的分区信息
  */
-export const createSection = async (mid: number, name: string, description: string = '') => {
+export const createSection = async (params: SectionParams): Promise<Section> => {
   try {
+    const { mid, name, description } = params;
+
     // 检查是否已存在同名分区
-    const existingSection = await Section.findOne({ mid, name });
+    const existingSection = await SectionModel.findOne({ mid, name });
     if (existingSection) {
       throw new Error('已存在同名分区');
     }
     
     // 创建新分区
-    const newSection = new Section({
+    const newSection = new SectionModel({
       mid,
       name,
       description,
-      mediaIds: [] // 初始化为空数组
+      collocationItem: [] // 初始化为空数组
     });
     
     await newSection.save();
@@ -76,22 +80,21 @@ export const createSection = async (mid: number, name: string, description: stri
 
 /**
  * @desc 更新自定义分区信息
- * @param {number} mid - 用户ID
- * @param {string} sectionId - 分区ID
- * @param {object} updateData - 更新数据
- * @returns {Promise<Object>} 更新后的分区信息
+ * @param {UpdateSectionParams} params - 更新分区的参数
+ * @returns {Promise<Section>} 更新后的分区信息
  */
-export const updateSection = async (mid: number, sectionId: string, updateData: {name?: string, description?: string}) => {
+export const updateSection = async (params: UpdateSectionParams): Promise<Section> => {
   try {
+    const { mid, sectionId, updateData } = params;
     // 检查是否存在
-    const section = await Section.findOne({ _id: sectionId, mid });
+    const section = await SectionModel.findOne({ _id: sectionId, mid });
     if (!section) {
       throw new Error('分区不存在或无权访问');
     }
     
     // 如果要更新名称，检查新名称是否与其他分区冲突
     if (updateData.name && updateData.name !== section.name) {
-      const existingSection = await Section.findOne({ 
+      const existingSection = await SectionModel.findOne({ 
         mid, 
         name: updateData.name,
         _id: { $ne: sectionId } // 排除当前分区
@@ -103,11 +106,15 @@ export const updateSection = async (mid: number, sectionId: string, updateData: 
     }
     
     // 更新分区信息
-    const updatedSection = await Section.findOneAndUpdate(
+    const updatedSection = await SectionModel.findOneAndUpdate(
       { _id: sectionId, mid },
       { $set: updateData },
       { new: true }
     );
+
+    if (!updatedSection) {
+      throw new Error('更新失败，分区不存在');
+    }
     
     return updatedSection;
   } catch (error) {
@@ -125,7 +132,7 @@ export const updateSection = async (mid: number, sectionId: string, updateData: 
 export const deleteSection = async (mid: number, sectionId: string) => {
   try {
     // 删除分区
-    const result = await Section.deleteOne({ _id: sectionId, mid });
+    const result = await SectionModel.deleteOne({ _id: sectionId, mid });
     
     if (result.deletedCount === 0) {
       throw new Error('分区不存在或无权删除');
@@ -142,12 +149,12 @@ export const deleteSection = async (mid: number, sectionId: string) => {
  * @desc 获取分区内容
  * @param {number} mid - 用户ID
  * @param {string} sectionId - 分区ID
- * @returns {Promise<Object>} 分区内容信息
+ * @returns {Promise<Section>} 分区内容信息
  */
 export const getSectionContent = async (mid: number, sectionId: string) => {
   try {
     // 检查分区是否存在并获取内容
-    const section = await Section.findOne({ _id: sectionId, mid });
+    const section = await SectionModel.findOne({ _id: sectionId, mid });
     if (!section) {
       throw new Error('分区不存在或无权访问');
     }
@@ -160,87 +167,103 @@ export const getSectionContent = async (mid: number, sectionId: string) => {
 };
 
 /**
- * @desc 添加媒体到分区
+ * @desc 获取包含特定 ID 的所有分区 - 暂时不用
  * @param {number} mid - 用户ID
- * @param {string} sectionId - 分区ID
- * @param {number[]} mediaIds - 要添加的媒体ID列表
- * @returns {Promise<Object>} 更新后的分区内容
+ * @param {number} id - 资源ID
+ * @returns {Promise<Section[]>} 分区列表
  */
-export const addMediaToSection = async (mid: number, sectionId: string, mediaIds: number[]) => {
+export const getSectionsByTypeAndId = async (mid: number, type: CollocationType, id: number): Promise<Section[]> => {
   try {
-    // 检查分区是否存在
-    const section = await Section.findOne({ _id: sectionId, mid });
-    if (!section) {
-      throw new Error('分区不存在或无权访问');
-    }
+    // 获取包含特定 ID 的所有分区
+    const sections = await getSectionsByTypeAndId(mid, type, id);
     
-    // 添加媒体ID，确保不重复
-    const updatedSection = await Section.findOneAndUpdate(
-      { _id: sectionId, mid },
-      { $addToSet: { mediaIds: { $each: mediaIds } } },
-      { new: true }
-    );
-    
-    return updatedSection;
+    return sections;
   } catch (error) {
-    console.error('添加媒体到分区失败:', error);
+    console.error('获取分区失败:', error);
     throw error;
   }
 };
 
 /**
- * @desc 从分区移除媒体
- * @param {number} mid - 用户ID
- * @param {string} sectionId - 分区ID
- * @param {number[]} mediaIds - 要移除的媒体ID列表
- * @returns {Promise<Object>} 更新后的分区内容
+ * @desc 添加资源到分区
+ * @param {CollocationParams} params - 添加资源到分区的参数
+ * @returns {Promise<Section>} 更新后的分区内容
  */
-export const removeMediaFromSection = async (mid: number, sectionId: string, mediaIds: number[]) => {
+export const addCollocationToSection = async (params: CollocationParams) => {
   try {
+    const { mid, sectionId, type, collocationId } = params;
     // 检查分区是否存在
-    const section = await Section.findOne({ _id: sectionId, mid });
+    const section = await SectionModel.findOne({ _id: sectionId, mid });
     if (!section) {
       throw new Error('分区不存在或无权访问');
     }
     
-    // 移除指定的媒体ID
-    const updatedSection = await Section.findOneAndUpdate(
+    // 添加资源ID，确保不重复
+    const updatedSection = await SectionModel.findOneAndUpdate(
       { _id: sectionId, mid },
-      { $pullAll: { mediaIds: mediaIds } },
+      { $addToSet: { collocationIds: { type, id: collocationId } } },
       { new: true }
     );
     
     return updatedSection;
   } catch (error) {
-    console.error('从分区移除媒体失败:', error);
+    console.error('添加资源到分区失败:', error);
     throw error;
   }
 };
 
 /**
- * @desc 清空分区内的所有媒体
+ * @desc 从分区移除资源
+ * @param {CollocationParams} params - 从分区移除资源的参数
+ * @returns {Promise<Section>} 更新后的分区内容
+ */
+export const removeCollocationFromSection = async (params: CollocationParams) => {
+  try {
+    const { mid, sectionId, type, collocationId } = params;
+    // 检查分区是否存在
+    const section = await SectionModel.findOne({ _id: sectionId, mid });
+    if (!section) {
+      throw new Error('分区不存在或无权访问');
+    }
+    
+    // 移除指定的资源ID
+    const updatedSection = await SectionModel.findOneAndUpdate(
+      { _id: sectionId, mid },
+      { $pull: { collocationIds: { type, id: collocationId } } },
+      { new: true }
+    );
+    
+    return updatedSection;
+  } catch (error) {
+    console.error('从分区移除资源失败:', error);
+    throw error;
+  }
+};
+
+/**
+ * @desc 清空分区内的所有资源
  * @param {number} mid - 用户ID
  * @param {string} sectionId - 分区ID
- * @returns {Promise<Object>} 更新后的分区内容
+ * @returns {Promise<Section>} 更新后的分区内容
  */
-export const clearSectionMedia = async (mid: number, sectionId: string) => {
+export const clearSectionCollocations = async (mid: number, sectionId: string) => {
   try {
     // 检查分区是否存在
-    const section = await Section.findOne({ _id: sectionId, mid });
+    const section = await SectionModel.findOne({ _id: sectionId, mid });
     if (!section) {
       throw new Error('分区不存在或无权访问');
     }
     
     // 清空媒体ID列表
-    const updatedSection = await Section.findOneAndUpdate(
+    const updatedSection = await SectionModel.findOneAndUpdate(
       { _id: sectionId, mid },
-      { $set: { mediaIds: [] } },
+      { $set: { collocationIds: [] } },
       { new: true }
     );
     
     return updatedSection;
   } catch (error) {
-    console.error('清空分区媒体失败:', error);
+    console.error('清空分区资源失败:', error);
     throw error;
   }
 };

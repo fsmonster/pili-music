@@ -1,6 +1,6 @@
 import request from '../utils/request';
 import type { ApiResponse } from '../types';
-import type { Section, SectionParams } from '../types/section';
+import type { Section, SectionParams, CollocationType } from '../types';
 
 /**
  * 获取用户所有自定义分区
@@ -93,51 +93,67 @@ export async function deleteSection(sectionId: string): Promise<boolean> {
 }
 
 /**
- * 添加收藏夹到分区
+ * 添加资源到分区
  * @param sectionId 分区ID
- * @param mediaIds 收藏夹ID列表
+ * @param type 资源类型
+ * @param collocationId 资源ID
  * @returns 更新后的分区内容
  */
-export async function addMediaToSection(sectionId: string, mediaIds: number[]): Promise<Section> {
+export async function addCollocationToSection(sectionId: string, type: CollocationType, collocationId: number): Promise<Section> {
   try {
-    const res = await request.post<ApiResponse<Section>>(`/section/${sectionId}/media`, { mediaIds });
+    const res = await request.post<ApiResponse<Section>>(`/section/content/collocation`, { 
+      sectionId, 
+      type, 
+      collocationId 
+    });
     if (res.data.code !== 0) {
-      throw new Error(res.data.message || '添加收藏夹失败');
+      throw new Error(res.data.message || '添加资源失败');
     }
     return res.data.data;
   } catch (error) {
-    console.error('添加收藏夹失败:', error);
+    console.error('添加资源失败:', error);
     throw error;
   }
 }
 
 /**
- * 从分区移除收藏夹
+ * 从分区移除资源
  * @param sectionId 分区ID
- * @param mediaIds 收藏夹ID列表
+ * @param type 资源类型
+ * @param collocationId 资源ID
  * @returns 更新后的分区内容
  */
-export async function removeMediaFromSection(sectionId: string, mediaIds: number[]): Promise<Section> {
+export async function removeCollocationFromSection(sectionId: string, type: CollocationType, collocationId: number): Promise<Section> {
   try {
-    const res = await request.delete<ApiResponse<Section>>(`/section/${sectionId}/media`, { data: { mediaIds } });
+    const res = await request.delete<ApiResponse<Section>>(`/section/content/collocation`, { 
+      data: { 
+        sectionId, 
+        type, 
+        collocationId 
+      }
+    });
     if (res.data.code !== 0) {
-      throw new Error(res.data.message || '移除收藏夹失败');
+      throw new Error(res.data.message || '移除资源失败');
     }
     return res.data.data;
   } catch (error) {
-    console.error('移除收藏夹失败:', error);
+    console.error('移除资源失败:', error);
     throw error;
   }
 }
 
 /**
- * 清空分区内的所有收藏夹
+ * 清空分区内的所有资源
  * @param sectionId 分区ID
  * @returns 更新后的分区内容
  */
-export async function clearSectionMedia(sectionId: string): Promise<Section> {
+export async function clearSectionCollocations(sectionId: string): Promise<Section> {
   try {
-    const res = await request.delete<ApiResponse<Section>>(`/section/${sectionId}/media/all`);
+    const res = await request.delete<ApiResponse<Section>>(`/section/content/collocation/all`, { 
+      data: { 
+        sectionId 
+      }
+    });
     if (res.data.code !== 0) {
       throw new Error(res.data.message || '清空收藏夹失败');
     }

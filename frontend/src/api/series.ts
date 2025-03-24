@@ -7,7 +7,7 @@ import type {
     UserSeriesList,
     SeasonAndSeriesParams, SeasonAndSeriesResponse, 
     SeriesArchivesParams, SeriesArchivesResponse, 
-    SeriesMetaParams, SeriesMetaResponse, SeriesMeta,
+    SeriesMetaResponse, SeriesMeta,
     Archive} from "../types";
 
 /**
@@ -18,7 +18,7 @@ export async function getSeriesList(
 ): Promise<UserSeriesList[]> {
     try {
         const res = await request.get<ApiResponse<SeasonAndSeriesResponse>>(
-            "/season/series/list",
+            "/series/archives",
             {
                 params,
             }
@@ -34,13 +34,13 @@ export async function getSeriesList(
  * 获取系列的元数据
  */
 export async function getSeriesMeta(
-    params: SeriesMetaParams
+    series_id: number
 ): Promise<SeriesMeta> {
     try {
         const res = await request.get<ApiResponse<SeriesMetaResponse>>(
             "/series/meta",
             {
-                params,
+                params: { series_id },
             }
         );
         return res.data.data.meta;
@@ -66,6 +66,27 @@ export async function getSeriesArchives(
         return res.data.data.archives;
     } catch (error) {
         console.error("获取系列内容失败:", error);
+        throw error;
+    }
+}
+
+/**
+ * 获取系列封面
+ */
+export async function getSeriesCover(
+    series_id: number,
+    mid: number
+): Promise<string> {
+    try {
+        const res = await request.get<ApiResponse<SeriesArchivesResponse>>(
+            "/series/archives",
+            {
+                params: { series_id, mid, pn: 1, ps: 1 },
+            }
+        );
+        return res.data.data.archives[0].pic;
+    } catch (error) {
+        console.error("获取系列封面失败:", error);
         throw error;
     }
 }

@@ -37,30 +37,13 @@ export const useSeriesStore = defineStore('series', () => {
             // 获取系列列表
             for (let seriesId of queryIds) {
                     // 获取系列元数据
-                    const meta = await seriesApi.getSeriesMeta({
-                        series_id: seriesId
-                    });
+                    const meta = await seriesApi.getSeriesMeta(seriesId);
                     
                     // 获取系列第一个视频的封面
-                    try {
-                        const archivesRes = await seriesApi.getSeriesArchives({
-                            series_id: seriesId,
-                            mid: meta.mid,
-                            pn: 1,
-                            ps: 1
-                        });
-                    
-                    // 如果有视频，使用第一个视频的封面
-                    if (archivesRes && archivesRes.length > 0) {
-                        meta.cover = archivesRes[0].pic || '';
-                    }
-                } catch (archiveErr) {
-                    console.error(`获取系列 ${seriesId} 封面失败:`, archiveErr);
-                }
-                
-                newSeries.push(meta);
+                    const cover = await seriesApi.getSeriesCover(seriesId, meta.mid);
+                    meta.cover = cover;
+                    newSeries.push(meta);
             }
-
             series.value = [ ...newSeries,...series.value];
         } catch (err) {
             console.error("获取系列列表失败:", err);
@@ -76,9 +59,7 @@ export const useSeriesStore = defineStore('series', () => {
     const fetchSeriesMeta = async (seriesId: number) => {
         try {
             // 获取系列列表
-            return await seriesApi.getSeriesMeta({
-                series_id: seriesId
-            });
+            return await seriesApi.getSeriesMeta(seriesId);
         } catch (err) {
             console.error("获取系列元数据失败:", err);
         }

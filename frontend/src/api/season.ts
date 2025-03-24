@@ -13,7 +13,7 @@ import type {
   SeasonContentResponse,
   SeasonAndSeriesParams,
   SeasonAndSeriesResponse,
-  SeasonMetaParams,
+  // SeasonMetaParams,
   SeasonMeta,
   SeasonArchivesParams,
   SeasonArchivesResponse,
@@ -21,14 +21,13 @@ import type {
 } from "../types";
 
 /**
- * 获取合集的元数据
+ * 获取合集的元数据 - page_num: 1, page_size: 1
  * @returns 合集元数据
  */
 export async function getSeasonMeta(
-  params: SeasonMetaParams
+  season_id: number
 ): Promise<SeasonMeta> {
-  params.page_num = 1;
-  params.page_size = 1;
+  const params = { season_id, page_num: 1, page_size: 1 };
   try {
       const res = await request.get<ApiResponse<SeasonArchivesResponse>>(
           "/season/meta",

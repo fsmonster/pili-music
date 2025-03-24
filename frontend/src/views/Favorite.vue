@@ -14,7 +14,7 @@
           <div class="playlist-content">
             <!-- 控制栏 -->
             <ListControls
-              :disabled="!favoriteContentStore.medias.length"
+              :disabled="!medias.length"
               @update:sort="handleSort"
               @play-all="handlePlayAll"
               @sort="handleSort"
@@ -22,7 +22,7 @@
 
             <!-- 表格 -->
             <MediaTable
-              :data="favoriteContentStore.medias"
+              :data="medias"
               type="favorite"
               :loading="favoriteContentStore.loading"
               @play="handlePlay"
@@ -35,7 +35,7 @@
             </div>
 
             <!-- 无数据 -->
-            <div v-if="!favoriteContentStore.loading && favoriteContentStore.medias.length === 0" class="empty-data">
+            <div v-if="!favoriteContentStore.loading && medias.length === 0" class="empty-data">
               暂无数据
             </div>
           </div>
@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { ref,computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
 import { useFavoriteContentStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import MediaTable from '../components/songList/MediaTable.vue';
@@ -66,6 +66,9 @@ const { id } = route.params;
 
 // 当前收藏夹信息
 const currentInfo = ref<any>(null);
+
+// 计算属性
+const medias = computed<MediaItem[]>(() => favoriteContentStore.medias);
 
 /**
  * @desc 加载内容
@@ -96,9 +99,9 @@ function removeContent() {
  * @desc 播放全部
  */
 function handlePlayAll() {
-  if (favoriteContentStore.medias.length > 0) {
-    queueStore.setQueue(favoriteContentStore.medias);
-    playerStore.play(favoriteContentStore.medias[0]);
+  if (medias.value.length > 0) {
+    queueStore.setQueue(medias.value);
+    playerStore.play(medias.value[0]);
   }
 }
 
@@ -106,7 +109,7 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  queueStore.setQueue(favoriteContentStore.medias);
+  queueStore.setQueue(medias.value);
   playerStore.play(item);
 }
 

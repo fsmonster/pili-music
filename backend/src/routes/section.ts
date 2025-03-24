@@ -1,6 +1,6 @@
-import express, { Request, Response } from 'express';
+import express, { Response } from 'express';
 import authMiddleware from '../middleware/auth.js';
-import { AuthRequest } from '../types/index.js';
+import { AuthRequest, CollocationType } from '../types/index.js';
 import * as sectionController from '../controllers/sectionController.js';
 
 const router = express.Router();
@@ -40,6 +40,42 @@ router.get('', async (req: AuthRequest, res: Response) => {
     });
   }
 });
+
+/**
+ * @route   GET /api/section/with-item/:type/:id
+ * @desc    获取包含特定 ID 的所有分区
+ * @access  Private - 需要JWT认证
+ */
+router.get('/with-item/:type/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+
+    const { mid } = req.user;
+    const type = req.params.type as CollocationType;
+    const id = Number(req.params.id);
+    
+    // 获取包含特定 ID 的所有分区
+    const sections = await sectionController.getSectionsByTypeAndId(mid, type, id);
+    
+    res.json({
+      code: 0,
+      message: '获取成功',
+      data: sections
+    });
+  } catch (error) {
+    console.error('获取包含特定 ID 的分区失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取包含特定 ID 的分区失败' 
+    });
+  }
+});
+
 
 /**
  * @route   GET /api/section/:id
@@ -102,7 +138,7 @@ router.post('', async (req: AuthRequest, res: Response) => {
     }
     
     // 创建新分区
-    const newSection = await sectionController.createSection(mid, name, description);
+    const newSection = await sectionController.createSection({ mid, name, description });
     
     res.status(201).json({
       code: 0,
@@ -150,7 +186,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
     if (name) updateData.name = name;
     if (description !== undefined) updateData.description = description;
     
-    const updatedSection = await sectionController.updateSection(mid, sectionId, updateData);
+    const updatedSection = await sectionController.updateSection({ mid, sectionId, updateData });
     
     res.json({
       code: 0,
@@ -205,11 +241,11 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
 });
 
 /**
- * @route   POST /api/section/:id/media
- * @desc    添加收藏夹到分区
+ * @route   POST /api/section/content/collocation
+ * @desc    添加资源到分区
  * @access  Private - 需要JWT认证
  */
-router.post('/:id/media', async (req: AuthRequest, res: Response) => {
+router.post('/content/collocation', async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ 
@@ -219,18 +255,17 @@ router.post('/:id/media', async (req: AuthRequest, res: Response) => {
     }
 
     const { mid } = req.user;
-    const sectionId = req.params.id;
-    const { mediaIds } = req.body;
+    const { sectionId, collocationId, type } = req.body;
     
-    if (!mediaIds || !Array.isArray(mediaIds) || mediaIds.length === 0) {
+    if (!collocationId || !type) {
       return res.status(400).json({ 
         code: 400, 
-        message: '媒体ID列表不能为空' 
+        message: '资源ID和类型不能为空' 
       });
     }
     
-    // 添加收藏夹到分区
-    const updatedSection = await sectionController.addMediaToSection(mid, sectionId, mediaIds);
+    // 添加资源到分区
+    const updatedSection = await sectionController.addCollocationToSection({ mid, sectionId, type, collocationId });
     
     res.json({
       code: 0,
@@ -238,7 +273,7 @@ router.post('/:id/media', async (req: AuthRequest, res: Response) => {
       data: updatedSection
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : '添加媒体到分区失败';
+    const message = error instanceof Error ? error.message : '添加资源到分区失败';
     const statusCode = message.includes('不存在') ? 404 : 500;
     
     res.status(statusCode).json({ 
@@ -249,11 +284,11 @@ router.post('/:id/media', async (req: AuthRequest, res: Response) => {
 });
 
 /**
- * @route   DELETE /api/section/:id/media
+ * @route   DELETE /api/section/content/collocation
  * @desc    从分区移除收藏夹
  * @access  Private - 需要JWT认证
  */
-router.delete('/:id/media', async (req: AuthRequest, res: Response) => {
+router.delete('/content/collocation', async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ 
@@ -263,18 +298,17 @@ router.delete('/:id/media', async (req: AuthRequest, res: Response) => {
     }
 
     const { mid } = req.user;
-    const sectionId = req.params.id;
-    const { mediaIds } = req.body;
+    const { sectionId, collocationId, type } = req.body;
     
-    if (!mediaIds || !Array.isArray(mediaIds) || mediaIds.length === 0) {
+    if (!collocationId || !type) {
       return res.status(400).json({ 
         code: 400, 
-        message: '媒体ID列表不能为空' 
+        message: '资源ID和类型不能为空' 
       });
     }
     
-    // 从分区移除收藏夹
-    const updatedSection = await sectionController.removeMediaFromSection(mid, sectionId, mediaIds);
+    // 从分区移除资源
+    const updatedSection = await sectionController.removeCollocationFromSection({ mid, sectionId, collocationId, type });
     
     res.json({
       code: 0,
@@ -282,7 +316,7 @@ router.delete('/:id/media', async (req: AuthRequest, res: Response) => {
       data: updatedSection
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : '从分区移除收藏夹失败';
+    const message = error instanceof Error ? error.message : '从分区移除资源失败';
     const statusCode = message.includes('不存在') ? 404 : 500;
     
     res.status(statusCode).json({ 
@@ -293,11 +327,11 @@ router.delete('/:id/media', async (req: AuthRequest, res: Response) => {
 });
 
 /**
- * @route   DELETE /api/section/:id/media/all
- * @desc    清空分区内的所有收藏夹
+ * @route   DELETE /api/section/content/collocation/all
+ * @desc    清空分区内的所有资源
  * @access  Private - 需要JWT认证
  */
-router.delete('/:id/media/all', async (req: AuthRequest, res: Response) => {
+router.delete('/content/collocation/all', async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ 
@@ -307,10 +341,10 @@ router.delete('/:id/media/all', async (req: AuthRequest, res: Response) => {
     }
 
     const { mid } = req.user;
-    const sectionId = req.params.id;
+    const sectionId = req.body.id;
     
-    // 清空分区内的所有媒体
-    const updatedSection = await sectionController.clearSectionMedia(mid, sectionId);
+    // 清空分区内的所有资源
+    const updatedSection = await sectionController.clearSectionCollocations(mid, sectionId);
     
     res.json({
       code: 0,
@@ -318,7 +352,7 @@ router.delete('/:id/media/all', async (req: AuthRequest, res: Response) => {
       data: updatedSection
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : '清空分区媒体失败';
+    const message = error instanceof Error ? error.message : '清空分区资源失败';
     const statusCode = message.includes('不存在') ? 404 : 500;
     
     res.status(statusCode).json({ 

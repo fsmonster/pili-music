@@ -56,7 +56,6 @@ import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import MediaTable from '../components/songList/MediaTable.vue';
 import {useSeriesStore,useSeriesContentStore, usePlayerStore, useQueueStore } from '../stores';
-import { convertArchiveToMediaItem } from '../utils/common';
 import type { MediaItem } from '../types';
 
 // 路由参数
@@ -74,9 +73,7 @@ const loading = ref(false);
 
 // 计算属性
 const seriesMeta = computed(() => seriesStore.series.find(s => s.series_id === seriesId.value));
-const medias = computed<MediaItem[]>(() => {
-  return seriesContentStore.seriesArchives.map(convertArchiveToMediaItem);
-});
+const medias = computed<MediaItem[]>(() => seriesContentStore.seriesContent);
 
 // 加载内容
 const loadContent = async () => {

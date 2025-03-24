@@ -1,4 +1,5 @@
 export * from './common.js';
+export * from './section.js';
 
 /**
  * 通用类型定义

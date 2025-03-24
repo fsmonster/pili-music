@@ -1,12 +1,27 @@
 import type { FavoriteInfo } from './favorite';
+import type { SeasonMeta } from './season';
+import type { SeriesMeta } from './series';
 
 /**
- * 自定义分区接口参数
+ * 资源类型
  */
-export interface SectionParams {
-  name?: string;
-  description?: string;
+export type CollocationType = 'favorite' | 'season' | 'series';
+
+/**
+ * 资源id
+ */
+export interface CollocationId {
+  type: CollocationType;
+  id: number;
 }
+
+/**
+ * 资源项
+ */
+export type CollocationItem = 
+  | { type: 'favorite'; favoriteInfo: FavoriteInfo }  
+  | { type: 'season'; seasonInfo: SeasonMeta }  
+  | { type: 'series'; seriesInfo: SeriesMeta };
 
 /**
  * 自定义分区基本信息
@@ -16,16 +31,17 @@ export interface Section {
   mid: number;
   name: string;
   description: string;
-  mediaIds: number[];
-  media_count?: number;
+  collocationIds: CollocationId[];
+  collocationList: CollocationItem[];
+  collocation_count?: number;
   createdAt: string;
   updatedAt: string;
 }
 
 /**
- * 自定义分区扩展信息，包含收藏夹基本信息
+ * 自定义分区接口参数
  */
-export interface SectionWithFavorites extends Section {
-  favorites: FavoriteInfo[];
+export interface SectionParams {
+  name?: string;
+  description?: string;
 }
-

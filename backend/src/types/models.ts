@@ -34,21 +34,22 @@ export interface IUser extends Document {
 /**
  * UP主信息接口
  */
-export interface IUpper {
-  mid: number;
-  name: string;
-}
+// export interface IUpper {
+//   mid: number;
+//   name: string;
+// }
 
 /**
  * 自建歌单列表项目接口
  */
-export interface IPlaylistItem {
-  avid?: number;
-  bvid: string;
-  cid?: number;
-  title: string;
-  cover?: string;
-  duration?: number;
-  upper?: IUpper;
-  addedAt: Date;
-}
+// export interface IPlaylistItem {
+//   avid?: number;
+//   bvid: string;
+//   cid?: number;
+//   title: string;
+//   cover?: string;
+//   duration?: number;
+//   upper?: IUpper;
+//   addedAt: Date;
+// }
+

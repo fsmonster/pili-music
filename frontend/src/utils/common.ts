@@ -1,14 +1,39 @@
-import type { Archive } from "../types/series";
+import type { Archive } from "../types";
 import type { MediaItem } from "../types/common";
 
 /**
- * @param url 收藏夹URL
- * @returns 收藏夹ID
+ * 根据 URL 提取 ID 和类型
+ * 收藏夹、合集靠ftype区分，或者直接匹配合集
+ * @param url 收藏夹/合集/系列 URL
+ * @returns `{ id: number, type: 'favorite' | 'season' | 'series' }` 或 `null`（解析失败）
  */
-export const extractFavoriteIdFromUrl = (url: string) => {
-    const match = url.match(/fid=(\d+)/);
-    return match ? Number(match[1]) : null;
+export const extractIdAndType = (url: string): { id: number, type: 'favorite' | 'season' | 'series' } => {
+  const favMatch = url.match(/fid=(\d+)/);
+  const ftypeMatch = url.match(/ftype=(\w+)/);
+  const seasonMatch = url.match(/lists\/(\d+)\?type=season/);
+  const seriesMatch = url.match(/lists\/(\d+)\?type=series/);
+
+  if (favMatch && ftypeMatch) {
+    const id = Number(favMatch[1]);
+    const ftype = ftypeMatch[1];
+
+    if (ftype === 'create') {
+      return { id, type: 'favorite' };
+    } else if (ftype === 'collect') {
+      return { id, type: 'season' };
+    }
+  }
+
+  if (seasonMatch) {
+    return { id: Number(seasonMatch[1]), type: 'season' };
+  }
+  if (seriesMatch) {
+    return { id: Number(seriesMatch[1]), type: 'series' };
+  }
+  
+  throw new Error('识别不了URL 😯');
 };
+
 
 /**
  * @param url 空间系列URL

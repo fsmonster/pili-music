@@ -135,13 +135,13 @@ export interface SeriesMeta {
     [property: string]: any;
 }
 
-export interface SeriesMetaParams {
-    /**
-     * 系列ID
-     */
-    series_id: number;
-    [property: string]: any;
-}
+// export interface SeriesMetaParams {
+//     /**
+//      * 系列ID
+//      */
+//     series_id: number;
+//     [property: string]: any;
+// }
 
 export interface SeriesMetaResponse {
     /**

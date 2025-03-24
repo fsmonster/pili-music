@@ -1,5 +1,3 @@
-import { getToken } from './token';
-
 /**
  * 处理B站 i0~i2 域名的图片URL，将原始URL转换为本地代理URL
  * @param url B站 i0~i2 域名的原始图片URL
@@ -67,7 +65,7 @@ function processBiliAudioUrl(url: string): string {
  * @param url B站原始图片URL
  * @returns 处理后的本地代理URL
  */
-export function processResourceUrl(url: string): string {
+export function processResourceUrl(url?: string): string {
     if (!url) return '';
     // 已经是代理URL则直接返回
     if (url.startsWith('/biliimg/') || url.startsWith('/api/audio/')) return url;

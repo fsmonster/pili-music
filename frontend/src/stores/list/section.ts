@@ -3,12 +3,12 @@ import { ref, computed } from 'vue';
 import { useUserStore } from '../user/user';
 import * as sectionApi from '../../api/section';
 import * as favoriteApi from '../../api/favorite';
-import type { Section, SectionWithFavorites } from '../../types';
+import * as seasonApi from '../../api/season';
+import * as seriesApi from '../../api/series';
+import type { Section, CollocationType } from '../../types';
 
 /**
- * 📦 自定义分区项目（包含 📂 收藏夹信息）
- * 📦 自定义分区 - 用户创建的分类，用于组织 📂 收藏夹
- * 📂 收藏夹 - B站的收藏夹，包含多个 🎵 媒体
+ * 📦 自定义分区 - 用户创建的，用于组织收藏夹 合集 系列
  * 🎵 媒体 - 具体的视频/音频内容
  */
 
@@ -21,7 +21,7 @@ export const useSectionStore = defineStore('section', () => {
   const isLoggedIn = computed(() => userStore.isLoggedIn);
   
   // 📦 自定义分区特有状态
-  const sections = ref<SectionWithFavorites[]>([]);
+  const sections = ref<Section[]>([]);
   const isLoaded = ref(false);
   
   /**
@@ -34,12 +34,13 @@ export const useSectionStore = defineStore('section', () => {
       // 获取分区列表
       const sectionList = await sectionApi.getUserSections();
       
-      // 转换为内部格式并初始化 media_count 为 mediaIds 的长度
+      // 转换为内部格式并初始化 collocation_count 为 collocationIds 的长度
       sections.value = sectionList.map(section => ({
         ...section,
         name: section.name,
-        media_count: section.mediaIds.length,
-        favorites: [] // 添加空的 favorites 数组
+        collocationIds: section.collocationIds,
+        // collocationList: section.collocationList,
+        collocation_count: section.collocationIds.length,
       }));
       
       isLoaded.value = true;
@@ -49,39 +50,54 @@ export const useSectionStore = defineStore('section', () => {
   };
   
   /**
-   * @desc 获取 📦 分区内容（📂 收藏夹 列表）
+   * @desc 获取 📦 分区内容
    * @param sectionId 分区 ID
    * @param sectionData 可选的分区数据，如果提供则不会重复请求
-   * @returns 收藏夹ID列表
+   * @returns 资源项列表
    */
   const fetchSectionContent = async (sectionId: string, sectionData?: Section) => {
     if (!isLoggedIn.value) return [];
     
     try {
-      // 首先检查持久化的 sections 中是否已有该分区的收藏夹信息
+      // 首先检查持久化的 sections 中是否已有该分区的资源项信息
       const existingSection = sections.value.find(s => s._id === sectionId);
-      if (existingSection && existingSection.favorites && existingSection.favorites.length > 0) {
-        console.log('使用缓存的收藏夹信息:', existingSection.favorites);
-        return existingSection.favorites;
+      if (existingSection && existingSection.collocationList && existingSection.collocationList.length > 0) {
+        console.log('使用缓存的资源项信息:', existingSection.collocationList);
+        return existingSection.collocationList;
       }
       
       // 获取分区基本信息（如果没有提供）
       const section = sectionData || await sectionApi.getSectionById(sectionId);
       
-      // 获取收藏夹基本信息
-      const favoriteIds = section.mediaIds;
-      const favorites: SectionWithFavorites['favorites'] = [];
+      // 获取资源项基本信息
+      const collocationIds = section.collocationIds;
+      const collocationList = section.collocationList || [];
       
-      // 直接获取收藏夹信息
-      for (const id of favoriteIds) {
+      // 直接获取资源项信息
+      for (const collocationId of collocationIds) {
         try {
-          // 获取收藏夹基本信息
-          const favoriteInfo = await favoriteApi.getFavoriteInfo({ media_id: id });
-          if (favoriteInfo) {
-            favorites.push(favoriteInfo);
+          if (collocationId.type === 'favorite') {
+            // 获取收藏夹基本信息
+            const favoriteInfo = await favoriteApi.getFavoriteInfo({ media_id: collocationId.id });
+            if (favoriteInfo) {
+              collocationList.push({ type: 'favorite', favoriteInfo });
+            }
+          } else if (collocationId.type === 'season') {
+            // 获取季信息
+            const seasonInfo = await seasonApi.getSeasonMeta(collocationId.id);
+            if (seasonInfo) {
+              collocationList.push({ type: 'season', seasonInfo });
+            }
+          } else if (collocationId.type === 'series') {
+            // 获取系列信息
+            const seriesInfo = await seriesApi.getSeriesMeta(collocationId.id);
+            seriesInfo.cover = seriesInfo.cover ?? (await seriesApi.getSeriesCover(collocationId.id, seriesInfo.mid));
+            if (seriesInfo) {
+              collocationList.push({ type: 'series', seriesInfo });
+            }
           }
         } catch (error) {
-          console.error(`获取收藏夹 ${id} 信息失败:`, error);
+          console.error(`获取资源项 ${collocationId.id} 信息失败:`, error);
         }
       }
       
@@ -90,11 +106,11 @@ export const useSectionStore = defineStore('section', () => {
       if (index !== -1) {
         sections.value[index] = {
           ...sections.value[index],
-          favorites
+          collocationList
         };
       }
       
-      return favorites;
+      return collocationList;
     } catch (error) {
       console.error('获取分区内容失败:', error);
       throw error;
@@ -119,8 +135,9 @@ export const useSectionStore = defineStore('section', () => {
       sections.value.push({
         ...newSection,
         name: newSection.name,
-        media_count: 0,
-        favorites: [] // 添加空的 favorites 数组
+        collocation_count: 0,
+        collocationIds: [],
+        collocationList: [] // 添加空的 collocationList 数组
       });
       
       return newSection;
@@ -131,7 +148,7 @@ export const useSectionStore = defineStore('section', () => {
   };
   
   /**
-   * @desc 更新 📦 自定义分区
+   * @desc 更新 📦 自定义分区 - 暂时没用到
    * @param sectionId 分区ID
    * @param name 分区名称
    * @param description 分区描述
@@ -151,8 +168,9 @@ export const useSectionStore = defineStore('section', () => {
         sections.value[index] = {
           ...updatedSection,
           name: updatedSection.name,
-          media_count: updatedSection.mediaIds.length,
-          favorites: sections.value[index].favorites || [] // 保留原有的 favorites 或使用空数组
+          collocation_count: updatedSection.collocationIds.length,
+          collocationIds: updatedSection.collocationIds,
+          // collocationList: updatedSection.collocationList
         };
       }
       return updatedSection;
@@ -180,15 +198,16 @@ export const useSectionStore = defineStore('section', () => {
   };
   
   /**
-   * @desc 添加 📂 收藏夹到 📦 自定义分区
+   * @desc 添加资源到 📦 自定义分区
    * @param sectionId 分区ID
-   * @param mediaIds 收藏夹ID列表
+   * @param type 资源类型
+   * @param collocationId 资源ID
    * @returns 更新后的分区
    */
-  const addMediaToSection = async (sectionId: string, mediaIds: number[]) => {
+  const addCollocationToSection = async (sectionId: string, type: CollocationType, collocationId: number) => {
     try {
-      // 添加收藏夹到分区
-      const updatedSection = await sectionApi.addMediaToSection(sectionId, mediaIds);
+      // 添加资源到分区
+      const updatedSection = await sectionApi.addCollocationToSection(sectionId, type, collocationId);
       
       // 更新列表中的分区
       const index = sections.value.findIndex(s => s._id === sectionId);
@@ -196,28 +215,30 @@ export const useSectionStore = defineStore('section', () => {
         const updatedSectionData = {
           ...updatedSection,
           name: updatedSection.name,
-          media_count: updatedSection.mediaIds.length,
-          favorites: sections.value[index].favorites || [] // 保留原有的 favorites 或使用空数组
+          collocation_count: updatedSection.collocationIds.length,
+          collocationIds: updatedSection.collocationIds,
+          // collocationList: updatedSection.collocationList
         };
         sections.value[index] = updatedSectionData;
       }
       return updatedSection;
     } catch (error) {
-      console.error('添加收藏夹到分区失败:', error);
+      console.error('添加资源到分区失败:', error);
       throw error;
     }
   };
   
   /**
-   * @desc 从 📦 自定义分区移除 📂 收藏夹
+   * @desc 从 📦 自定义分区移除
    * @param sectionId 分区ID
-   * @param mediaIds 收藏夹ID列表
+   * @param type 资源类型
+   * @param collocationId 资源ID
    * @returns 更新后的分区
    */
-  const removeMediaFromSection = async (sectionId: string, mediaIds: number[]) => {
+  const removeCollocationFromSection = async (sectionId: string, type: CollocationType, collocationId: number) => {
     try {
-      // 从分区移除收藏夹
-      const updatedSection = await sectionApi.removeMediaFromSection(sectionId, mediaIds);
+      // 从分区移除资源
+      const updatedSection = await sectionApi.removeCollocationFromSection(sectionId, type,collocationId);
       
       // 更新列表中的分区
       const index = sections.value.findIndex(s => s._id === sectionId);
@@ -225,14 +246,15 @@ export const useSectionStore = defineStore('section', () => {
         const updatedSectionData = {
           ...updatedSection,
           name: updatedSection.name,
-          media_count: updatedSection.mediaIds.length,
-          favorites: sections.value[index].favorites || [] // 保留原有的 favorites 或使用空数组
+          collocation_count: updatedSection.collocationIds.length,
+          collocationIds: updatedSection.collocationIds,
+          // collocationList: updatedSection.collocationList
         };
         sections.value[index] = updatedSectionData;
       }
       return updatedSection;
     } catch (error) {
-      console.error('从分区移除收藏夹失败:', error);
+      console.error('从分区移除资源失败:', error);
       throw error;
     }
   };
@@ -245,7 +267,7 @@ export const useSectionStore = defineStore('section', () => {
   const clearSectionMedia = async (sectionId: string) => {
     try {
       // 清空分区
-      const updatedSection = await sectionApi.clearSectionMedia(sectionId);
+      const updatedSection = await sectionApi.clearSectionCollocations(sectionId);
       
       // 更新列表中的分区
       const index = sections.value.findIndex(s => s._id === sectionId);
@@ -253,8 +275,9 @@ export const useSectionStore = defineStore('section', () => {
         sections.value[index] = {
           ...updatedSection,
           name: updatedSection.name,
-          media_count: 0,
-          favorites: [] // 清空 favorites 数组
+          collocation_count: 0,
+          collocationIds: [],
+          // collocationList: []
         };
       }
       
@@ -301,8 +324,8 @@ export const useSectionStore = defineStore('section', () => {
     createSection,
     updateSection,
     deleteSection,
-    addMediaToSection,
-    removeMediaFromSection,
+    addCollocationToSection,
+    removeCollocationFromSection,
     clearSectionMedia,
     fetchSectionsIfNeeded,
     refreshSections,

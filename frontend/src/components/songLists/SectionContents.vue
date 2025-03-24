@@ -3,9 +3,9 @@
     :title="section?.name || ''" 
     :show-manage="true" 
     :show-refresh="true" 
-    :isEmpty="!favorites.length && !loading"
+    :isEmpty="!collocations.length && !loading"
     @manage="showManageDialog = true"
-    @refresh="sectionStore.refreshSections()"
+    @refresh="refreshSections"
   >
     <!-- 图标插槽 -->
     <template #icon>
@@ -14,8 +14,8 @@
 
     <!-- 标题后缀 -->
     <template #title-suffix>
-      <span class="count-badge" v-if="favorites.length">
-        {{ favorites.length }}
+      <span class="count-badge" v-if="collocations.length">
+        {{ collocations.length }}
       </span>
     </template>
 
@@ -23,24 +23,24 @@
     <template #content>
       <div class="music-grid">
         <div 
-          v-for="favorite in favorites" 
-          :key="favorite.id" 
+          v-for="collocation in collocations" 
+          :key="`${collocation.type}-${getCollocationId(collocation)}`" 
           class="music-item" 
-          @click="goToFavorite(favorite.id)"
+          @click="goToCollocation(collocation.type, getCollocationId(collocation))"
         >
           <div class="cover">
             <el-skeleton v-if="loading" :rows="1" animated />
-            <div v-else-if="!favorite.cover">
+            <div v-else-if="!getCollocationCover(collocation)">
               <i class="ri-star-line"></i>
             </div>
-            <img v-else :src="processResourceUrl(favorite.cover)" :alt="favorite.title">
-            <div class="play-button" @click.stop="playFavorite(favorite.id)">
+            <img v-else :src="processResourceUrl(getCollocationCover(collocation))" :alt="getCollocationName(collocation)">
+            <div class="play-button" @click.stop="playCollocation(collocation.type, getCollocationId(collocation))">
               <i class="ri-play-fill"></i>
             </div>
           </div>
           <div class="info">
-            <div class="title">{{ favorite.title }}</div>
-            <div class="count">{{ favorite.media_count || 0 }}个视频</div>
+            <div class="title">{{ getCollocationName(collocation) }}</div>
+            <div class="count">{{ getCollocationCount(collocation) }}个视频</div>
           </div>
         </div>
       </div>
@@ -55,22 +55,22 @@
     destroy-on-close
   >
     <el-tabs v-model="activeTab">
-      <!-- 添加收藏夹 -->
-      <el-tab-pane label="添加收藏夹" name="add">
-        <el-form @submit.prevent="addFavorite">
-          <el-form-item label="收藏夹ID或链接">
+      <!-- 添加资源 -->
+      <el-tab-pane label="添加资源" name="add">
+        <el-form @submit.prevent="addCollocation">
+          <el-form-item label="资源ID或链接">
             <el-input
-              v-model="favoriteUrl"
-              placeholder="输入收藏夹ID或完整链接"
+              v-model="collocationUrl"
+              placeholder="输入资源ID或完整链接"
               clearable
             />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="addFavorite">添加</el-button>
+            <el-button type="primary" @click="addCollocation">添加</el-button>
           </el-form-item>
         </el-form>
         <div class="help-text">
-          <p>如何获取收藏夹ID？</p>
+          <p>如何获取收藏夹ID？(合集、系列同理)</p>
           <ol>
             <li>打开B站收藏夹页面</li>
             <li>复制地址栏中的链接，例如：https://space.bilibili.com/123456789/favlist?fid=123456789</li>
@@ -80,23 +80,27 @@
       </el-tab-pane>
       
       <!-- 管理已有收藏夹 -->
-      <el-tab-pane label="管理收藏夹" name="manage">
-        <el-table :data="favorites" style="width: 100%">
-          <el-table-column prop="title" label="收藏夹名称" />
+      <el-tab-pane label="管理资源" name="manage">
+        <el-table :data="collocations" style="width: 100%">
+          <el-table-column prop="title" label="资源名称">
+            <template #default="{ row }">
+              <span>{{ getCollocationName(row) }}</span>
+            </template>
+          </el-table-column>
           <el-table-column label="操作" width="100">
-            <template #default="scope">
+            <template #default="{ row }">
               <el-button
                 type="danger"
                 size="small"
-                @click="confirmRemoveFavorite(scope.row.id)"
+                @click="confirmRemoveCollocation(row.type, getCollocationId(row))"
               >
                 移除
               </el-button>
             </template>
           </el-table-column>
         </el-table>
-        <div v-if="!favorites.length" class="empty-tip">
-          <p>暂无收藏夹，请先添加</p>
+        <div v-if="!collocations.length" class="empty-tip">
+          <p>暂无资源，请先添加</p>
         </div>
       </el-tab-pane>
     </el-tabs>
@@ -108,11 +112,11 @@
     title="确认移除"
     width="300px"
   >
-    <p>确定要从此分区移除该收藏夹吗？</p>
-    <p>这不会删除收藏夹本身，只会从当前分区中移除。</p>
+    <p>确定要从此分区移除该资源吗？</p>
+    <p>这不会删除资源本身，只会从当前分区中移除。</p>
     <template #footer>
       <el-button @click="showConfirmDialog = false">取消</el-button>
-      <el-button type="danger" @click="removeFavorite">确认移除</el-button>
+      <el-button type="danger" @click="removeCollocation">确认移除</el-button>
     </template>
   </el-dialog>
 </template>
@@ -122,9 +126,15 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from '../songLists/ContentSection.vue';
-import { useSectionStore, useFavoriteContentStore, useQueueStore, usePlayerStore } from '../../stores';
-import { processResourceUrl, extractFavoriteIdFromUrl } from '../../utils';
-import type { FavoriteInfo, SectionWithFavorites } from '../../types';
+import { processResourceUrl, extractIdAndType } from '../../utils';
+import type { Section, CollocationType,CollocationItem } from '../../types';
+import { useSectionStore, 
+  useFavoriteContentStore, 
+  useSeasonContentStore,
+  useSeriesContentStore,
+  useQueueStore, 
+  usePlayerStore 
+} from '../../stores';
 
 // 接收分区ID参数
 const props = defineProps<{
@@ -137,38 +147,108 @@ const router = useRouter();
 // Store
 const sectionStore = useSectionStore();
 const favoriteStore = useFavoriteContentStore();
+const seasonStore = useSeasonContentStore();
+const seriesStore = useSeriesContentStore();
+
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
 
 // 状态
-const section = ref<SectionWithFavorites | null>(null);
+const section = ref<Section | null>(null);
 const loading = ref(false);
-const favoriteUrl = ref('');
+const collocationUrl = ref('');
 
 // 对话框状态
 const showManageDialog = ref(false);
 const showConfirmDialog = ref(false);
 const activeTab = ref('add');
-const favoriteToRemove = ref<number | null>(null);
 
-// 计算属性：收藏夹列表
-const favorites = computed<FavoriteInfo[]>(() => {
-  return section.value?.favorites || [];
+// 要移除的收藏夹类型和ID
+const typeToRemove = ref<CollocationType | null>(null);
+const idToRemove = ref<number | null>(null);
+
+// 计算属性：资源列表
+const collocations = computed<CollocationItem[]>(() => {
+  return section.value?.collocationList || [];
 });
 
-// 跳转到收藏夹详情
-const goToFavorite = (id: number) => {
-  router.push(`/favorite/${id}`);
+// 获得对应ID
+const getCollocationId = (collocation: CollocationItem) => {
+  if (collocation.type === 'favorite') return collocation.favoriteInfo.id;
+  if (collocation.type === 'season') return collocation.seasonInfo.season_id;
+  if (collocation.type === 'series') return collocation.seriesInfo.series_id;
+  return -1; // 兜底，理论上不会触发
 };
 
-// 播放收藏夹内容
-const playFavorite = async (id: number) => {
+// 获得对应封面
+const getCollocationCover = (collocation: CollocationItem) => {
+  if (collocation.type === 'favorite') return collocation.favoriteInfo.cover;
+  if (collocation.type === 'season') return collocation.seasonInfo.cover;
+  if (collocation.type === 'series') return collocation.seriesInfo.cover;
+  return ''; // 兜底，理论上不会触发
+};
+
+// 获得对应名称
+const getCollocationName = (collocation: CollocationItem) => {
+  if (collocation.type === 'favorite') return collocation.favoriteInfo.title;
+  if (collocation.type === 'season') return collocation.seasonInfo.name;
+  if (collocation.type === 'series') return collocation.seriesInfo.name;
+  return ''; // 兜底，理论上不会触发
+};
+
+// 获得对应数量
+const getCollocationCount = (collocation: CollocationItem) => {
+  if (collocation.type === 'favorite') return collocation.favoriteInfo.media_count;
+  if (collocation.type === 'season') return collocation.seasonInfo.total;
+  if (collocation.type === 'series') return collocation.seriesInfo.total;
+  return 0; // 兜底，理论上不会触发
+};
+
+// 跳转到资源详情
+const goToCollocation = async (type: CollocationType, id: number) => {
+  switch (type) {
+    case 'favorite':
+      router.push(`/favorite/${id}`);
+      // 获取收藏夹内容...
+      break;
+    case 'season':
+      router.push(`/season/${id}`);
+      await seasonStore.fetchAllSeasonContent(id);
+      break;
+    case 'series':
+      router.push(`/series/${id}`);
+      await seriesStore.fetchSeriesArchives(id);
+      break;
+    default:
+      console.warn('未知的资源类型:', type);
+  }
+};
+
+// 播放资源内容
+const playCollocation = async (type: CollocationType, id: number) => {
   try {
-    // 完整加载收藏夹内容
-    await favoriteStore.fetchFavoriteContent(Number(id), true);
-    if (favoriteStore.medias.length > 0) {
-      queueStore.setQueue(favoriteStore.medias);
-      playerStore.play(favoriteStore.medias[0]);
+    if (type === 'favorite') {
+      // 完整加载收藏夹内容
+      await favoriteStore.fetchFavoriteContent(id, true);
+      if (favoriteStore.medias.length > 0) {
+        queueStore.setQueue(favoriteStore.medias);
+        playerStore.play(favoriteStore.medias[0]);
+      }
+    } else if (type === 'season') {
+      // 完整加载合集内容
+      await seasonStore.fetchAllSeasonContent(id);
+      if (seasonStore.medias.length > 0) {
+        queueStore.setQueue(seasonStore.medias);
+        playerStore.play(seasonStore.medias[0]);
+      }
+    } else if (type === 'series') {
+      // 完整加载系列内容
+      // 暂时这么处理吧
+      await seriesStore.fetchSeriesArchives(id);
+      if (seriesStore.seriesArchives.length > 0) {
+        queueStore.setQueue(seriesStore.seriesContent);
+        playerStore.play(seriesStore.seriesContent[0]);
+      }
     }
   } catch (error) {
     console.error('播放收藏夹失败:', error);
@@ -183,19 +263,19 @@ const loadSectionData = async () => {
   try {
     loading.value = true;
     
-    // 获取分区详情（包含收藏夹信息）
+    // 获取分区详情
     const sectionData = sectionStore.sections.find(s => s._id === props.sectionId);
     if (sectionData) {
       section.value = sectionData;
       
-      // 如果没有收藏夹信息或收藏夹信息为空，则加载收藏夹内容
-      if (!sectionData.favorites || sectionData.favorites.length === 0) {
-        // 加载分区的收藏夹内容
-        const favorites = await sectionStore.fetchSectionContent(props.sectionId, sectionData);
+      // 如果没有信息或资源列表为空，则加载资源列表
+      if (!sectionData.collocationList || sectionData.collocationList.length === 0) {
+        // 加载分区的资源列表
+        const collocations = await sectionStore.fetchSectionContent(props.sectionId, sectionData);
         
-        // 更新当前 section 的 favorites
+        // 更新当前 section 的列表
         if (section.value) {
-          section.value.favorites = favorites;
+          section.value.collocationList = collocations;
         }
       }
     }
@@ -208,72 +288,70 @@ const loadSectionData = async () => {
   }
 };
 
-// 添加收藏夹到分区
-const addFavorite = async () => {
-  if (!props.sectionId || !favoriteUrl.value) {
-    ElMessage.warning('请输入收藏夹ID或链接');
+// 添加资源到分区
+const addCollocation = async () => {
+  if (!props.sectionId || !collocationUrl.value) {
+    ElMessage.warning('请输入资源ID或链接');
     return;
   }
-  
   try {
     loading.value = true;
     
-    // 提取收藏夹ID
-    const favoriteId = extractFavoriteIdFromUrl(favoriteUrl.value);
+    // 提取资源ID
+    const { id, type } = extractIdAndType(collocationUrl.value);
     
-    if (!favoriteId) {
-      // 尝试直接将输入内容作为ID
-      const directId = parseInt(favoriteUrl.value);
-      if (isNaN(directId)) {
-        ElMessage.error('无效的收藏夹ID或链接');
-        return;
-      }
-      
-      // 添加收藏夹到分区
-      await sectionStore.addMediaToSection(props.sectionId, [directId]);
-    } else {
-      // 添加收藏夹到分区
-      await sectionStore.addMediaToSection(props.sectionId, [favoriteId]);
+    if (!id && !type) {
+      ElMessage.error('无效的资源ID或链接');
+      return;
     }
+    // 添加资源到分区
+    await sectionStore.addCollocationToSection(props.sectionId, type, id);
     
     // 重新加载分区数据
     await loadSectionData();
     
     // 清空输入框
-    favoriteUrl.value = '';
+    collocationUrl.value = '';
     
-    ElMessage.success('添加收藏夹成功');
+    ElMessage.success('添加资源成功');
   } catch (error) {
-    console.error('添加收藏夹失败:', error);
-    ElMessage.error('添加收藏夹失败');
+    console.error('添加资源失败:', error);
+    ElMessage.error('添加资源失败');
   } finally {
     loading.value = false;
   }
 };
 
 // 确认移除收藏夹
-const confirmRemoveFavorite = (id: number) => {
-  favoriteToRemove.value = id;
+const confirmRemoveCollocation = (type: CollocationType, id: number) => {
+  typeToRemove.value = type;
+  idToRemove.value = id;
   showConfirmDialog.value = true;
 };
 
 // 移除收藏夹
-const removeFavorite = async () => {
-  if (!props.sectionId || !favoriteToRemove.value) return;
+const removeCollocation = async () => {
+  if (!props.sectionId || !idToRemove.value || !typeToRemove.value) return;
   
   try {
     // 从分区移除收藏夹
-    await sectionStore.removeMediaFromSection(props.sectionId, [favoriteToRemove.value]);
+    await sectionStore.removeCollocationFromSection(props.sectionId, typeToRemove.value, idToRemove.value);
     
     // 重新加载分区数据
     await loadSectionData();
     
-    ElMessage.success('移除收藏夹成功');
+    ElMessage.success('移除资源成功');
     showConfirmDialog.value = false;
   } catch (error) {
-    console.error('移除收藏夹失败:', error);
-    ElMessage.error('移除收藏夹失败');
+    console.error('移除资源失败:', error);
+    ElMessage.error('移除资源失败');
   }
+};
+
+// 刷新分区
+const refreshSections = () => {
+  sectionStore.refreshSections();
+  loadSectionData();
 };
 
 // 监听分区ID变化
