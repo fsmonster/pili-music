@@ -1,7 +1,9 @@
 <template>
   <div class="player-bar">
     <!-- 左侧：当前播放信息 -->
-    <div class="now-playing">
+    <div class="now-playing"
+      :class="{ playing: playStore.playing }"
+    >
       <img 
         :src="playStore.currentItem ? processResourceUrl(playStore.currentItem.cover) : defaultCover" 
         :alt="playStore.currentItem?.title || '封面'" 
@@ -23,7 +25,7 @@
             playStore.playing ? 'ri-pause-circle-fill' : 'ri-play-circle-fill',
             { 'is-loading': playStore.loading }
           ]"
-          @click="playStore.toggle"
+          @click="togglePlay"
         ></i>
         <i class="ri-skip-forward-fill" @click="playStore.next"></i>
         <i class="ri-repeat-one-line"></i>
@@ -58,7 +60,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import defaultCover from '@/assets/image/music_cover.jpg';
+import defaultCover from '@/assets/image/music_cover.png';
 import { usePlayerStore, useQueueStore } from '../../stores';
 import { processResourceUrl } from '../../utils/processResoureUrl';
 // 导入自定义组件
@@ -97,6 +99,11 @@ function formatTime(seconds: number) {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// 切换播放状态
+function togglePlay() {
+  playStore.toggle();
 }
 
 // 进度条变化处理（拖动结束时）
@@ -151,21 +158,23 @@ function toggleQueue() {
   border-top: 1px solid var(--el-border-color-light);
 
   .now-playing {
+    min-width: 15%;
+    max-width: 300px;
     display: flex;
     align-items: center;
     gap: 12px;
 
     img {
-      // width: 56px;
-      height: 56px;
-      aspect-ratio: 16/9;
+      height: 56px; /* 固定高度 */
+      width: 56px;  /* 初始宽度 */
+      // aspect-ratio: 1/1;
       border-radius: 8px;
       object-fit: cover;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: width 0.5s ease;
     }
 
     .track-info {
-      min-width: 15%;
-      max-width: 250px;
       .track-name {
         font-size: 14px;
         font-weight: 500;
@@ -181,9 +190,15 @@ function toggleQueue() {
     }
   }
 
+  .playing {
+    img {
+      width: calc(56px * 16 / 9); /* 计算 16:9 的宽度 */
+    }
+  }
+
   .player-controls {
     flex: 1;
-    max-width: 600px;
+    max-width: 700px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -239,7 +254,7 @@ function toggleQueue() {
 
   .player-options {
     min-width: 15%;
-    max-width: 250px;
+    max-width: 300px;
     display: flex;
     justify-content: end;
     align-items: center;

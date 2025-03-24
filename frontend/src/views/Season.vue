@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
 import { ref, computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
-import { useSeasonStore, usePlayerStore, useQueueStore } from '../stores';
+import { useSeasonStore, useSeasonContentStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
@@ -60,19 +60,20 @@ const route = useRoute();
 const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
 const seasonStore = useSeasonStore();
+const seasonContentStore = useSeasonContentStore();
 
 const { id } = route.params;
 
 // 计算属性
-const info = computed(() => seasonStore.seasonContents?.info || null);
-const medias = computed(() => seasonStore.seasonContents?.medias || []);
+const info = computed(() => seasonContentStore.info || null);
+const medias = computed(() => seasonContentStore.medias || []);
 
 /**
  * @desc 加载内容
  */
 async function loadContent() {  
   if (!id) return;
-  await seasonStore.fetchAllSeasonContent(Number(id));
+  await seasonContentStore.fetchAllSeasonContent(Number(id));
 }
 
 /**

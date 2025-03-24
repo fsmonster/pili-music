@@ -57,19 +57,23 @@ router.get('/collected/list', async (req: AuthRequest, res: Response) => {
 });
 
 /**
- * @route   GET /api/season/meta/:season_id
+ * @route   GET /api/season/meta
  * @desc    查询系列meta信息
  * @param {number} season_id - 合集ID
+ * @param {number} page_num - 页码
+ * @param {number} page_size - 每页项数
  * @access  Public - 不需要登录
  */
-router.get('/meta/:season_id', async (req: Request, res: Response) => {
+router.get('/meta', async (req: Request, res: Response) => {
   try {
-    const { season_id } = req.params;
+    const { season_id, page_num, page_size } = req.query;
     
     // 调用B站API获取系列meta信息
-    const response = await axios.get('https://api.bilibili.com/x/series/season', {
+    const response = await axios.get('https://api.bilibili.com/x/polymer/web-space/seasons_archives_list', {
       params: {
-        season_id
+        season_id,
+        page_num,
+        page_size
       },
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',

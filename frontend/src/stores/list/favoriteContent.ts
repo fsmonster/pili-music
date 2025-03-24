@@ -12,7 +12,6 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
   // 基础状态
   const favoriteContent = ref<FavoriteContentResponse | null>(null);
   const loading = ref(false);
-  const error = ref('');
   
   // 懒加载状态
   const pageSize = ref(20); // 每次加载的数量
@@ -44,17 +43,17 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
    * @desc 添加更多收藏夹内容（懒加载时使用）
    * @param moreContent 
    */
-  function appendFavoriteContent(moreContent: FavoriteContentResponse) {
-    if (favoriteContent.value) {
-      favoriteContent.value = {
-        ...moreContent,
-        medias: [...favoriteContent.value.medias, ...moreContent.medias]
-      };
-    } else {
-      favoriteContent.value = moreContent;
-    }
-    page.value += 1;
-  }
+  // function appendFavoriteContent(moreContent: FavoriteContentResponse) {
+  //   if (favoriteContent.value) {
+  //     favoriteContent.value = {
+  //       ...moreContent,
+  //       medias: [...favoriteContent.value.medias, ...moreContent.medias]
+  //     };
+  //   } else {
+  //     favoriteContent.value = moreContent;
+  //   }
+  //   page.value += 1;
+  // }
 
 
   /**
@@ -64,7 +63,6 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
    */
   const fetchFavoriteContent = async (mediaId: number, loadAll: boolean = false) => {
     loading.value = true;
-    error.value = '';
     currentFavoriteId.value = mediaId;
     
     try {
@@ -83,7 +81,6 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
         setFavoriteContent(content);
       }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : '获取收藏夹内容失败';
       console.error('获取收藏夹内容失败:', err);
     } finally {
       loading.value = false;
@@ -147,7 +144,6 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
       page.value = totalPages;
       
     } catch (err) {
-      error.value = err instanceof Error ? err.message : '完整加载收藏夹内容失败';
       console.error('完整加载收藏夹内容失败:', err);
       throw err; // 向上传递错误
     }
@@ -198,7 +194,6 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
   // 重置状态
   const reset = () => {
     loading.value = false;
-    error.value = '';
     page.value = 1;
     favoriteContent.value = null;
     currentFavoriteId.value = null;
@@ -208,7 +203,6 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
     // 状态
     favoriteContent,
     loading,
-    error,
     pageSize,
     page,
     currentFavoriteId,
@@ -219,7 +213,7 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
     
     // 方法
     setFavoriteContent,
-    appendFavoriteContent,
+    // appendFavoriteContent,
     fetchFavoriteContent,
     fetchAllFavoriteContent,
     // loadMoreFavoriteContent,

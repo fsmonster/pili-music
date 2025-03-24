@@ -1,4 +1,4 @@
-import type { UserSeasonList } from './index'
+import type { UserSeasonList, Archive } from './index'
 
 /**
  * 请求参数
@@ -56,46 +56,6 @@ export interface Page {
     [property: string]: any;
 }
 
-
-/**
- * 该合集的元数据
- */
-export interface SeasonsMeta {
-    /**
-     * 该合集所属分类
-     */
-    category: number;
-    /**
-     * 该合集的封面 URL
-     */
-    cover: string;
-    /**
-     * 该合集的描述
-     */
-    description: string;
-    /**
-     * 创建该合集的用户 ID
-     */
-    mid: number;
-    /**
-     * 该合集的名称
-     */
-    name: string;
-    /**
-     * 该合集的发布时间（时间戳）
-     */
-    ptime: number;
-    /**
-     * 该合集的 ID
-     */
-    season_id: number;
-    /**
-     * 该合集包含的视频总数
-     */
-    total: number;
-    [property: string]: any;
-}
-
 export interface UserSeriesList {
     /**
      * 该系列下的视频列表
@@ -109,22 +69,6 @@ export interface UserSeriesList {
      * 该系列中最近更新的视频 AV 号
      */
     recent_aids: number[];
-    [property: string]: any;
-}
-
-
-/**
- * 视频的统计信息
- */
-export interface Stat {
-    /**
-     * 播放量
-     */
-    view: number;
-    /**
-     * 互动视频相关数据
-     */
-    vt: number;
     [property: string]: any;
 }
 
@@ -211,6 +155,9 @@ export interface SeriesMetaResponse {
     [property: string]: any;
 }
 
+/**
+ * 该系列的视频列表请求参数
+ */
 export interface SeriesArchivesParams {
     /**
      * 用于 playback_position 播放进度
@@ -254,67 +201,3 @@ export interface SeriesArchivesResponse {
     [property: string]: any;
 }
 
-
-export interface Archive {
-    /**
-     * 视频 AV 号
-     */
-    aid: number;
-    /**
-     * 视频 BV 号
-     */
-    bvid: string;
-    /**
-     * 视频创建时间（时间戳）
-     */
-    ctime: number;
-    /**
-     * 视频时长（单位：秒）
-     */
-    duration: number;
-    /**
-     * 是否启用“互动视频”功能
-     */
-    enable_vt: boolean;
-    /**
-     * 是否为互动视频
-     */
-    interactive_video: boolean;
-    /**
-     * 是否为课程视频
-     */
-    is_lesson_video: number;
-    /**
-     * 视频封面 URL
-     */
-    pic: string;
-    /**
-     * 用户上次播放的位置（秒）
-     */
-    playback_position: number;
-    /**
-     * 视频发布时间（时间戳）
-     */
-    pubdate: number;
-    /**
-     * 视频的统计信息
-     */
-    stat: Stat;
-    /**
-     * 视频状态（可能用于表示审核、删除等状态）
-     */
-    state: number;
-    /**
-     * 视频标题
-     */
-    title: string;
-    /**
-     * 是否为付费内容（0 表示免费）
-     */
-    ugc_pay: number;
-    /**
-     * 互动视频的显示文本
-     */
-    vt_display: string;
-    [property: string]: any;
-}

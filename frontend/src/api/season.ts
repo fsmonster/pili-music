@@ -4,6 +4,7 @@
 import request from "../utils/request";
 import type { 
   ApiResponse,
+  UserSeasonList,
   SeasonListParams,
   SeasonListResponse,
   SeasonList,
@@ -12,8 +13,56 @@ import type {
   SeasonContentResponse,
   SeasonAndSeriesParams,
   SeasonAndSeriesResponse,
-  UserSeasonList
+  SeasonMetaParams,
+  SeasonMeta,
+  SeasonArchivesParams,
+  SeasonArchivesResponse,
+  Archive,
 } from "../types";
+
+/**
+ * 获取合集的元数据
+ * @returns 合集元数据
+ */
+export async function getSeasonMeta(
+  params: SeasonMetaParams
+): Promise<SeasonMeta> {
+  params.page_num = 1;
+  params.page_size = 1;
+  try {
+      const res = await request.get<ApiResponse<SeasonArchivesResponse>>(
+          "/season/meta",
+          {
+              params,
+          }
+      );
+      return res.data.data.meta;
+  } catch (error) {
+      console.error("获取合集元数据失败:", error);
+      throw error;
+  }
+}
+
+/**
+ * 获取合集的媒体列表
+ * 暂时不考虑实现分区里添加合集
+ */
+export async function getSeasonArchives(
+  params: SeasonArchivesParams
+): Promise<Archive[]> {
+  try {
+      const res = await request.get<ApiResponse<SeasonArchivesResponse>>(
+          "/season/archives",
+          {
+              params,
+          }
+      );
+      return res.data.data.archives;
+  } catch (error) {
+      console.error("获取合集媒体列表失败:", error);
+      throw error;
+  }
+}
 
 /**
  * 获取用户的合集列表

@@ -123,8 +123,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from './ContentSection.vue';
-import { useUserStore, useQueueStore, usePlayerStore } from '../../stores';
-import { useSeriesStore } from '../../stores/list/series';
+import { useSeriesStore, useSeriesContentStore, useUserStore, useQueueStore, usePlayerStore } from '../../stores';
 import { processResourceUrl } from '../../utils';
 import { extractMidAndSeriesId, convertArchiveToMediaItem } from '../../utils/common';
 
@@ -133,6 +132,7 @@ const router = useRouter();
 
 // Store
 const seriesStore = useSeriesStore();
+const seriesContentStore = useSeriesContentStore();
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
 const userStore = useUserStore();
@@ -166,10 +166,10 @@ const playSeries = async (id: number) => {
     }
 
     // 完整加载系列内容
-    await seriesStore.fetchSeriesArchives(seriesMid(id)!, id);
+    await seriesContentStore.fetchSeriesArchives(seriesMid(id)!, id);
     
     // 转换为媒体项目
-    const medias = seriesStore.seriesArchives.map(convertArchiveToMediaItem);
+    const medias = seriesContentStore.seriesArchives.map(convertArchiveToMediaItem);
     
     if (medias.length > 0) {
       queueStore.setQueue(medias);

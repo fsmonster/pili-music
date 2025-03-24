@@ -91,7 +91,7 @@ export const useAuthStore = defineStore('auth', () => {
                 stopPolling();
                 console.error('轮询二维码状态失败:', error);
             }
-        }, 4000);
+        }, 2000);
     }
 
     /**

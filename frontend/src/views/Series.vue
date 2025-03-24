@@ -55,8 +55,7 @@ import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import MediaTable from '../components/songList/MediaTable.vue';
-import { usePlayerStore, useQueueStore } from '../stores';
-import { useSeriesStore } from '../stores/list/series';
+import {useSeriesStore,useSeriesContentStore, usePlayerStore, useQueueStore } from '../stores';
 import { convertArchiveToMediaItem } from '../utils/common';
 import type { MediaItem } from '../types';
 
@@ -66,6 +65,7 @@ const seriesId = computed(() => Number(route.params.id));
 
 // Store
 const seriesStore = useSeriesStore();
+const seriesContentStore = useSeriesContentStore();
 const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
 
@@ -75,7 +75,7 @@ const loading = ref(false);
 // 计算属性
 const seriesMeta = computed(() => seriesStore.series.find(s => s.series_id === seriesId.value));
 const medias = computed<MediaItem[]>(() => {
-  return seriesStore.seriesArchives.map(convertArchiveToMediaItem);
+  return seriesContentStore.seriesArchives.map(convertArchiveToMediaItem);
 });
 
 // 加载内容
@@ -88,7 +88,7 @@ const loadContent = async () => {
     // 获取系列内容
     const mid = seriesMeta.value?.mid;
     if (mid) {
-      await seriesStore.fetchSeriesArchives(mid, seriesId.value);
+      await seriesContentStore.fetchSeriesArchives(mid, seriesId.value);
     } else {
       ElMessage.error('获取系列信息失败');
     }

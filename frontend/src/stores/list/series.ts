@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import * as seriesApi from '../../api/series';
-import type { Archive, SeriesMeta } from '../../types';
+import type { SeriesMeta } from '../../types';
 import { useUserStore } from '../user/user';
 
 /**
@@ -18,7 +18,6 @@ export const useSeriesStore = defineStore('series', () => {
     // const seriesMeta = ref<SeriesMeta | null>(null);
     const displaySeries = ref<number[]>([]);
     // 系列媒体列表
-    const seriesArchives = ref<Archive[]>([]);
     const isLoaded = ref(false);
     const loading = ref(false);
 
@@ -29,9 +28,14 @@ export const useSeriesStore = defineStore('series', () => {
         if(!isLoggedIn.value) return;
         try {
             loading.value = true;
-            series.value = [];
+            const currentIds = series.value.map(s => s.series_id);
+            const queryIds = displaySeries.value.filter(id => !currentIds.includes(id));
+            if (queryIds.length === 0) return;
+
+            const newSeries: SeriesMeta[] = [];
+
             // 获取系列列表
-            for (let seriesId of displaySeries.value) {
+            for (let seriesId of queryIds) {
                     // 获取系列元数据
                     const meta = await seriesApi.getSeriesMeta({
                         series_id: seriesId
@@ -54,8 +58,10 @@ export const useSeriesStore = defineStore('series', () => {
                     console.error(`获取系列 ${seriesId} 封面失败:`, archiveErr);
                 }
                 
-                series.value.push(meta);
+                newSeries.push(meta);
             }
+
+            series.value = [ ...newSeries,...series.value];
         } catch (err) {
             console.error("获取系列列表失败:", err);
         } finally {
@@ -75,27 +81,6 @@ export const useSeriesStore = defineStore('series', () => {
             });
         } catch (err) {
             console.error("获取系列元数据失败:", err);
-        }
-    };
-
-    /**
-     * 获取系列所有媒体列表
-     */
-    const fetchSeriesArchives = async (mid: number, seriesId: number) => {     
-        if (!mid) return;
-        const seriesMeta = series.value.find(series => series.series_id === seriesId);
-        if (!seriesMeta) return;
-        try {
-            // 获取系列的媒体列表
-            seriesArchives.value = await seriesApi.getSeriesArchives({
-                mid,
-                series_id: seriesId,
-                pn: 1,
-                ps: seriesMeta.total
-            });
-            isLoaded.value = true;
-        } catch (err) {
-            console.error("获取系列内容失败:", err);
         }
     };
 
@@ -167,17 +152,16 @@ export const useSeriesStore = defineStore('series', () => {
         isLoaded.value = false;
         displaySeries.value = [];
         series.value = [];
-        seriesArchives.value = [];
     };
 
     return {
+        // 状态
         loading,
         series,
         displaySeries,
-        seriesArchives,
         isLoaded,
+        // 方法
         fetchSeriesMeta,
-        fetchSeriesArchives,
         fetchDisplaySeries,
         addSeries,
         removeSeries,
