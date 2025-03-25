@@ -180,13 +180,18 @@
       </template>
     </el-table-column>
   </el-table>
+  <div v-if="favoriteContentStore.hasMore" class="load-more-container">
+    <el-tooltip content="一次只能请求这么多捏(っ °Д °;)っ" effect="dark" placement="right">
+      <el-button type="primary" @click="emit('load-more')">加载更多~</el-button>
+    </el-tooltip>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { processResourceUrl } from '../../utils/processResoureUrl';
 import { getCid } from '../../api';
-import { usePlayerStore, useMultiPageQueueStore } from '../../stores';
+import { usePlayerStore, useMultiPageQueueStore, useFavoriteContentStore } from '../../stores';
 import type { MediaItem, CidInfo } from '../../types';
 
 const props = defineProps<{
@@ -203,11 +208,15 @@ const emit = defineEmits<{
   (e: 'play', item: MediaItem): void
   (e: 'add', item: MediaItem): void
   (e: 'play-all'): void
+  (e: 'load-more'): void
 }>();
 
 // 获取播放器和多P队列存储
 const playerStore = usePlayerStore();
 const multiPageQueueStore = useMultiPageQueueStore();
+
+// 收藏夹内容存储
+const favoriteContentStore = useFavoriteContentStore();
 
 // 展开行的ID数组
 const expandedRows = ref<string[]>([]);
@@ -326,6 +335,14 @@ watch(() => props.data, () => {
 
 <style lang="scss" scoped>
 @use '../../assets/styles/_mixins.scss';
+
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+}
 
 /* 当前播放动画 */
 .playing-indicator {

@@ -28,6 +28,7 @@
               type="favorite"
               :loading="favoriteContentStore.loading"
               @play="handlePlay"
+              @load-more="handleLoadMore"
             />
 
             <!-- 加载状态 -->
@@ -87,8 +88,15 @@ async function loadContent() {
     console.error('获取收藏夹信息失败:', error);
   }
   
-  // 完整加载收藏夹内容
-  await favoriteContentStore.fetchFavoriteContent(Number(id), true);
+  // 加载收藏夹内容
+  await favoriteContentStore.fetchFavoriteContent(Number(id));
+}
+
+/**
+ * @desc 加载更多
+ */
+async function handleLoadMore() {
+  await favoriteContentStore.fetchFavoriteContent(Number(id));
 }
 
 /**
