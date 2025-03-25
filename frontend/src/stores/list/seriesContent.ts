@@ -13,7 +13,7 @@ export const useSeriesContentStore = defineStore('seriesContent', () => {
     const loading = ref(false);
 
     // 计算属性
-    const seriesContent = computed(() => {
+    const medias = computed(() => {
         return seriesArchives.value.map(archive => convertArchiveToMediaItem(archive));
     });
 
@@ -45,7 +45,7 @@ export const useSeriesContentStore = defineStore('seriesContent', () => {
         loading,
         seriesArchives,
         // 计算属性
-        seriesContent,
+        medias,
         // 方法
         fetchSeriesArchives
     };

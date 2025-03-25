@@ -72,7 +72,7 @@ export interface FavoriteInfoParams {
   [property: string]: any;
 }
 
-export type FavoriteInfo = FavoriteInfoResponse;
+export interface FavoriteInfo extends FavoriteInfoResponse {};
 
 /**
  * 信息本体，无效时返回 null

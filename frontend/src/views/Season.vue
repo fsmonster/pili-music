@@ -5,9 +5,11 @@
         <div class="playlist-scroll">
           <!-- 列表头部 -->
           <ListHeader 
-            :title="info?.title"
-            :cover="info?.cover"
-            :count="info?.media_count"
+            v-if="info"
+            :mid="info.upper.mid"
+            :title="info.title"
+            :cover="info.cover"
+            :count="info.media_count"
           />
 
           <!-- 播放列表内容 -->
@@ -47,7 +49,8 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { ref, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useSeasonStore, useSeasonContentStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
@@ -64,9 +67,7 @@ const seasonContentStore = useSeasonContentStore();
 
 const { id } = route.params;
 
-// 计算属性
-const info = computed(() => seasonContentStore.info || null);
-const medias = computed(() => seasonContentStore.medias || []);
+const { info, medias } = storeToRefs(seasonContentStore);
 
 /**
  * @desc 加载内容

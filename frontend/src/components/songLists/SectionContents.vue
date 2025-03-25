@@ -39,8 +39,15 @@
             </div>
           </div>
           <div class="info">
-            <div class="title">{{ getCollocationName(collocation) }}</div>
-            <div class="count">{{ getCollocationCount(collocation) }}个视频</div>
+            <div class="title">
+              {{ getCollocationName(collocation) }}
+            </div>
+            <div class="count">
+              <i v-if="collocation.type === 'favorite'" class="ri-star-line"></i>
+              <i v-else-if="collocation.type === 'season'" class="ri-stack-line"></i>
+              <i v-else-if="collocation.type === 'series'" class="ri-list-check-2"></i>
+              {{ getCollocationCount(collocation) }}个视频
+            </div>
           </div>
         </div>
       </div>
@@ -246,8 +253,8 @@ const playCollocation = async (type: CollocationType, id: number) => {
       // 暂时这么处理吧
       await seriesStore.fetchSeriesArchives(id);
       if (seriesStore.seriesArchives.length > 0) {
-        queueStore.setQueue(seriesStore.seriesContent);
-        playerStore.play(seriesStore.seriesContent[0]);
+        queueStore.setQueue(seriesStore.medias);
+        playerStore.play(seriesStore.medias[0]);
       }
     }
   } catch (error) {

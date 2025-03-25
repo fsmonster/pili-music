@@ -6,6 +6,54 @@ import { AuthRequest } from '../types/index.js';
 
 const router = express.Router();
 
+/**
+ * @route   GET /api/user/info
+ * @desc    获取用户信息
+ * @access  Public - 不需要登录
+ */
+router.get('/info', async (req: Request, res: Response) => {
+  try {
+    const { mid } = req.query;
+
+    if (!mid) {
+      return res.status(400).json({
+        code: 400,
+        message: '缺少 mid 参数'
+      });
+    }
+
+    const response = await axios.get('https://api.bilibili.com/x/web-interface/card', {
+      params: {
+        mid,
+        photo: true
+      },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://www.bilibili.com'
+      }
+    });
+
+    if (response.data.code === 0 && response.data.data) {
+      const userData = response.data.data;
+      res.json({
+        code: 0,
+        data: userData
+      });
+    } else {
+      res.status(401).json({ 
+        code: response.data.code, 
+        message: response.data.message || '获取用户信息失败' 
+      });
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取用户信息失败' 
+    });
+  }
+});
+
 // 应用认证中间件到所有路由
 router.use(authMiddleware);
 

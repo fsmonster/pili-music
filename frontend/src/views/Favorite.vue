@@ -5,9 +5,11 @@
         <div class="playlist-scroll">
           <!-- 列表头部 -->
           <ListHeader 
-            :title="currentInfo?.title"
-            :cover="currentInfo?.cover"
-            :count="currentInfo?.media_count"
+            v-if="currentInfo"
+            :mid="currentInfo.mid"
+            :title="currentInfo.title"
+            :cover="currentInfo.cover"
+            :count="currentInfo.media_count"
           />
 
           <!-- 播放列表内容 -->
@@ -54,7 +56,7 @@ import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
-import type { MediaItem } from '../types';
+import type { FavoriteInfo, MediaItem } from '../types';
 import * as favoriteApi from '../api/favorite';
 
 const route = useRoute();
@@ -65,9 +67,10 @@ const favoriteContentStore = useFavoriteContentStore();
 const { id } = route.params;
 
 // 当前收藏夹信息
-const currentInfo = ref<any>(null);
+const currentInfo = ref<FavoriteInfo | null>(null);
 
 // 计算属性
+// const upperInfo = computed(() => currentInfo.value?.upper ?? null);
 const medias = computed<MediaItem[]>(() => favoriteContentStore.medias);
 
 /**
@@ -78,7 +81,7 @@ async function loadContent() {
   
   // 获取收藏夹信息
   try {
-    const favoriteInfo = await favoriteApi.getFavoriteInfo({ media_id: Number(id) });
+    const favoriteInfo: FavoriteInfo = await favoriteApi.getFavoriteInfo({ media_id: Number(id) });
     currentInfo.value = favoriteInfo;
   } catch (error) {
     console.error('获取收藏夹信息失败:', error);

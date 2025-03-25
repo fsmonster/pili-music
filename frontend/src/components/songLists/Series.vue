@@ -166,14 +166,11 @@ const playSeries = async (id: number) => {
     }
 
     // 完整加载系列内容
-    await seriesContentStore.fetchSeriesArchives(seriesMid(id)!, id);
+    await seriesContentStore.fetchSeriesArchives(id, seriesMid(id));
     
-    // 转换为媒体项目
-    const medias = seriesContentStore.seriesArchives.map(convertArchiveToMediaItem);
-    
-    if (medias.length > 0) {
-      queueStore.setQueue(medias);
-      playerStore.play(medias[0]);
+    if (seriesContentStore.medias.length > 0) {
+      queueStore.setQueue(seriesContentStore.medias);
+      playerStore.play(seriesContentStore.medias[0]);
     } else {
       ElMessage.warning('该系列没有可播放的内容');
     }

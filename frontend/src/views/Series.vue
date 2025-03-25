@@ -6,9 +6,11 @@
         <div class="playlist-scroll">
           <!-- 列表头部 -->
           <ListHeader 
-            :title="seriesMeta?.name"
-            :cover="seriesMeta?.cover"
-            :count="seriesMeta?.total"
+            v-if="seriesMeta"
+            :mid="seriesMeta.mid"
+            :title="seriesMeta.name"
+            :cover="seriesMeta.cover!"
+            :count="seriesMeta.total"
           />
 
           <!-- 播放列表内容 -->
@@ -49,6 +51,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
 import { ref, computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { Loading } from '@element-plus/icons-vue';
 import Layout from '../layout/Layout.vue';
@@ -73,7 +76,7 @@ const loading = ref(false);
 
 // 计算属性
 const seriesMeta = computed(() => seriesStore.series.find(s => s.series_id === seriesId.value));
-const medias = computed<MediaItem[]>(() => seriesContentStore.seriesContent);
+const { medias } = storeToRefs(seriesContentStore);
 
 // 加载内容
 const loadContent = async () => {
