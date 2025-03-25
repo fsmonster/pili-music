@@ -82,7 +82,7 @@ async function loadContent() {
   
   // 获取收藏夹信息
   try {
-    const favoriteInfo: FavoriteInfo = await favoriteApi.getFavoriteInfo({ media_id: Number(id) });
+    const favoriteInfo: FavoriteInfo = await favoriteApi.getFavoriteInfo(Number(id));
     currentInfo.value = favoriteInfo;
   } catch (error) {
     console.error('获取收藏夹信息失败:', error);

@@ -52,9 +52,7 @@ export const useFavoriteStore = defineStore('favorite', () => {
             const favorite = allFavorites.value.find(f => f.id === id);
             if (!favorite) return null;
             
-            const folderInfo: FavoriteInfo | null = await favoriteApi.getFavoriteInfo({
-              media_id: id
-            });
+            const folderInfo: FavoriteInfo | null = await favoriteApi.getFavoriteInfo(id);
             return {
               ...favorite,
               ...folderInfo
@@ -109,9 +107,7 @@ export const useFavoriteStore = defineStore('favorite', () => {
             const favorite = allFavorites.value.find(f => f.id === id);
             if (!favorite) return null;
             
-            const folderInfo: FavoriteInfo | null = await favoriteApi.getFavoriteInfo({
-              media_id: id
-            });
+            const folderInfo: FavoriteInfo | null = await favoriteApi.getFavoriteInfo(id);
             return {
               ...favorite,
               ...folderInfo

@@ -31,13 +31,15 @@ export async function getFavoriteList(params: FavoriteListParams): Promise<Favor
 
 /**
  * 获取收藏夹 - 信息
- * @param params 参数
+ * @param media_id 收藏夹ID
  * @returns 收藏夹信息
  */
-export async function getFavoriteInfo(params: FavoriteInfoParams): Promise<FavoriteInfoResponse> {
+export async function getFavoriteInfo(media_id: number): Promise<FavoriteInfoResponse> {
   try {
     const res = await request.get<ApiResponse<FavoriteInfoResponse>>('/favorite/folder/info', {
-      params
+      params:{
+        media_id
+      }
     });
     if(res.data.code !== 0) {
       throw new Error(res.data.message || '获取收藏夹信息失败');

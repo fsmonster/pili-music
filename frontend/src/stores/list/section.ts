@@ -78,7 +78,7 @@ export const useSectionStore = defineStore('section', () => {
         try {
           if (collocationId.type === 'favorite') {
             // 获取收藏夹基本信息
-            const favoriteInfo = await favoriteApi.getFavoriteInfo({ media_id: collocationId.id });
+            const favoriteInfo = await favoriteApi.getFavoriteInfo(collocationId.id);
             if (favoriteInfo) {
               collocationList.push({ type: 'favorite', favoriteInfo });
             }

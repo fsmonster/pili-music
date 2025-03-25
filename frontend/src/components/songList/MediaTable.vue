@@ -1,7 +1,7 @@
 # 支持多P视频展示的媒体表格组件
 <template>
   <el-table
-    :data="data"
+    :data="tableData"
     :max-height="maxHeight"
     :border="false"
     :highlight-current-row="true"
@@ -180,7 +180,7 @@
       </template>
     </el-table-column>
   </el-table>
-  <div v-if="favoriteContentStore.hasMore" class="load-more-container">
+  <div v-if="false || (type === 'favorite' && favoriteContentStore.hasMore)" class="load-more-container">
     <el-tooltip content="一次只能请求这么多捏(っ °Д °;)っ" effect="dark" placement="right">
       <el-button type="primary" @click="emit('load-more')">加载更多~</el-button>
     </el-tooltip>
@@ -230,6 +230,10 @@ const pageList = ref<CidInfo[]>([]);
 // 分页相关
 const pageSize = 20; // 每页显示20条
 const currentPage = ref(1);
+
+const tableData = computed(() => {
+  return props.data.filter(item => item.attr === 0);
+});
 
 // 计算当前页的分P列表
 const paginatedPageList = computed(() => {

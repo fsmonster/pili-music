@@ -55,10 +55,14 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
   }
 
 /**
- * @desc 增量加载收藏夹内容（每次最多 10 页，支持多次调用）
+ * @desc 增量加载收藏夹内容（每次最多 5 页，支持多次调用）
  * @param mediaId 收藏夹ID
  */
 const fetchFavoriteContent = async (mediaId: number) => {
+  if (currentFavoriteId.value !== mediaId) {
+    reset();
+  }
+  currentFavoriteId.value = mediaId;
   try {
     loading.value = true;
 
@@ -84,7 +88,7 @@ const fetchFavoriteContent = async (mediaId: number) => {
 
     // 计算当前最多请求到的页码
     const nextStartPage = page.value + 1;
-    const nextMaxPage = Math.min(page.value + 10, totalPages.value);
+    const nextMaxPage = Math.min(page.value + 5, totalPages.value);
 
     if (nextStartPage > totalPages.value) {
       hasMore.value = false;
@@ -124,6 +128,10 @@ const fetchFavoriteContent = async (mediaId: number) => {
   const reset = () => {
     loading.value = false;
     page.value = 1;
+    firstLoad.value = true;
+    totalCount.value = 0;
+    totalPages.value = 0;
+    hasMore.value = false;
     favoriteContent.value = null;
     currentFavoriteId.value = null;
   };
