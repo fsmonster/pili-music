@@ -91,6 +91,16 @@ router.get('/audio/url', async (req: AuthRequest, res: Response) => {
         'Referer': 'https://www.bilibili.com'
       }
     });
+    
+    // 判断是否为充电视频
+    if(response.data.data.accept_description[0] === '试看') {
+      return res.json({ 
+        code: 403, 
+        status: 403,
+        message: '该视频为充电视频内容，无法获取音频流',
+        data: null
+      });
+    }
 
     res.json({
       code: response.data.code,

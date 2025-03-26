@@ -134,8 +134,9 @@ export const usePlayerStore = defineStore('player', () => {
           const url = await getAudioUrl({
             avid: currentItem.id,
             cid,
-          });      
-                    
+          });
+
+          // 处理获取到的URL
           if (url) {
             // 使用 processResourceUrl 处理 URL，通过后端代理
             const processedUrl = processResourceUrl(url);
@@ -143,7 +144,8 @@ export const usePlayerStore = defineStore('player', () => {
             queueStore.setAudioUrl(processedUrl);
             await audio.play();
           } else {
-            throw new Error('无法获取音频URL');
+            queueStore.setError('该视频为充电视频，无法播放');
+            return;
           }
         } catch (err) {
           console.error('加载音频失败', err);

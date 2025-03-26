@@ -45,14 +45,19 @@ export async function getCid(params: AudioParams, fullList: boolean = false): Pr
 export async function getAudioUrl(params: {
   avid: number;
   cid: number;
-}): Promise<string> {
+}): Promise<string | null> {
   try {
-    const res = await request.get<DashAudioResponse>('/audioInfo/audio/url', {
+    const res = await request.get<DashAudioResponse | null>('/audioInfo/audio/url', {
       params
     });
-    
-    if (res.data.code !== 0) {
-      throw new Error(res.data.message || '获取音频URL失败');
+
+    // 判断是否为充电视频
+    if (res.data?.code === 403) {
+      return null;
+    }
+
+    if (res.data?.code !== 0) {
+      throw new Error(res.data?.message || '获取音频URL失败');
     }
 
     // 获取所有音频流

@@ -51,13 +51,14 @@
   >
     <div class="seasons-manage">
       <el-checkbox-group v-model="checkedSeasons">
-        <el-checkbox 
-          v-for="item in seasonStore.allSeasons" 
-          :key="item.id" 
-          :value="item.id">
-          <div class="title">{{ item.title }}</div>
-          <div class="count">({{ item.media_count }}个内容)</div>
-        </el-checkbox>
+        <template v-for="item in seasonStore.allSeasons" :key="item.id">
+          <el-checkbox 
+            v-if="item.attr !== 1"
+            :value="item.id">
+            <div class="title">{{ item.title }}</div>
+            <div class="count">({{ item.media_count }}个内容)</div>
+          </el-checkbox>
+        </template>
       </el-checkbox-group>
     </div>
     <div class="dialog-footer">

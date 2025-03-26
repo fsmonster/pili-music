@@ -39,6 +39,6 @@ FavoriteDisplaySchema.pre('findOneAndUpdate', function(next) {
 });
 
 // 创建并导出收藏夹显示设置模型
-const FavoriteDisplay = mongoose.model<IFavoriteDisplay>('FavoriteDisplay', FavoriteDisplaySchema);
+const FavoriteDisplay = mongoose.model<IFavoriteDisplay>('Favorite', FavoriteDisplaySchema);
 
 export default FavoriteDisplay;

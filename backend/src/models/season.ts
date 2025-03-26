@@ -39,6 +39,6 @@ SeasonDisplaySchema.pre('findOneAndUpdate', function(next) {
 });
 
 // 创建并导出合集显示设置模型
-const SeasonDisplay = mongoose.model<ISeasonDisplay>('SeasonDisplay', SeasonDisplaySchema);
+const SeasonDisplay = mongoose.model<ISeasonDisplay>('Season', SeasonDisplaySchema);
 
 export default SeasonDisplay;

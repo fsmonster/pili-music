@@ -88,7 +88,7 @@ export async function getUserSeasonList(
  */
 export async function getSeasonList(
   params: SeasonListParams
-): Promise<SeasonList[]> {
+): Promise<SeasonListResponse> {
   try {
     const res = await request.get<ApiResponse<SeasonListResponse>>(
       "/season/collected/list",
@@ -96,7 +96,7 @@ export async function getSeasonList(
         params,
       }
     );
-    return res.data.data.list;
+    return res.data.data;
   } catch (error) {
     console.error("获取订阅合集列表失败:", error);
     throw error;
