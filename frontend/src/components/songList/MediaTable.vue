@@ -232,7 +232,10 @@ const pageSize = 20; // 每页显示20条
 const currentPage = ref(1);
 
 const tableData = computed(() => {
-  return props.data.filter(item => item.attr === 0);
+  if (props.type === 'favorite') {
+    return props.data.filter(item => item.attr === 0);
+  }
+  return props.data;
 });
 
 // 计算当前页的分P列表

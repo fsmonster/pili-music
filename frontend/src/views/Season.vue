@@ -78,13 +78,6 @@ async function loadContent() {
 }
 
 /**
- * @desc 移除内容
- */
-function removeContent() {
-  seasonStore.reset();
-}
-
-/**
  * @desc 播放全部
  */
 function handlePlayAll() {
@@ -128,6 +121,13 @@ function handleResize() {
   calculateTableHeight();
 }
 
+/**
+ * @desc 移除内容
+ */
+function removeContent() {
+  seasonContentStore.reset();
+}
+
 onBeforeMount(() => {
   calculateTableHeight();
   window.addEventListener('resize', handleResize);
@@ -135,7 +135,6 @@ onBeforeMount(() => {
 
 onMounted(() => {
   loadContent();
-  console.log(route.params);
 });
 
 onUnmounted(() => {

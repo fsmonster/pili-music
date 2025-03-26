@@ -19,9 +19,9 @@
             <span class="creator-name">{{ upperInfo?.name }}</span>
           </a>
         </div>
-        <div class="tags">
+        <!-- <div class="tags">
           <span class="tag" v-for="(tag, index) in fakeTags" :key="index">{{ tag }}</span>
-        </div>
+        </div> -->
         <p>{{ count }}个内容</p>
       </div>
     </div>
@@ -44,15 +44,13 @@ const props = defineProps<{
 const upperInfo = ref<Upper | null>(null);
 
 // 假数据标签
-const fakeTags = ref(['音乐', '流行', '华语', '经典']);
+// const fakeTags = ref(['音乐', '流行', '华语', '经典']);
 
 onMounted(async () => {
-  if (!upperInfo.value) {
-    try {
-      upperInfo.value = await getUserInfo(props.mid);
-    } catch (error) {
-      console.error('获取用户信息失败:', error);
-    }
+  try {
+    upperInfo.value = await getUserInfo(props.mid);
+  } catch (error) {
+    console.error('获取用户信息失败:', error);
   }
 });
 </script>

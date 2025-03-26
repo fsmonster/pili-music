@@ -68,15 +68,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { storeToRefs } from 'pinia';
 import ContentSection from './ContentSection.vue';
-import { useUserStore, useSeasonStore, useQueueStore, usePlayerStore } from '@/stores';
+import { useUserStore, useSeasonStore, useSeasonContentStore, useQueueStore, usePlayerStore } from '@/stores';
 import { processResourceUrl } from '@/utils/processResoureUrl';
 
 const router = useRouter();
 const seasonStore = useSeasonStore();
+const seasonContentStore = useSeasonContentStore();
 const userStore = useUserStore();
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
@@ -87,7 +89,7 @@ const showManageDialog = ref(false);
 const checkedSeasons = ref<number[]>([]);
 
 // 选中的订阅合集内容
-const medias = computed(() => seasonStore.medias || []);
+const { medias } = storeToRefs(seasonContentStore);
 
 // 跳转到播放列表
 const goToPlaylist = (id: number) => {
@@ -98,7 +100,7 @@ const goToPlaylist = (id: number) => {
 const playSeason = async (id: number) => {
   try {
     // 完整加载订阅合集内容
-    await seasonStore.fetchAllSeasonContent(Number(id));
+    await seasonContentStore.fetchAllSeasonContent(Number(id));
     if (medias.value.length > 0) {
       queueStore.setQueue(medias.value);
       playerStore.play(medias.value[0]);

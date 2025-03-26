@@ -236,7 +236,7 @@ const playCollocation = async (type: CollocationType, id: number) => {
   try {
     if (type === 'favorite') {
       // 完整加载收藏夹内容
-      await favoriteStore.fetchFavoriteContent(id, true);
+      await favoriteStore.fetchFavoriteContent(id);
       if (favoriteStore.medias.length > 0) {
         queueStore.setQueue(favoriteStore.medias);
         playerStore.play(favoriteStore.medias[0]);
@@ -309,6 +309,11 @@ const addCollocation = async () => {
     
     if (!id && !type) {
       ElMessage.error('无效的资源ID或链接');
+      return;
+    }
+    // 检查资源是否已存在
+    if (section.value?.collocationList?.some(c => getCollocationId(c) === id && c.type === type)) {
+      ElMessage.warning('资源已存在');
       return;
     }
     // 添加资源到分区

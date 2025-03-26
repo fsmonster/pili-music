@@ -87,10 +87,10 @@ router.get('/archives', async (req: Request, res: Response) => {
     // 调用B站API获取系列视频
     const response = await axios.get('https://api.bilibili.com/x/series/archives', {
       params: {
-        mid,
-        series_id,
-        pn,
-        ps
+        mid: Number(mid),
+        series_id: Number(series_id),
+        pn: Number(pn),
+        ps: Number(ps)
       },
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',

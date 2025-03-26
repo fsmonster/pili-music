@@ -1,4 +1,3 @@
-
 <template>
   <Layout>
     <template #main>
@@ -25,6 +24,7 @@
 
             <!-- 表格 -->
             <MediaTable
+              v-if="medias.length > 0"
               type="series"
               :data="medias"
               :loading="loading"
@@ -88,7 +88,7 @@ const loadContent = async () => {
     // 获取系列内容
     const mid = seriesMeta.value?.mid;
     if (mid) {
-      await seriesContentStore.fetchSeriesArchives(mid, seriesId.value);
+      await seriesContentStore.fetchSeriesArchives(seriesId.value, mid);
     } else {
       ElMessage.error('获取系列信息失败');
     }
@@ -140,6 +140,13 @@ const handleResize = () => {
   calculateTableHeight();
 };
 
+/**
+ * @desc 移除内容
+ */
+function removeContent() {
+  seriesContentStore.reset();
+}
+
 onBeforeMount(() => {
   calculateTableHeight();
   window.addEventListener('resize', handleResize);
@@ -150,6 +157,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  removeContent();
   window.removeEventListener('resize', handleResize);
 });
 </script>

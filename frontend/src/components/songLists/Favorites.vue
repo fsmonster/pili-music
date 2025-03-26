@@ -117,7 +117,7 @@ const isPrivate = (item: any) => {
 const playFavorite = async (id: number) => {
   try {
     // 完整加载收藏夹内容
-    await favoriteContentStore.fetchFavoriteContent(Number(id), true);
+    await favoriteContentStore.fetchFavoriteContent(Number(id));
     if (favoriteContentStore.medias.length > 0) {
       queueStore.setQueue(favoriteContentStore.medias);
       playerStore.play(favoriteContentStore.medias[0]);

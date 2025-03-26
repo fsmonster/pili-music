@@ -79,10 +79,28 @@ export const useSeriesStore = defineStore('series', () => {
     };
 
     /**
+     * 更新显示的系列ID列表
+     */
+    const updateDisplaySeries = async (newDisplaySeries: number[]) => {
+        if (!isLoggedIn.value) return;
+        try {
+            displaySeries.value = await seriesApi.updateDisplaySeries(newDisplaySeries);
+
+            // 立即同步 `series.value`，移除不在 `displaySeries` 中的系列
+        series.value = series.value.filter(s => newDisplaySeries.includes(s.series_id));
+
+            await fetchSeries(); // 这里确保数据同步更新
+        } catch (err) {
+            console.error("更新显示系列ID列表失败:", err);
+        }
+    };
+
+    /**
      * 添加系列
      */
     const addSeries = async (seriesId: number) => {
         if (!isLoggedIn.value) return;
+        if (displaySeries.value.includes(seriesId)) return; // 已存在则不添加
         const newDisplaySeries = [seriesId, ...displaySeries.value]; // 追加
         await updateDisplaySeries(newDisplaySeries);
     };
@@ -92,21 +110,9 @@ export const useSeriesStore = defineStore('series', () => {
      */
     const removeSeries = async (seriesId: number) => {
         if (!isLoggedIn.value) return;
+        if (!displaySeries.value.includes(seriesId)) return; // 不存在则不删除
         const newDisplaySeries = displaySeries.value.filter(id => id !== seriesId); // 过滤掉要删除的
         await updateDisplaySeries(newDisplaySeries);
-    };
-
-    /**
-     * 更新显示的系列ID列表
-     */
-    const updateDisplaySeries = async (newDisplaySeries: number[]) => {
-        if (!isLoggedIn.value) return;
-        try {
-            displaySeries.value = await seriesApi.updateDisplaySeries(newDisplaySeries);
-        } catch (err) {
-            console.error("更新显示系列ID列表失败:", err);
-        }
-        await refreshSeries();
     };
 
     /**
@@ -128,6 +134,9 @@ export const useSeriesStore = defineStore('series', () => {
         }
     };
 
+    /**
+     * 重置状态
+     */
     const reset = () => {
         loading.value = false;
         isLoaded.value = false;

@@ -6,7 +6,7 @@
     :show-refresh="true" 
     :isEmpty="!seriesStore.series.length && !seriesStore.loading"
     @manage="showManageDialog = true"
-    @refresh="seriesStore.refreshSeries()"
+    @refresh="seriesStore.refreshSeries"
   >
     <!-- 图标插槽 -->
     <template #icon>
@@ -125,7 +125,7 @@ import { ElMessage } from 'element-plus';
 import ContentSection from './ContentSection.vue';
 import { useSeriesStore, useSeriesContentStore, useUserStore, useQueueStore, usePlayerStore } from '../../stores';
 import { processResourceUrl } from '../../utils';
-import { extractMidAndSeriesId, convertArchiveToMediaItem } from '../../utils/common';
+import { extractMidAndSeriesId } from '../../utils/common';
 
 // 路由
 const router = useRouter();
@@ -164,10 +164,8 @@ const playSeries = async (id: number) => {
       ElMessage.error('获取系列信息失败');
       return;
     }
-
     // 完整加载系列内容
     await seriesContentStore.fetchSeriesArchives(id, seriesMid(id));
-    
     if (seriesContentStore.medias.length > 0) {
       queueStore.setQueue(seriesContentStore.medias);
       playerStore.play(seriesContentStore.medias[0]);
@@ -186,31 +184,23 @@ const addSeries = async () => {
     ElMessage.warning('请输入系列ID或链接');
     return;
   }
-  
   try {
     loading.value = true;
-    
     // 提取系列ID和用户mid
     const seriesInfo = extractMidAndSeriesId(seriesUrl.value);
-    
     if (!seriesInfo) {
-      // 尝试直接将输入内容作为ID
-      const directId = parseInt(seriesUrl.value);
-      if (isNaN(directId)) {
-        ElMessage.error('无效的系列ID或链接');
-        return;
-      }
-      
-      // 添加系列
-      await seriesStore.addSeries(directId);
-    } else {
-      // 添加系列
-      await seriesStore.addSeries(parseInt(seriesInfo.series_id));
+      ElMessage.error('无效的系列ID或链接');
+      return;
     }
-    
+    // 检查系列是否已存在
+    if (seriesStore.series.some(s => s.series_id === parseInt(seriesInfo.series_id))) {
+      ElMessage.warning('系列已存在');
+      return;
+    }
+    // 添加系列
+    await seriesStore.addSeries(parseInt(seriesInfo.series_id));
     // 清空输入框
     seriesUrl.value = '';
-    
     ElMessage.success('添加系列成功');
   } catch (error) {
     console.error('添加系列失败:', error);

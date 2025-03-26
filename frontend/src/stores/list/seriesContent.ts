@@ -40,6 +40,14 @@ export const useSeriesContentStore = defineStore('seriesContent', () => {
         }
     };
 
+    /**
+     * @desc 重置状态
+     */
+    const reset = () => {
+        loading.value = false;
+        seriesArchives.value = [];
+    };
+
     return {
         // 状态
         loading,
@@ -47,6 +55,7 @@ export const useSeriesContentStore = defineStore('seriesContent', () => {
         // 计算属性
         medias,
         // 方法
-        fetchSeriesArchives
+        fetchSeriesArchives,
+        reset
     };
 });
