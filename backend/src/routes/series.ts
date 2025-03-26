@@ -109,7 +109,7 @@ router.get('/archives', async (req: Request, res: Response) => {
 });
 
 // 应用认证中间件到需要认证的路由
-router.use('/display', authMiddleware);
+router.use(authMiddleware);
 
 /**
  * @route   GET /api/series/display

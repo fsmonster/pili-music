@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import axios from 'axios';
 import authMiddleware from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
+import { getHeaders } from '../utils/getHeader.js';
 
 const router = express.Router();
 
@@ -49,7 +50,7 @@ router.get('/player/pagelist', async (req: Request, res: Response) => {
 });
   
 // 应用认证中间件到需要认证的路由
-router.use('/audio', authMiddleware);
+router.use(authMiddleware);
 
 /**
  * @desc 获取音频流URL
@@ -85,11 +86,7 @@ router.get('/audio/url', async (req: AuthRequest, res: Response) => {
         cid,
         fnval: 16, // 获取DASH格式
       },
-      headers: {
-        Cookie: `SESSDATA=${sessdata}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.bilibili.com'
-      }
+      headers: getHeaders(sessdata)
     });
     
     // 判断是否为充电视频

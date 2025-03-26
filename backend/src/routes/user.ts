@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as userController from '../controllers/userController.js';
 import authMiddleware from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
+import { getHeaders } from '../utils/getHeader.js';
 
 const router = express.Router();
 
@@ -81,15 +82,11 @@ router.get('/profile', async (req: AuthRequest, res: Response) => {
       });
     }
     
-    const { mid, sessdata } = req.user;
+    const { sessdata } = req.user;
     
     // 调用B站API获取用户信息
     const response = await axios.get('https://api.bilibili.com/x/web-interface/nav', {
-      headers: {
-        Cookie: `SESSDATA=${sessdata}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.bilibili.com'
-      }
+      headers: getHeaders(sessdata)
     });
 
     if (response.data.code === 0 && response.data.data) {

@@ -7,49 +7,6 @@ import { getHeaders } from '../utils/getHeader.js';
 
 const router = express.Router();
 
-// 可选鉴权中间件
-router.use('/list', optionalAuthMiddleware);
-
-/**
- * @route   GET /api/favorite/list
- * @desc    获取用户收藏夹列表
- * @param {number} up_mid - 用户uid
- * @access  Optional - 可选鉴权
- */
-router.get('/list', async (req: AuthRequest, res: Response) => {
-  try {
-    // if (!req.user) {
-    //   return res.status(401).json({ 
-    //     code: 401, 
-    //     message: '未授权访问' 
-    //   });
-    // }
-
-    const { up_mid } = req.query;   
-    // const { sessdata } = req.user;
-
-    const sessdata = req.user?.sessdata; // 可能为 undefined
-
-    const headers = getHeaders(sessdata);
-
-    // 调用B站API获取收藏夹列表
-    const response = await axios.get('https://api.bilibili.com/x/v3/fav/folder/created/list-all', {
-      params: {
-        up_mid
-      },
-      headers
-    });
-
-    res.json(response.data);
-  } catch (error) {
-    console.error('获取收藏夹列表失败:', error);
-    res.status(500).json({ 
-      code: 500, 
-      message: '获取收藏夹列表失败' 
-    });
-  }
-});
-
 /**
  * @route   GET /api/favorite/folder/info
  * @desc    获取收藏夹信息
@@ -58,14 +15,6 @@ router.get('/list', async (req: AuthRequest, res: Response) => {
  */
 router.get('/folder/info', async (req: AuthRequest, res: Response) => {
   try {
-    // if (!req.user) {
-    //   return res.status(401).json({ 
-    //     code: 401, 
-    //     message: '未授权访问' 
-    //   });
-    // }
-    // const { sessdata } = req.user;
-    
     const { media_id } = req.query;
     
     if (!media_id) {
@@ -92,6 +41,46 @@ router.get('/folder/info', async (req: AuthRequest, res: Response) => {
     res.status(500).json({ 
       code: 500, 
       message: '获取收藏夹内容信息失败' 
+    });
+  }
+});
+
+
+// 可选鉴权中间件
+router.use('/list', optionalAuthMiddleware);
+
+/**
+ * @route   GET /api/favorite/list
+ * @desc    获取用户收藏夹列表
+ * @desc    获取视频是否收藏信息
+ * @param {number} up_mid - 用户uid
+ * @param {number} rid - 视频稿件avid
+ * @reference https://socialsisteryi.github.io/bilibili-API-collect/docs/fav/info.html
+ * @access  Optional - 可选鉴权
+ */
+router.get('/list', async (req: AuthRequest, res: Response) => {
+  try {
+    const { up_mid, rid } = req.query;
+
+    const sessdata = req.user?.sessdata; // 可能为 undefined
+
+    const headers = getHeaders(sessdata);
+
+    // 调用B站API获取收藏夹列表
+    const response = await axios.get('https://api.bilibili.com/x/v3/fav/folder/created/list-all', {
+      params: {
+        up_mid,
+        rid
+      },
+      headers
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('获取收藏夹列表失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '获取收藏夹列表失败' 
     });
   }
 });
@@ -150,7 +139,7 @@ router.get('/resource/list', async (req: AuthRequest, res: Response) => {
 });
 
 // 应用认证中间件到需要认证的路由
-router.use('/display', authMiddleware);
+router.use(authMiddleware);
 
 /**
  * @route   GET /api/favorite/display

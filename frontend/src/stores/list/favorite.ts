@@ -78,10 +78,14 @@ export const useFavoriteStore = defineStore('favorite', () => {
     error.value = '';
     isLoaded.value = false;
 
+    if (!mid.value) {
+      return;
+    }
+
     try {
       // 获取收藏夹列表基本信息（不包含封面）
       const favoriteList = await favoriteApi.getFavoriteList({
-        up_mid: mid.value!
+        up_mid: mid.value
       });
 
       // 合并原有收藏夹的 cover 信息（如果 allFavorites.value 不为空）

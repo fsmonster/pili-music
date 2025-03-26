@@ -64,14 +64,6 @@ export interface FavoriteList {
   [property: string]: any;
 }
 
-export interface FavoriteInfoParams {
-  /**
-   * 目标收藏夹id（完整id）
-   */
-  media_id: number;
-  [property: string]: any;
-}
-
 export interface FavoriteInfo extends FavoriteInfoResponse {};
 
 /**

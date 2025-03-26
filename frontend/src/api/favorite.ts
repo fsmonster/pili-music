@@ -3,7 +3,7 @@
  */
 import request from '../utils/request';
 import type { ApiResponse,
-  FavoriteListParams, FavoriteInfoParams, FavoriteContentListParams,
+  FavoriteListParams, FavoriteContentListParams,
   FavoriteListResponse, FavoriteList,
   FavoriteInfoResponse,
   FavoriteContentResponse,  
@@ -11,6 +11,7 @@ import type { ApiResponse,
 
 /**
  * 获取用户收藏夹 - 列表
+ * 查询视频收藏信息
  * @param params 参数
  * @returns 收藏夹列表
  */

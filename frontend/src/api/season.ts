@@ -7,7 +7,7 @@ import type {
   UserSeasonList,
   SeasonListParams,
   SeasonListResponse,
-  SeasonList,
+  // SeasonList,
   SeasonContentParams,
   SeasonContent,
   SeasonContentResponse,
