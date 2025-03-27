@@ -8,7 +8,7 @@
             v-if="info"
             :mid="info.upper.mid"
             :title="info.title"
-            :cover="info.cover"
+            :cover="coverUrl"
             :count="info.media_count"
           />
 
@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { ref, onBeforeMount, onMounted, onUnmounted, computed, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSeasonStore, useSeasonContentStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
@@ -58,6 +58,7 @@ import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
 import type { MediaItem } from '../types';
 import MediaTable from '../components/songList/MediaTable.vue';
+import { getSeasonCover } from '@/api/season';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
@@ -68,6 +69,7 @@ const seasonContentStore = useSeasonContentStore();
 const { id } = route.params;
 
 const { info, medias } = storeToRefs(seasonContentStore);
+const coverUrl = ref(""); // 存储最终封面 URL
 
 /**
  * @desc 加载内容
@@ -128,6 +130,20 @@ function removeContent() {
   seasonContentStore.reset();
 }
 
+watchEffect(async () => {
+  if (!info.value) return; // 避免 info 未初始化时报错
+
+  if (info.value.cover.includes("viedeo_material_default.png")) {
+    try {
+      coverUrl.value = await getSeasonCover(info.value.id); // 等待 Promise 解析
+    } catch (error) {
+      console.error("获取封面失败", error);
+      coverUrl.value = info.value.cover; // 获取失败时使用原封面
+    }
+  } else {
+    coverUrl.value = info.value.cover;
+  }
+});
 onBeforeMount(() => {
   calculateTableHeight();
   window.addEventListener('resize', handleResize);
