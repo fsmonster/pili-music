@@ -29,9 +29,7 @@ export const useSeasonStore = defineStore(
     const hasMore = ref(false);
 
     // 计算属性：当前显示的订阅合集
-    const seasons = computed(() =>
-      allSeasons.value.filter((s) => displaySeasonIds.value.includes(s.id))
-    );
+    // const seasons = computed(() => allSeasons.value.filter((s) => displaySeasonIds.value.includes(s.id)));
 
     // 获取订阅合集显示设置
     const fetchDisplaySeasons = async () => {
@@ -137,7 +135,7 @@ export const useSeasonStore = defineStore(
     return {
       // 状态
       loading,
-      seasons,
+      // seasons,
       allSeasons,
       displaySeasonIds,
       isLoaded,

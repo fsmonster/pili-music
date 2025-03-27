@@ -6,7 +6,7 @@ import * as favoriteApi from '../../api/favorite';
 import * as seasonApi from '../../api/season';
 import * as seriesApi from '../../api/series';
 import type { Section, CollocationType, CollocationItem } from '../../types';
-import { getCollocationId } from '@/utils';
+import { getCollocationId } from '../../utils';
 
 /**
  * 📦 自定义分区 - 用户创建的，用于组织收藏夹 合集 系列
@@ -147,6 +147,9 @@ export const useSectionStore = defineStore('section', () => {
       }
     } else if (type === 'season') {
       const seasonInfo = await seasonApi.getSeasonMeta(id);
+      // 如果是默认封面，获取合集第一个视频的cover - page_num: 1, page_size: 1
+      // https://s1.hdslb.com/bfs/templar/york-static/viedeo_material_default.png
+      seasonInfo.cover = seasonInfo.cover.includes('viedeo_material_default.png') ? (await seasonApi.getSeasonCover(id)) : seasonInfo.cover;
       if (seasonInfo) {
         collocationItem = { type: 'season', seasonInfo };
       }

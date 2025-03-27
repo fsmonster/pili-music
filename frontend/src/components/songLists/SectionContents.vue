@@ -134,7 +134,6 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from '../songLists/ContentSection.vue';
-import { processResourceUrl, extractIdAndType, getCollocationId, getCollocationCover, getCollocationName, getCollocationCount } from '../../utils';
 import type { Section, CollocationType,CollocationItem } from '../../types';
 import { useSectionStore, 
   useFavoriteContentStore, 
@@ -143,6 +142,13 @@ import { useSectionStore,
   useQueueStore, 
   usePlayerStore 
 } from '../../stores';
+import { processResourceUrl, 
+  extractIdAndType, 
+  getCollocationId, 
+  getCollocationCover, 
+  getCollocationName, 
+  getCollocationCount 
+} from '../../utils';
 
 // 接收分区ID参数
 const props = defineProps<{

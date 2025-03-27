@@ -3,7 +3,7 @@
     title="订阅合集" 
     :show-manage="true" 
     :show-refresh="true" 
-    :isEmpty="!seasonStore.seasons.length && !seasonStore.loading"
+    :isEmpty="!seasons.length && !seasonStore.loading"
     @manage="showManageDialog = true"
     @refresh="seasonStore.refreshSeasons()">
     <template #icon>
@@ -12,15 +12,15 @@
 
     <!-- 标题后缀 -->
     <template #title-suffix>
-      <span class="count-badge" v-if="seasonStore.seasons.length">
-        {{ seasonStore.seasons.length }}
+      <span class="count-badge" v-if="seasons.length">
+        {{ seasons.length }}
       </span>
     </template>
 
     <template #content>
       <div class="music-grid">
         <div 
-        v-for="item in seasonStore.seasons" 
+        v-for="item in seasons" 
         :key="item.id" 
         class="music-item" 
         @click="goToPlaylist(item.id)">
@@ -76,6 +76,8 @@ import { storeToRefs } from 'pinia';
 import ContentSection from './ContentSection.vue';
 import { useUserStore, useSeasonStore, useSeasonContentStore, useQueueStore, usePlayerStore } from '@/stores';
 import { processResourceUrl } from '@/utils/processResoureUrl';
+import type { SeasonList } from '@/types';
+import { getSeasonCover } from '@/api';
 
 const router = useRouter();
 const seasonStore = useSeasonStore();
@@ -84,6 +86,8 @@ const userStore = useUserStore();
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
 
+// 订阅合集
+const seasons = ref<SeasonList[]>([]);
 // 对话框显示状态
 const showManageDialog = ref(false);
 // 选中的合集ID列表
@@ -141,6 +145,30 @@ onMounted(() => {
 });
 
 watch(() => userStore.isLoggedIn, seasonStore.fetchSeasonsIfNeeded);
+
+// 监听 `displaySeasonIds`，只在 `displaySeasonIds` 变化时更新数据
+watch(seasonStore.displaySeasonIds, async (newIds) => {
+  if (!newIds.length) return; // 没有需要展示的合集，直接返回
+
+  const filteredSeasons = seasonStore.allSeasons.filter((s) =>
+    newIds.includes(s.id)
+  );
+
+  // 异步处理封面
+  seasons.value = await Promise.all(
+    filteredSeasons.map(async (season) => {
+      if (season.cover.includes("viedeo_material_default.png")) {
+        try {
+          return { ...season, cover: await getSeasonCover(season.id) };
+        } catch (error) {
+          console.error(`获取封面失败: ${season.id}`, error);
+          return season; // 出错时保持原数据
+        }
+      }
+      return season;
+    })
+  );
+}, { immediate: true }); // 立即执行一次
 
 // 监听对话框
 defineExpose({

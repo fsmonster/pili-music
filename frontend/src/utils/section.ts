@@ -1,6 +1,5 @@
 import type { CollocationItem } from "@/types/section";
 
-
 // 获得对应ID
 export const getCollocationId = (collocation: CollocationItem) => {
   if (collocation.type === "favorite") return collocation.favoriteInfo.id;

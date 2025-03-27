@@ -21,6 +21,30 @@ import type {
 } from "../types";
 
 /**
+ * 如果是默认封面，获取合集第一个视频的cover - page_num: 1, page_size: 1
+ * @param season_id 合集ID
+ * @returns 合集元数据
+ * @access Public - 不需要登录
+ */
+export async function getSeasonCover(
+  season_id: number
+): Promise<string> {
+  const params = { season_id, page_num: 1, page_size: 1 };
+  try {
+      const res = await biliRequest.get<ApiResponse<SeasonArchivesResponse>>(
+          "/polymer/web-space/seasons_archives_list",
+          {
+              params,
+          }
+      );
+      return res.data.data.archives[0].pic;
+  } catch (error) {
+      console.error("获取合集封面失败:", error);
+      throw error;
+  }
+}
+
+/**
  * 获取合集的元数据 - page_num: 1, page_size: 1
  * @param season_id 合集ID
  * @returns 合集元数据
