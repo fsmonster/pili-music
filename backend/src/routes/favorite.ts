@@ -13,37 +13,37 @@ const router = express.Router();
  * @param {number} media_id - 收藏夹ID
  * @access  Public - 不需要登录
  */
-router.get('/folder/info', async (req: AuthRequest, res: Response) => {
-  try {
-    const { media_id } = req.query;
+// router.get('/folder/info', async (req: AuthRequest, res: Response) => {
+//   try {
+//     const { media_id } = req.query;
     
-    if (!media_id) {
-      return res.status(400).json({ 
-        code: 400, 
-        message: '缺少必要参数media_id' 
-      });
-    }
+//     if (!media_id) {
+//       return res.status(400).json({ 
+//         code: 400, 
+//         message: '缺少必要参数media_id' 
+//       });
+//     }
 
-    const response = await axios.get('https://api.bilibili.com/x/v3/fav/folder/info', {
-      params: {
-        media_id
-      },
-      headers: {
-        // Cookie: `SESSDATA=${sessdata}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.bilibili.com'
-      }
-    });
+//     const response = await axios.get('https://api.bilibili.com/x/v3/fav/folder/info', {
+//       params: {
+//         media_id
+//       },
+//       headers: {
+//         // Cookie: `SESSDATA=${sessdata}`,
+//         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+//         'Referer': 'https://www.bilibili.com'
+//       }
+//     });
 
-    res.json(response.data);
-  } catch (error) {
-    console.error('获取收藏夹内容信息失败:', error);
-    res.status(500).json({ 
-      code: 500, 
-      message: '获取收藏夹内容信息失败' 
-    });
-  }
-});
+//     res.json(response.data);
+//   } catch (error) {
+//     console.error('获取收藏夹内容信息失败:', error);
+//     res.status(500).json({ 
+//       code: 500, 
+//       message: '获取收藏夹内容信息失败' 
+//     });
+//   }
+// });
 
 
 // 可选鉴权中间件

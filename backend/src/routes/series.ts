@@ -9,38 +9,38 @@ const router = express.Router();
 
 /**
  * @route   GET /api/series
- * @desc    获取用户合集、系列
+ * @desc    获取用户合集、系列 - 暂时不用
  * @param {number} mid - 用户uid
  * @param {number} page_num - 页码索引
  * @param {number} page_size - 单页内容数量
  * @access  Public - 不需要登录
  */
-router.get('/', async (req: Request, res: Response) => {
-  try {
-    const { mid, page_num, page_size } = req.query;
+// router.get('/', async (req: Request, res: Response) => {
+//   try {
+//     const { mid, page_num, page_size } = req.query;
     
-    // 调用B站API获取合集、系列
-    const response = await axios.get('https://api.bilibili.com/x/polymer/web-space/home/seasons_series', {
-      params: {
-        mid,
-        page_num,
-        page_size
-      },
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.bilibili.com'
-      }
-    });
+//     // 调用B站API获取合集、系列
+//     const response = await axios.get('https://api.bilibili.com/x/polymer/web-space/home/seasons_series', {
+//       params: {
+//         mid,
+//         page_num,
+//         page_size
+//       },
+//       headers: {
+//         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+//         'Referer': 'https://www.bilibili.com'
+//       }
+//     });
   
-    res.json(response.data);
-  } catch (error) {
-    console.error('获取合集、系列失败:', error);
-    res.status(500).json({ 
-      code: 500, 
-      message: '获取合集、系列失败' 
-    });
-  }
-});
+//     res.json(response.data);
+//   } catch (error) {
+//     console.error('获取合集、系列失败:', error);
+//     res.status(500).json({ 
+//       code: 500, 
+//       message: '获取合集、系列失败' 
+//     });
+//   }
+// });
 
 /**
  * @route   GET /api/series/meta
@@ -48,30 +48,30 @@ router.get('/', async (req: Request, res: Response) => {
  * @param {number} series_id - 系列ID
  * @access  Public - 不需要登录
  */
-router.get('/meta', async (req: Request, res: Response) => {
-  try {
-    const { series_id } = req.query;
+// router.get('/meta', async (req: Request, res: Response) => {
+//   try {
+//     const { series_id } = req.query;
     
-    // 调用B站API获取系列meta信息
-    const response = await axios.get('https://api.bilibili.com/x/series/series', {
-      params: {
-        series_id
-      },
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.bilibili.com'
-      }
-    });
+//     // 调用B站API获取系列meta信息
+//     const response = await axios.get('https://api.bilibili.com/x/series/series', {
+//       params: {
+//         series_id
+//       },
+//       headers: {
+//         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+//         'Referer': 'https://www.bilibili.com'
+//       }
+//     });
   
-    res.json(response.data);
-  } catch (error) {
-    console.error('获取系列meta信息失败:', error);
-    res.status(500).json({ 
-      code: 500, 
-      message: '获取系列meta信息失败' 
-    });
-  }
-});	
+//     res.json(response.data);
+//   } catch (error) {
+//     console.error('获取系列meta信息失败:', error);
+//     res.status(500).json({ 
+//       code: 500, 
+//       message: '获取系列meta信息失败' 
+//     });
+//   }
+// });	
 
 
 /**
@@ -80,33 +80,33 @@ router.get('/meta', async (req: Request, res: Response) => {
  * @param {number} series_id - 系列ID
  * @access  Public - 不需要登录
  */
-router.get('/archives', async (req: Request, res: Response) => {
-  try {
-    const { mid, series_id, pn, ps } = req.query;
+// router.get('/archives', async (req: Request, res: Response) => {
+//   try {
+//     const { mid, series_id, pn, ps } = req.query;
     
-    // 调用B站API获取系列视频
-    const response = await axios.get('https://api.bilibili.com/x/series/archives', {
-      params: {
-        mid: Number(mid),
-        series_id: Number(series_id),
-        pn: Number(pn),
-        ps: Number(ps)
-      },
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.bilibili.com'
-      }
-    });
+//     // 调用B站API获取系列视频
+//     const response = await axios.get('https://api.bilibili.com/x/series/archives', {
+//       params: {
+//         mid: Number(mid),
+//         series_id: Number(series_id),
+//         pn: Number(pn),
+//         ps: Number(ps)
+//       },
+//       headers: {
+//         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+//         'Referer': 'https://www.bilibili.com'
+//       }
+//     });
   
-    res.json(response.data);
-  } catch (error) {
-    console.error('获取系列视频失败:', error);
-    res.status(500).json({ 
-      code: 500, 
-      message: '获取系列视频失败' 
-    });
-  }
-});
+//     res.json(response.data);
+//   } catch (error) {
+//     console.error('获取系列视频失败:', error);
+//     res.status(500).json({ 
+//       code: 500, 
+//       message: '获取系列视频失败' 
+//     });
+//   }
+// });
 
 // 应用认证中间件到需要认证的路由
 router.use(authMiddleware);

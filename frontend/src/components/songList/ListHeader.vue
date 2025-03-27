@@ -7,7 +7,7 @@
         </div>
         <img 
           v-else 
-          :src="processResourceUrl(cover)" 
+          :src="processResourceUrl(cover) + '@300h'" 
           :alt="title"
         >
       </div>
@@ -15,7 +15,7 @@
         <h1>{{ title }}</h1>
         <div class="creator-info" v-if="upperInfo?.face">
           <a :href="`https://space.bilibili.com/${upperInfo?.mid}`" target="_blank" class="creator-link">
-            <img :src="processResourceUrl(upperInfo?.face)" class="creator-avatar" />
+            <img :src="processResourceUrl(upperInfo?.face) + '@70w'" class="creator-avatar" />
             <span class="creator-name">{{ upperInfo?.name }}</span>
           </a>
         </div>

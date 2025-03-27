@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <!-- 左侧导航栏 -->
-    <Sidebar class="sidebar" />
+    <!-- <Sidebar class="sidebar" /> -->
 
     <!-- 主内容区 -->
     <div class="main-content">
@@ -31,10 +31,13 @@ import Queue from '@/components/queue/Queue.vue';
 .app-container {
   height: 100vh;
   display: grid;
+  // grid-template-areas:
+  //   "sidebar main"
+  //   "player player";
   grid-template-areas:
-    "sidebar main"
-    "player player";
-  grid-template-columns: 250px 1fr;
+    "main"
+    "player";
+  grid-template-columns: 1fr;
   grid-template-rows: 1fr auto;
 }
 

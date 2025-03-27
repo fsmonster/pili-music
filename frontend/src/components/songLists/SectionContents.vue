@@ -5,7 +5,6 @@
     :show-refresh="true" 
     :isEmpty="!collocations.length && !loading"
     @manage="showManageDialog = true"
-    @refresh="refreshSections"
   >
     <!-- 图标插槽 -->
     <template #icon>
@@ -33,7 +32,9 @@
             <div v-else-if="!getCollocationCover(collocation)">
               <i class="ri-star-line"></i>
             </div>
-            <img v-else :src="processResourceUrl(getCollocationCover(collocation))" :alt="getCollocationName(collocation)">
+            <img v-else 
+              :src="processResourceUrl(getCollocationCover(collocation)) + '@250h'" 
+              :alt="getCollocationName(collocation)">
             <div class="play-button" @click.stop="playCollocation(collocation.type, getCollocationId(collocation))">
               <i class="ri-play-fill"></i>
             </div>
@@ -133,7 +134,7 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from '../songLists/ContentSection.vue';
-import { processResourceUrl, extractIdAndType } from '../../utils';
+import { processResourceUrl, extractIdAndType, getCollocationId, getCollocationCover, getCollocationName, getCollocationCount } from '../../utils';
 import type { Section, CollocationType,CollocationItem } from '../../types';
 import { useSectionStore, 
   useFavoriteContentStore, 
@@ -178,38 +179,6 @@ const idToRemove = ref<number | null>(null);
 const collocations = computed<CollocationItem[]>(() => {
   return section.value?.collocationList || [];
 });
-
-// 获得对应ID
-const getCollocationId = (collocation: CollocationItem) => {
-  if (collocation.type === 'favorite') return collocation.favoriteInfo.id;
-  if (collocation.type === 'season') return collocation.seasonInfo.season_id;
-  if (collocation.type === 'series') return collocation.seriesInfo.series_id;
-  return -1; // 兜底，理论上不会触发
-};
-
-// 获得对应封面
-const getCollocationCover = (collocation: CollocationItem) => {
-  if (collocation.type === 'favorite') return collocation.favoriteInfo.cover;
-  if (collocation.type === 'season') return collocation.seasonInfo.cover;
-  if (collocation.type === 'series') return collocation.seriesInfo.cover;
-  return ''; // 兜底，理论上不会触发
-};
-
-// 获得对应名称
-const getCollocationName = (collocation: CollocationItem) => {
-  if (collocation.type === 'favorite') return collocation.favoriteInfo.title;
-  if (collocation.type === 'season') return collocation.seasonInfo.name;
-  if (collocation.type === 'series') return collocation.seriesInfo.name;
-  return ''; // 兜底，理论上不会触发
-};
-
-// 获得对应数量
-const getCollocationCount = (collocation: CollocationItem) => {
-  if (collocation.type === 'favorite') return collocation.favoriteInfo.media_count;
-  if (collocation.type === 'season') return collocation.seasonInfo.total;
-  if (collocation.type === 'series') return collocation.seriesInfo.total;
-  return 0; // 兜底，理论上不会触发
-};
 
 // 跳转到资源详情
 const goToCollocation = async (type: CollocationType, id: number) => {
@@ -271,22 +240,16 @@ const loadSectionData = async () => {
     loading.value = true;
     
     // 获取分区详情
-    const sectionData = sectionStore.sections.find(s => s._id === props.sectionId);
+    const sectionData = sectionStore.currentSection(props.sectionId);
     if (sectionData) {
       section.value = sectionData;
       
       // 如果没有信息或资源列表为空，则加载资源列表
       if (!sectionData.collocationList || sectionData.collocationList.length === 0) {
         // 加载分区的资源列表
-        const collocations = await sectionStore.fetchSectionContent(props.sectionId, sectionData);
-        
-        // 更新当前 section 的列表
-        if (section.value) {
-          section.value.collocationList = collocations;
-        }
+        await sectionStore.fetchSectionContent(props.sectionId);
       }
     }
-    
   } catch (error) {
     console.error('加载分区数据失败:', error);
     ElMessage.error('加载分区数据失败');
@@ -319,9 +282,6 @@ const addCollocation = async () => {
     // 添加资源到分区
     await sectionStore.addCollocationToSection(props.sectionId, type, id);
     
-    // 重新加载分区数据
-    await loadSectionData();
-    
     // 清空输入框
     collocationUrl.value = '';
     
@@ -349,21 +309,12 @@ const removeCollocation = async () => {
     // 从分区移除收藏夹
     await sectionStore.removeCollocationFromSection(props.sectionId, typeToRemove.value, idToRemove.value);
     
-    // 重新加载分区数据
-    await loadSectionData();
-    
     ElMessage.success('移除资源成功');
     showConfirmDialog.value = false;
   } catch (error) {
     console.error('移除资源失败:', error);
     ElMessage.error('移除资源失败');
   }
-};
-
-// 刷新分区
-const refreshSections = () => {
-  sectionStore.refreshSections();
-  loadSectionData();
 };
 
 // 监听分区ID变化

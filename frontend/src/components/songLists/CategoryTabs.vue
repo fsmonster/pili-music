@@ -279,7 +279,7 @@ watch(sections, () => {
   // 移除不存在的分区ID
   selectedCategories.value = selectedCategories.value.filter(id => {
     // 如果是内置分类，保留
-    if (id === 'favorite' || id === 'season') return true;
+    if (id === 'favorite' || id === 'season' || id === 'series') return true;
     
     // 如果是自定义分区，检查是否存在
     return sections.value.some(section => section._id === id);

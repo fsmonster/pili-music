@@ -1,7 +1,7 @@
 /**
  * 播放列表相关API
  */
-import request from '../utils/request';
+import { request, biliRequest } from '../utils/request';
 import type { ApiResponse, AudioParams, CidInfo, DashAudioResponse } from '../types';
 import { AudioQuality } from '../types';
 
@@ -10,11 +10,17 @@ import { AudioQuality } from '../types';
  * @param params 视频参数，包含aid或bvid
  * @param fullList 是否返回完整分P列表，默认false只返回第一P的cid
  * @returns 如果fullList为true，返回完整的分P列表；否则返回第一P的cid
+ * @access Public - 不需要登录
  */
 export async function getCid(params: AudioParams, fullList: boolean = false): Promise<number | CidInfo[]> {
   try {
-    const res = await request.get<ApiResponse<CidInfo[]>>('/audioInfo/player/pagelist', {
-      params
+    const xid = params.aid ? 'aid' : 'bvid';
+    const id = params.aid ?? params.bvid;
+
+    const res = await biliRequest.get<ApiResponse<CidInfo[]>>('/player/pagelist', {
+      params: {
+        [xid]: id
+      }
     });
     if(res.data.code !== 0) {
       throw new Error(res.data.message || '获取视频信息失败');

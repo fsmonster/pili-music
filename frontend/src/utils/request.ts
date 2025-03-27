@@ -3,11 +3,11 @@ import { getToken, isTokenExpired } from './token';
 
 /**
  * HTTP 客户端
- * - 统一的请求配置
+ * - 前端 API 请求
  * - 请求/响应拦截
  * - 错误处理
  */
-const request = axios.create({
+export const request = axios.create({
   baseURL: '/api',
   timeout: 10000,
   withCredentials: true,
@@ -15,6 +15,7 @@ const request = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
 
 /**
  * 请求拦截器
@@ -37,4 +38,17 @@ request.interceptors.request.use(
   }
 );
 
-export default request;
+/**
+ * HTTP 客户端
+ * - B站 API 请求
+ * - 请求/响应拦截
+ * - 错误处理
+ */
+export const biliRequest = axios.create({
+  baseURL: '/biliapi',
+  timeout: 10000,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});

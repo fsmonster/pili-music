@@ -15,7 +15,20 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
+      // B 站 API 代理（不需要 Cookie 的请求）
+      '^/biliapi/.*': {
+        target: 'https://api.bilibili.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/biliapi/, '/x'), // 只去掉 `/biliapi`
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Referer': 'https://www.bilibili.com',
+        },
+      },
+      
+      // 本地 API 代理
+      '^/api/.*': {
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
@@ -27,6 +40,7 @@ export default defineConfig({
           });
         }
       },
+
       // 代理B站图片请求 - i0.hdslb.com
       '^/biliimg/i0/.*': {
         target: 'https://i0.hdslb.com',
@@ -37,6 +51,7 @@ export default defineConfig({
           'Referer': 'https://www.bilibili.com'
         }
       },
+
       // 代理B站图片请求 - i1.hdslb.com
       '^/biliimg/i1/.*': {
         target: 'https://i1.hdslb.com',
@@ -47,6 +62,7 @@ export default defineConfig({
           'Referer': 'https://www.bilibili.com'
         }
       },
+
       // 代理B站图片请求 - i2.hdslb.com
       '^/biliimg/i2/.*': {
         target: 'https://i2.hdslb.com',
@@ -57,6 +73,7 @@ export default defineConfig({
           'Referer': 'https://www.bilibili.com'
         }
       },
+
       // 代理 B站图片请求 - archive.biliimg.com
       '^/biliimg/archive/.*': {
         target: 'https://archive.biliimg.com',
@@ -67,6 +84,7 @@ export default defineConfig({
           'Referer': 'https://www.bilibili.com'
         }
       },
+      
       // 代理 B站图片请求 - s1.hdslb.com
       '^/biliimg/s1/.*': {
         target: 'https://s1.hdslb.com',

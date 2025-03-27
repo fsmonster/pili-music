@@ -5,7 +5,7 @@
       :class="{ playing: playStore.playing }"
     >
       <img 
-        :src="playStore.currentItem ? processResourceUrl(playStore.currentItem.cover) : defaultCover" 
+        :src="playStore.currentItem ? processResourceUrl(playStore.currentItem.cover)+'@120h' : defaultCover" 
         :alt="playStore.currentItem?.title || '封面'" 
       />
       <div class="track-info">

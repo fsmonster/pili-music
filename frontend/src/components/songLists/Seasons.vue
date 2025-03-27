@@ -27,7 +27,7 @@
           <div class="cover">
             <el-skeleton v-if="seasonStore.loading || !item.cover" :rows="1" animated>
             </el-skeleton>
-            <img v-else :src="processResourceUrl(item.cover)" :alt="item.title">
+            <img v-else :src="processResourceUrl(item.cover) + '@250h'" :alt="item.title">
             <div class="play-button" @click.stop="playSeason(item.id)">
               <i class="ri-play-fill"></i>
             </div>

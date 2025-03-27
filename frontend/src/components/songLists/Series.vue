@@ -34,7 +34,7 @@
             <div v-else-if="!item.cover">
               <i class="ri-list-check-2"></i>
             </div>
-            <img v-else :src="processResourceUrl(item.cover)" :alt="item.name">
+            <img v-else :src="processResourceUrl(item.cover) + '@250h'" :alt="item.name">
             <div class="play-button" @click.stop="playSeries(item.series_id)">
               <i class="ri-play-fill"></i>
             </div>

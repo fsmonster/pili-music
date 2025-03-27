@@ -5,7 +5,8 @@ import * as sectionApi from '../../api/section';
 import * as favoriteApi from '../../api/favorite';
 import * as seasonApi from '../../api/season';
 import * as seriesApi from '../../api/series';
-import type { Section, CollocationType } from '../../types';
+import type { Section, CollocationType, CollocationItem } from '../../types';
+import { getCollocationId } from '@/utils';
 
 /**
  * 📦 自定义分区 - 用户创建的，用于组织收藏夹 合集 系列
@@ -23,6 +24,10 @@ export const useSectionStore = defineStore('section', () => {
   // 📦 自定义分区特有状态
   const sections = ref<Section[]>([]);
   const isLoaded = ref(false);
+
+  // 📦 获取指定分区
+  const currentSection = (section_id: string) => sections.value.find(section => section._id === section_id);
+  const currentIndex = (section_id: string) => sections.value.findIndex(section => section._id === section_id);
   
   /**
    * @desc 获取用户所有 📦 自定义分区
@@ -39,81 +44,15 @@ export const useSectionStore = defineStore('section', () => {
         ...section,
         name: section.name,
         collocationIds: section.collocationIds,
-        // collocationList: section.collocationList,
         collocation_count: section.collocationIds.length,
       }));
       
       isLoaded.value = true;
+      
+      // 并行加载所有分区内容
+      await Promise.all(sections.value.map(section => fetchSectionContent(section._id)));
     } catch (error) {
       console.error('获取分区列表失败:', error);
-    }
-  };
-  
-  /**
-   * @desc 获取 📦 分区内容
-   * @param sectionId 分区 ID
-   * @param sectionData 可选的分区数据，如果提供则不会重复请求
-   * @returns 资源项列表
-   */
-  const fetchSectionContent = async (sectionId: string, sectionData?: Section) => {
-    if (!isLoggedIn.value) return [];
-    
-    try {
-      // 首先检查持久化的 sections 中是否已有该分区的资源项信息
-      const existingSection = sections.value.find(s => s._id === sectionId);
-      if (existingSection && existingSection.collocationList && existingSection.collocationList.length > 0) {
-        console.log('使用缓存的资源项信息:', existingSection.collocationList);
-        return existingSection.collocationList;
-      }
-      
-      // 获取分区基本信息（如果没有提供）
-      const section = sectionData || await sectionApi.getSectionById(sectionId);
-      
-      // 获取资源项基本信息
-      const collocationIds = section.collocationIds;
-      const collocationList = section.collocationList || [];
-      
-      // 直接获取资源项信息
-      for (const collocationId of collocationIds) {
-        try {
-          if (collocationId.type === 'favorite') {
-            // 获取收藏夹基本信息
-            const favoriteInfo = await favoriteApi.getFavoriteInfo(collocationId.id);
-            if (favoriteInfo) {
-              collocationList.push({ type: 'favorite', favoriteInfo });
-            }
-          } else if (collocationId.type === 'season') {
-            // 获取季信息
-            const seasonInfo = await seasonApi.getSeasonMeta(collocationId.id);
-            if (seasonInfo) {
-              collocationList.push({ type: 'season', seasonInfo });
-            }
-          } else if (collocationId.type === 'series') {
-            // 获取系列信息
-            const seriesInfo = await seriesApi.getSeriesMeta(collocationId.id);
-            seriesInfo.cover = seriesInfo.cover ?? (await seriesApi.getSeriesCover(collocationId.id, seriesInfo.mid));
-            if (seriesInfo) {
-              collocationList.push({ type: 'series', seriesInfo });
-            }
-          }
-        } catch (error) {
-          console.error(`获取资源项 ${collocationId.id} 信息失败:`, error);
-        }
-      }
-      
-      // 更新持久化的 sections 数据
-      const index = sections.value.findIndex(s => s._id === sectionId);
-      if (index !== -1) {
-        sections.value[index] = {
-          ...sections.value[index],
-          collocationList
-        };
-      }
-      
-      return collocationList;
-    } catch (error) {
-      console.error('获取分区内容失败:', error);
-      throw error;
     }
   };
   
@@ -196,6 +135,78 @@ export const useSectionStore = defineStore('section', () => {
       throw error;
     }
   };
+
+  // 获取 📦 资源项
+  const fetchCollocationItem = async (type: string, id: number): Promise<CollocationItem | null> => {
+    let collocationItem: CollocationItem | null = null;
+
+    if (type === 'favorite') {
+      const favoriteInfo = await favoriteApi.getFavoriteInfo(id);
+      if (favoriteInfo) {
+        collocationItem = { type: 'favorite', favoriteInfo };
+      }
+    } else if (type === 'season') {
+      const seasonInfo = await seasonApi.getSeasonMeta(id);
+      if (seasonInfo) {
+        collocationItem = { type: 'season', seasonInfo };
+      }
+    } else if (type === 'series') {
+      const seriesInfo = await seriesApi.getSeriesMeta(id);
+      if (seriesInfo) {
+        seriesInfo.cover = seriesInfo.cover ?? (await seriesApi.getSeriesCover(id, seriesInfo.mid));
+        collocationItem = { type: 'series', seriesInfo };
+      }
+    }
+
+    return collocationItem;
+  };
+
+  /**
+   * @desc 获取 📦 分区内容
+   * @param sectionId 分区 ID
+   * @returns 资源项列表
+   */
+  const fetchSectionContent = async (sectionId: string) => {
+  if (!isLoggedIn.value) return [];
+
+  try {
+    // 获取分区基本信息
+    const section = await sectionApi.getSectionById(sectionId);
+
+    // 获取已有的 collocationList
+    const existingCollocationList = currentSection(sectionId)?.collocationList ?? [];
+
+    // 计算需要请求的 collocationIds（排除已存在的）
+    const existingIdsSet = new Set(existingCollocationList.map(c => `${c.type}-${getCollocationId(c)}`));
+
+    const collocationList: CollocationItem[] = [...existingCollocationList]; // 先填充已有数据
+
+    // 使用 Promise.all 并行加载所有资源
+    const collocationPromises = section.collocationIds
+      .filter(collocationId => !existingIdsSet.has(`${collocationId.type}-${collocationId.id}`)) // 过滤掉已存在的资源
+      .map(async (collocationId) => {
+        try {
+          return await fetchCollocationItem(collocationId.type, collocationId.id);
+        } catch (error) {
+          console.error(`获取资源项 ${collocationId.id} 信息失败:`, error);
+          return null;
+        }
+      });
+
+    // 等待所有请求完成并过滤掉 null 值
+    const newCollocationItems = (await Promise.all(collocationPromises)).filter(item => item !== null) as CollocationItem[];
+    collocationList.push(...newCollocationItems);
+
+    // 更新 sections 数据
+    const index = currentIndex(sectionId);
+    if (index !== -1) {
+      sections.value[index].collocationList = collocationList;
+    }
+  } catch (error) {
+    console.error('获取分区内容失败:', error);
+    throw error;
+  }
+};
   
   /**
    * @desc 添加资源到 📦 自定义分区
@@ -207,21 +218,33 @@ export const useSectionStore = defineStore('section', () => {
   const addCollocationToSection = async (sectionId: string, type: CollocationType, collocationId: number) => {
     try {
       // 添加资源到分区
-      const updatedSection = await sectionApi.addCollocationToSection(sectionId, type, collocationId);
+      const updatedCollocationIds = await sectionApi.addCollocationToSection({sectionId, type, collocationId});
       
       // 更新列表中的分区
-      const index = sections.value.findIndex(s => s._id === sectionId);
+      const index = currentIndex(sectionId);
       if (index !== -1) {
-        const updatedSectionData = {
-          ...updatedSection,
-          name: updatedSection.name,
-          collocation_count: updatedSection.collocationIds.length,
-          collocationIds: updatedSection.collocationIds,
-          // collocationList: updatedSection.collocationList
-        };
-        sections.value[index] = updatedSectionData;
+        // 更新 collocationIds
+        sections.value[index].collocationIds = updatedCollocationIds;
+        sections.value[index].collocation_count = updatedCollocationIds.length;
+        
+        // 检查是否已存在该资源
+        const existingCollocationList = sections.value[index].collocationList || [];
+        const existingIdsSet = new Set(existingCollocationList.map(c => `${c.type}-${getCollocationId(c)}`));
+        
+        // 如果资源不存在，则获取并添加到 collocationList
+        if (!existingIdsSet.has(`${type}-${collocationId}`)) {
+          // 获取资源项信息
+          const collocationItem = await fetchCollocationItem(type, collocationId);
+          
+          // 如果获取成功，添加到列表
+          if (collocationItem) {
+            if (!sections.value[index].collocationList) {
+              sections.value[index].collocationList = [];
+            }
+            sections.value[index].collocationList.push(collocationItem);
+          }
+        }
       }
-      return updatedSection;
     } catch (error) {
       console.error('添加资源到分区失败:', error);
       throw error;
@@ -238,21 +261,27 @@ export const useSectionStore = defineStore('section', () => {
   const removeCollocationFromSection = async (sectionId: string, type: CollocationType, collocationId: number) => {
     try {
       // 从分区移除资源
-      const updatedSection = await sectionApi.removeCollocationFromSection(sectionId, type,collocationId);
+      const updatedCollocationIds = await sectionApi.removeCollocationFromSection({sectionId, type,collocationId});
       
       // 更新列表中的分区
-      const index = sections.value.findIndex(s => s._id === sectionId);
+      const index = currentIndex(sectionId);
       if (index !== -1) {
-        const updatedSectionData = {
-          ...updatedSection,
-          name: updatedSection.name,
-          collocation_count: updatedSection.collocationIds.length,
-          collocationIds: updatedSection.collocationIds,
-          // collocationList: updatedSection.collocationList
-        };
-        sections.value[index] = updatedSectionData;
+        // 更新 collocationIds
+        sections.value[index].collocationIds = updatedCollocationIds;
+        sections.value[index].collocation_count = updatedCollocationIds.length;
+        
+        // 同时更新 collocationList，移除对应的项
+        if (sections.value[index].collocationList) {
+          sections.value[index].collocationList = sections.value[index].collocationList.filter(item => {
+            // 如果类型不同，保留
+            if (item.type !== type) return true;
+            
+            // 如果类型相同，检查 ID 是否匹配
+            const itemId = getCollocationId(item);
+            return itemId !== collocationId;
+          });
+        }
       }
-      return updatedSection;
     } catch (error) {
       console.error('从分区移除资源失败:', error);
       throw error;
@@ -270,7 +299,7 @@ export const useSectionStore = defineStore('section', () => {
       const updatedSection = await sectionApi.clearSectionCollocations(sectionId);
       
       // 更新列表中的分区
-      const index = sections.value.findIndex(s => s._id === sectionId);
+      const index = currentIndex(sectionId);
       if (index !== -1) {
         sections.value[index] = {
           ...updatedSection,
@@ -286,14 +315,6 @@ export const useSectionStore = defineStore('section', () => {
       console.error('清空分区失败:', error);
       throw error;
     }
-  };
-
-  /**
-   * @desc 刷新自定义分区列表
-   */
-  const refreshSections = async () => {
-    isLoaded.value = false;
-    await fetchSections();
   };
   
   /**
@@ -319,6 +340,8 @@ export const useSectionStore = defineStore('section', () => {
     isLoaded,
     
     // 方法
+    currentIndex,
+    currentSection,
     fetchSections,
     fetchSectionContent,
     createSection,
@@ -328,7 +351,6 @@ export const useSectionStore = defineStore('section', () => {
     removeCollocationFromSection,
     clearSectionMedia,
     fetchSectionsIfNeeded,
-    refreshSections,
     reset
   };
 }, {

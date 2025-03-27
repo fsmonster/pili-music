@@ -1,7 +1,7 @@
 /**
  * 系列相关API
  */
-import request from "../utils/request";
+import { request, biliRequest } from "../utils/request";
 import type { 
     ApiResponse, 
     UserSeriesList,
@@ -11,13 +11,39 @@ import type {
     Archive} from "../types";
 
 /**
- * 获取用户的系列列表
+ * @desc 获取系列的元数据
+ * @param series_id 系列ID
+ * @returns 系列元数据
+ * @access  Public - 不需要登录
+ */
+export async function getSeriesMeta(
+    series_id: number
+): Promise<SeriesMeta> {
+    try {
+        const res = await biliRequest.get<ApiResponse<SeriesMetaResponse>>(
+            "/series/series",
+            {
+                params: { series_id },
+            }
+        );
+        return res.data.data.meta;
+    } catch (error) {
+        console.error("获取系列元数据失败:", error);
+        throw error;
+    }
+}
+
+/**
+ * @desc 获取用户的系列列表
+ * @param params 系列参数
+ * @returns 系列列表
+ * @access  Public - 不需要登录
  */
 export async function getSeriesList(
     params: SeasonAndSeriesParams
 ): Promise<UserSeriesList[]> {
     try {
-        const res = await request.get<ApiResponse<SeasonAndSeriesResponse>>(
+        const res = await biliRequest.get<ApiResponse<SeasonAndSeriesResponse>>(
             "/series/archives",
             {
                 params,
@@ -31,33 +57,16 @@ export async function getSeriesList(
 }
 
 /**
- * 获取系列的元数据
- */
-export async function getSeriesMeta(
-    series_id: number
-): Promise<SeriesMeta> {
-    try {
-        const res = await request.get<ApiResponse<SeriesMetaResponse>>(
-            "/series/meta",
-            {
-                params: { series_id },
-            }
-        );
-        return res.data.data.meta;
-    } catch (error) {
-        console.error("获取系列元数据失败:", error);
-        throw error;
-    }
-}
-
-/**
- * 获取系列的媒体列表
+ * @desc 获取系列的媒体列表
+ * @param params 系列参数
+ * @returns 系列媒体列表
+ * @access  Public - 不需要登录
  */
 export async function getSeriesArchives(
     params: SeriesArchivesParams
 ): Promise<Archive[]> {
     try {
-        const res = await request.get<ApiResponse<SeriesArchivesResponse>>(
+        const res = await biliRequest.get<ApiResponse<SeriesArchivesResponse>>(
             "/series/archives",
             {
                 params,
@@ -71,14 +80,18 @@ export async function getSeriesArchives(
 }
 
 /**
- * 获取系列封面
+ * @desc 获取系列封面
+ * @param series_id 系列ID
+ * @param mid 用户ID
+ * @returns 系列封面图片URL
+ * @access  Public - 不需要登录
  */
 export async function getSeriesCover(
     series_id: number,
     mid: number
 ): Promise<string> {
     try {
-        const res = await request.get<ApiResponse<SeriesArchivesResponse>>(
+        const res = await biliRequest.get<ApiResponse<SeriesArchivesResponse>>(
             "/series/archives",
             {
                 params: { series_id, mid, pn: 1, ps: 1 },
@@ -92,7 +105,7 @@ export async function getSeriesCover(
 }
 
 /**
- * 获取用户显示的系列ID列表
+ * @desc 获取用户显示的系列ID列表
  * @returns 系列显示设置列表
  * @access  Private - 需要登录
  */

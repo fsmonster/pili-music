@@ -16,7 +16,7 @@
     <!-- 索引列 -->
     <el-table-column type="index" width="50">
       <template #default="scope">
-        <div v-if="isCurrentPlaying(scope.row)" class="playing-indicator">
+        <div v-if="isCurrentPlaying(scope.row) && playerStore.playing" class="playing-indicator">
           <img src="../../assets/image/playing.gif" alt="GIF">
         </div>
         <div v-else class="index">{{ scope.$index + 1 }}</div>
@@ -29,14 +29,14 @@
         <div class="media-info">
           <div class="media-cover-container">
             <img 
-              :src="processResourceUrl(row.cover)" 
+              :src="processResourceUrl(row.cover) + '@80w'" 
               :alt="row.title" 
               class="media-cover"
               loading="lazy"
               :data-src="processResourceUrl(row.cover)"
             >
             <div class="media-cover-overlay">
-              <i v-if="!isCurrentPlaying(row)" class="ri-play-fill play-icon" @click.stop="$emit('play', row)"></i>
+              <i v-if="!isCurrentPlaying(row) || !playerStore.playing" class="ri-play-fill play-icon" @click.stop="$emit('play', row)"></i>
               <i v-else class="ri-music-line playing-icon"></i>
             </div>
           </div>

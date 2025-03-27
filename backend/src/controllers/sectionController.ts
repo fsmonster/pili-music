@@ -205,7 +205,7 @@ export const addCollocationToSection = async (params: CollocationParams) => {
       { new: true }
     );
     
-    return updatedSection;
+    return updatedSection?.collocationIds;
   } catch (error) {
     console.error('添加资源到分区失败:', error);
     throw error;
@@ -233,7 +233,7 @@ export const removeCollocationFromSection = async (params: CollocationParams) =>
       { new: true }
     );
     
-    return updatedSection;
+    return updatedSection?.collocationIds;
   } catch (error) {
     console.error('从分区移除资源失败:', error);
     throw error;

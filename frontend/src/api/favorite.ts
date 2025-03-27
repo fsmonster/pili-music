@@ -1,7 +1,7 @@
 /**
  * 收藏夹相关API
  */
-import request from '../utils/request';
+import {request, biliRequest} from '../utils/request';
 import type { ApiResponse,
   FavoriteListParams, FavoriteContentListParams,
   FavoriteListResponse, FavoriteList,
@@ -10,10 +10,34 @@ import type { ApiResponse,
 } from '../types';
 
 /**
- * 获取用户收藏夹 - 列表
+ * @desc 获取收藏夹 - 信息
+ * @param media_id 收藏夹ID
+ * @returns 收藏夹信息
+ * @access  Public - 不需要登录
+ */
+export async function getFavoriteInfo(media_id: number): Promise<FavoriteInfoResponse> {
+  try {
+    const res = await biliRequest.get<ApiResponse<FavoriteInfoResponse>>('/v3/fav/folder/info', {
+      params:{
+        media_id
+      }
+    });
+    if(res.data.code !== 0) {
+      throw new Error(res.data.message || '获取收藏夹信息失败');
+    }
+    return res.data.data;
+  } catch (error) {
+    console.error('获取收藏夹信息失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * @desc 获取用户收藏夹 - 列表
  * 查询视频收藏信息
  * @param params 参数
  * @returns 收藏夹列表
+ * @access  Optional - 可选登录
  */
 export async function getFavoriteList(params: FavoriteListParams): Promise<FavoriteList[]> {
   try {
@@ -31,31 +55,10 @@ export async function getFavoriteList(params: FavoriteListParams): Promise<Favor
 }
 
 /**
- * 获取收藏夹 - 信息
- * @param media_id 收藏夹ID
- * @returns 收藏夹信息
- */
-export async function getFavoriteInfo(media_id: number): Promise<FavoriteInfoResponse> {
-  try {
-    const res = await request.get<ApiResponse<FavoriteInfoResponse>>('/favorite/folder/info', {
-      params:{
-        media_id
-      }
-    });
-    if(res.data.code !== 0) {
-      throw new Error(res.data.message || '获取收藏夹信息失败');
-    }
-    return res.data.data;
-  } catch (error) {
-    console.error('获取收藏夹信息失败:', error);
-    throw error;
-  }
-}
-
-/**
- * 获取收藏夹 - 信息 + 内容列表
+ * @desc 获取收藏夹 - 信息 + 内容列表
  * @param params 参数
  * @returns 媒体列表
+ * @access  Optional - 可选登录
  */
 export async function getFavoriteContent(params: FavoriteContentListParams): Promise<FavoriteContentResponse> {
   try {

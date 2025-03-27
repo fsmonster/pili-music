@@ -33,7 +33,7 @@
               animated
             />
             <img v-else 
-              :src="processResourceUrl(item.cover)" 
+              :src="processResourceUrl(item.cover) + '@250h'" 
               :alt="item.title"
             >
             <!-- 私密收藏夹标识 -->

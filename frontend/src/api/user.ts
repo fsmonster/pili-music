@@ -1,12 +1,12 @@
 import type { ApiResponse, UpInfoCardResponse, Upper } from "../types";
-import request from "../utils/request";
+import { biliRequest } from "../utils/request";
 
 /**
  * 获取用户信息
  */
 export async function getUserInfo(mid: number): Promise<Upper> {
   try {
-    const response = await request.get<ApiResponse<UpInfoCardResponse>>('/user/info',
+    const response = await biliRequest.get<ApiResponse<UpInfoCardResponse>>('/web-interface/card',
       { params: { mid } });
     if (response.data.code !== 0) {
       throw new Error(response.data.message || '获取用户信息失败');

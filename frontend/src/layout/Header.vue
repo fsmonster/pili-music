@@ -1,17 +1,17 @@
 <template>
   <div class="header">
+    <div class="logo">
+      <i class="ri-bilibili-fill"></i>
+      <span>哔哩音乐 (｡･∀･)ﾉﾞ</span>
+    </div>
     <div class="search-bar">
       <i class="ri-search-line"></i>
       <input type="text" placeholder="搜索音乐" />
     </div>
-    <!-- <div class="logo">
-      <i class="ri-bilibili-fill"></i>
-      <span>哔哩音乐 (｡･∀･)ﾉﾞ</span>
-    </div> -->
     <div class="user-info">
       <el-dropdown v-if="userStore.isLoggedIn">
         <div class="user-avatar">
-          <img :src="avatar" :alt="userStore.username" />
+          <img :src="avatar + '@70w'" :alt="userStore.username" />
           <span class="username">{{ userStore.username }}</span>
         </div>
 

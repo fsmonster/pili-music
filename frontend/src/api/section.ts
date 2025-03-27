@@ -1,6 +1,11 @@
-import request from '../utils/request';
+import { request } from '../utils/request';
 import type { ApiResponse } from '../types';
-import type { Section, SectionParams, CollocationType } from '../types';
+import type { Section, SectionParams, CollocationType, CollocationId } from '../types';
+
+/**
+ * 分区相关API
+ * @access  Private - 需要登录
+ */
 
 /**
  * 获取用户所有自定义分区
@@ -92,6 +97,12 @@ export async function deleteSection(sectionId: string): Promise<boolean> {
   }
 }
 
+interface CollocationParams {
+  sectionId: string;
+  type: CollocationType;
+  collocationId: number;
+}
+
 /**
  * 添加资源到分区
  * @param sectionId 分区ID
@@ -99,13 +110,9 @@ export async function deleteSection(sectionId: string): Promise<boolean> {
  * @param collocationId 资源ID
  * @returns 更新后的分区内容
  */
-export async function addCollocationToSection(sectionId: string, type: CollocationType, collocationId: number): Promise<Section> {
+export async function addCollocationToSection(params: CollocationParams): Promise<CollocationId[]> {
   try {
-    const res = await request.post<ApiResponse<Section>>(`/section/content/collocation`, { 
-      sectionId, 
-      type, 
-      collocationId 
-    });
+    const res = await request.post<ApiResponse<CollocationId[]>>(`/section/content/collocation`, params);
     if (res.data.code !== 0) {
       throw new Error(res.data.message || '添加资源失败');
     }
@@ -118,19 +125,13 @@ export async function addCollocationToSection(sectionId: string, type: Collocati
 
 /**
  * 从分区移除资源
- * @param sectionId 分区ID
- * @param type 资源类型
- * @param collocationId 资源ID
+ * @param params 移除参数
  * @returns 更新后的分区内容
  */
-export async function removeCollocationFromSection(sectionId: string, type: CollocationType, collocationId: number): Promise<Section> {
+export async function removeCollocationFromSection(params: CollocationParams): Promise<CollocationId[]> {
   try {
-    const res = await request.delete<ApiResponse<Section>>(`/section/content/collocation`, { 
-      data: { 
-        sectionId, 
-        type, 
-        collocationId 
-      }
+    const res = await request.delete<ApiResponse<CollocationId[]>>(`/section/content/collocation`, { 
+      data: params
     });
     if (res.data.code !== 0) {
       throw new Error(res.data.message || '移除资源失败');
