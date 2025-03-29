@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, onBeforeMount, onMounted, onUnmounted, computed, watchEffect } from 'vue';
+import { ref, onBeforeMount, onMounted, onUnmounted, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSeasonStore, useSeasonContentStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
@@ -160,5 +160,5 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import './style/playlist.scss';
+@use './style/playlist.scss';
 </style>

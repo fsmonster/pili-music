@@ -4,15 +4,15 @@
 import {request, biliRequest} from "../utils/request";
 import type { 
   ApiResponse,
-  // UserSeasonList,
+  UserSeasonList,
   SeasonListParams,
   SeasonListResponse,
   // SeasonList,
   SeasonContentParams,
   SeasonContent,
   SeasonContentResponse,
-  // SeasonAndSeriesParams,
-  // SeasonAndSeriesResponse,
+  SeasonAndSeriesParams,
+  SeasonAndSeriesResponse,
   // SeasonMetaParams,
   SeasonMeta,
   // SeasonArchivesParams,
@@ -99,22 +99,22 @@ export async function getSeasonMeta(
  * @returns 用户的合集列表
  * @access Public - 不需要登录
  */
-// export async function getUserSeasonList(
-//   params: SeasonAndSeriesParams
-// ): Promise<UserSeasonList[]> {
-//   try {
-//       const res = await biliRequest.get<ApiResponse<SeasonAndSeriesResponse>>(
-//           "/series/archives",
-//           {
-//               params,
-//           }
-//       );
-//       return res.data.data.items_lists.seasons_list;
-//   } catch (error) {
-//       console.error("获取用户合集和系列列表失败:", error);
-//       throw error;
-//   }
-// }
+export async function getUserSeasonList(
+  params: SeasonAndSeriesParams
+): Promise<UserSeasonList[]> {
+  try {
+      const res = await biliRequest.get<ApiResponse<SeasonAndSeriesResponse>>(
+          "/series/archives",
+          {
+              params,
+          }
+      );
+      return res.data.data.items_lists.seasons_list;
+  } catch (error) {
+      console.error("获取用户合集和系列列表失败:", error);
+      throw error;
+  }
+}
 
 /**
  * 获取订阅合集列表

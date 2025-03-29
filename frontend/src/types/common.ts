@@ -113,6 +113,10 @@ export interface MediaItem {
    * 🎵 是否是用户自己创建或观看的合集
    */
   is_self_view?: boolean;
+  /**
+   *  状态数 - archive 特有
+   */
+  stat?: Stat;
   [property: string]: any;
 }
 
@@ -333,6 +337,6 @@ export interface Stat {
   /**
    * 互动视频相关数据
    */
-  vt: number;
+  vt?: number;
   [property: string]: any;
 }

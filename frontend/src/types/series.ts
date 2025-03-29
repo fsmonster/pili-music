@@ -1,44 +1,4 @@
-import type { UserSeasonList, Archive } from './index'
-
-/**
- * 请求参数
- */
-export interface SeasonAndSeriesParams {
-    /**
-     * 目标用户mid
-     */
-    mid: number;
-    /**
-     * 页码
-     */
-    page_num: number;
-    /**
-     * 每页数量
-     */
-    page_size: number;
-    [property: string]: any;
-}
-
-/**
- * 响应数据
- */
-export interface SeasonAndSeriesResponse {
-    items_lists: ItemsLists;
-    [property: string]: any;
-}
-
-export interface ItemsLists {
-    page: Page;
-    /**
-     * 归类为“合集”的视频列表
-     */
-    seasons_list: UserSeasonList[];
-    /**
-     * 归类为“系列”的视频列表
-     */
-    series_list: UserSeriesList[];
-    [property: string]: any;
-}
+import type { Archive } from './index'
 
 export interface Page {
     /**

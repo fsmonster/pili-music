@@ -13,6 +13,13 @@ export default defineConfig({
       }
     ]
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@use "@/assets/styles/index.scss" as *;`
+      }
+    }
+  },
   server: {
     proxy: {
       // B 站 API 代理（不需要 Cookie 的请求）

@@ -6,6 +6,4 @@ export * from './user/auth'
 export * from './list'
 
 // 播放
-export * from './play/player'
-export * from './play/queue'
-export * from './play/multiPageQueue'
+export * from './play'

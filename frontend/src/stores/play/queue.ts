@@ -1,14 +1,19 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { MediaItem } from '../../types';
+import { useLazyLoadStore } from './lazyLoad';
 
 /**
  * @desc 当前播放列表状态管理
  */
 export const useQueueStore = defineStore('queue', () => {
+  // 懒加载状态
+  const lazyLoad = useLazyLoadStore();
+
   // 状态
   const currentTrack = ref<MediaItem | null>(null);
   const queue = ref<MediaItem[]>([]);
+  const type = ref<'favorite' | 'season' | 'series' | 'home'>('favorite');
   const loading = ref(false);
   const error = ref<string>('');
   const audioUrl = ref<string>('');
@@ -112,15 +117,22 @@ export const useQueueStore = defineStore('queue', () => {
     isPopup.value = false;
   }
 
+  watch(lazyLoad.hasMore, () => {
+    if (lazyLoad.hasMore) {
+      
+    }
+  });
+
   return {
     // 状态
     currentTrack,
     queue,
     loading,
+    type,
     error,
     audioUrl,
     currentIndex,
-    isPopup,
+    isPopup,   
     // 计算属性
     isPlaying,
     currentIndexComputed,
