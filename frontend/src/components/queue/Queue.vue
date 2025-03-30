@@ -6,14 +6,16 @@
   >
     <div class="queue-header">
       <div class="queue-title">
-        <span>播放队列 ({{ queueStore.queue.length }})</span>
+        <span>播放队列 ({{ queueStore.total }})</span>
       </div>
       <div class="queue-actions">
         <i class="ri-close-line" @click="queueStore.togglePopup()"></i>
       </div>
     </div>
     
-    <div class="queue-content">
+    <div class="queue-content" 
+      ref="queueContentRef"
+      @scroll="handleScroll">
       <div 
         v-for="(item, index) in queueStore.queue" 
         :key="item.id || index"
@@ -37,21 +39,18 @@
 </template>
 
 <script setup lang="ts">
-import { useQueueStore } from '@/stores/play/queue';
+import { useQueueStore, useLazyLoadStore } from '@/stores';
 import { usePlayerStore } from '@/stores/play/player';
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { formatTime } from '@/utils';
 
 // 获取状态管理
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
+const lazyLoad = useLazyLoadStore();
 
-// 格式化时间
-const formatTime = (seconds: number) => {
-  if (!seconds) return '00:00';
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-};
+const queueContentRef = ref<HTMLElement | null>(null);
+const loadLock = ref(false);
 
 // 播放指定项目
 const playItem = (index: number) => {
@@ -72,6 +71,28 @@ const handleClickOutside = (event: MouseEvent) => {
       playlistButton && 
       !playlistButton.contains(event.target as Node)) {
     queueStore.setPopupState(false);
+  }
+};
+
+// 添加队列
+const addToQueue = async () => {
+  if (loadLock.value) return;
+  if (lazyLoad.hasMore) {
+    loadLock.value = true;
+    lazyLoad.pn++;
+    queueStore.queue.push(...(await lazyLoad.getData()));
+    loadLock.value = false;
+  }
+};
+
+// 滚动加载
+const handleScroll = async () => {
+  if (queueContentRef.value && lazyLoad.type) {
+    const { scrollTop, clientHeight, scrollHeight } = queueContentRef.value;
+    if (scrollTop + clientHeight >= scrollHeight - 150) {
+      console.log('滚动加载', scrollTop, clientHeight, scrollHeight);
+      await addToQueue();
+    }
   }
 };
 

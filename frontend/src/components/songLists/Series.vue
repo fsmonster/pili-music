@@ -123,7 +123,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from './ContentSection.vue';
-import { useSeriesStore, useSeriesContentStore, useUserStore, useQueueStore, usePlayerStore } from '../../stores';
+import { useSeriesStore, useSeriesContentStore, useUserStore, useQueueStore, usePlayerStore, useLazyLoadStore } from '../../stores';
 import { processResourceUrl } from '../../utils';
 import { extractMidAndSeriesId } from '../../utils/common';
 
@@ -136,6 +136,7 @@ const seriesContentStore = useSeriesContentStore();
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
 const userStore = useUserStore();
+const lazyLoad = useLazyLoadStore();
 
 // 状态
 const loading = ref(false);
@@ -160,6 +161,8 @@ const seriesMid = (seriesId: number) => {
 // 播放系列内容
 const playSeries = async (id: number) => {
   try {
+    // 系列不需要懒加载
+    lazyLoad.reset();
     if (!seriesMid(id)) {
       ElMessage.error('获取系列信息失败');
       return;

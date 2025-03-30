@@ -2,7 +2,9 @@
   <Layout>
     <template #main>
       <div class="playlist-container">
-        <div class="playlist-scroll">
+        <div class="playlist-scroll" 
+          ref="playlistScroll"
+        >
           <!-- 列表头部 -->
           <ListHeader 
             v-if="currentInfo"
@@ -49,8 +51,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref,computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
-import { useFavoriteContentStore, usePlayerStore, useQueueStore } from '../stores';
+import { ref, watch, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { useFavoriteContentStore, usePlayerStore, useQueueStore, useLazyLoadStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import MediaTable from '../components/songList/MediaTable.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
@@ -59,20 +61,24 @@ import { Loading } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
 import type { FavoriteInfo, MediaItem } from '../types';
 import * as favoriteApi from '../api/favorite';
+import { storeToRefs } from 'pinia';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
 const favoriteContentStore = useFavoriteContentStore();
+const lazyLoad = useLazyLoadStore();
 
 const { id } = route.params;
 
 // 当前收藏夹信息
 const currentInfo = ref<FavoriteInfo | null>(null);
 
+const playLock = ref(false);
+const playlistScroll = ref<HTMLElement | null>(null);
+
 // 计算属性
-// const upperInfo = computed(() => currentInfo.value?.upper ?? null);
-const medias = computed<MediaItem[]>(() => favoriteContentStore.medias);
+const { medias } = storeToRefs(favoriteContentStore);
 
 /**
  * @desc 加载内容
@@ -112,7 +118,9 @@ function removeContent() {
 function handlePlayAll() {
   if (medias.value.length > 0) {
     queueStore.setQueue(medias.value);
+    queueStore.total = currentInfo.value?.media_count ?? 0;
     playerStore.play(medias.value[0]);
+    playLock.value = true;
   }
 }
 
@@ -121,7 +129,9 @@ function handlePlayAll() {
  */
 function handlePlay(item: MediaItem) {
   queueStore.setQueue(medias.value);
+  queueStore.total = currentInfo.value?.media_count ?? 0;
   playerStore.play(item);
+  playLock.value = true;
 }
 
 /**
@@ -152,16 +162,31 @@ function handleResize() {
   calculateTableHeight();
 }
 
+// 播放状态变化
+watch(() => playLock.value, () => {
+  if (playLock.value) {
+    // 设置懒加载
+    lazyLoad.reset();
+    lazyLoad.type = 'favorite';
+    lazyLoad.id = currentInfo.value?.id ?? 0;
+    lazyLoad.pn = favoriteContentStore.page;
+    lazyLoad.total = currentInfo.value?.media_count ?? 0;
+  }
+  playLock.value = false;
+});
+
 onBeforeMount(() => {
   calculateTableHeight();
   window.addEventListener('resize', handleResize);
 });
 
 onMounted(() => {
+  playLock.value = false;
   loadContent();
 });
 
 onUnmounted(() => {
+  lazyLoad.pn = favoriteContentStore.page;
   removeContent();
   window.removeEventListener('resize', handleResize);
 });

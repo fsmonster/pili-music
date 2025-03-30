@@ -19,7 +19,7 @@
                 </div>
             </div>
         </div>
-        <div class="medias-list" ref="mediaListRef" @scroll="handleScroll">
+        <div class="medias-list">
             <!-- 视频列表 -->
             <div v-if="loading && pn === 1" class="loading-container">
                 <el-skeleton :rows="5" animated />
@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { ElSkeleton, ElEmpty, ElMessage } from 'element-plus';
 import { searchVideoByKeywords } from '@/api/user';
 import type { Archive, MediaItem } from '@/types';
@@ -79,7 +79,13 @@ import { processResourceUrl,
 // 定义组件属性
 const props = defineProps<{
     mid: number;
+    loadMore: boolean;
 }>();
+
+const emit = defineEmits<{
+    (e: 'update:loadMore', value: boolean): void;
+}>();
+
 // 排序方式
 const enum Order {
     Pubdate = 'pubdate',
@@ -98,7 +104,7 @@ const order = ref<Order>(Order.Pubdate);
 const pn = ref(1);
 const ps = ref(20);
 const total = ref(0);
-const mediaListRef = ref<HTMLElement | null>(null);
+// const mediaListRef = ref<HTMLElement | null>(null);
 
 // 转换后的视频列表
 const medias = computed(() => archives.value.map(convertArchiveToMediaItem));
@@ -159,23 +165,6 @@ const loadMore = async () => {
     await fetchUserVideos(true);
 };
 
-// 处理滚动事件，实现触底加载
-const handleScroll = (e: Event) => {
-    if (!mediaListRef.value || loadingMore.value || !hasMore.value) return;
-    
-    const target = e.target as HTMLElement;
-    const scrollHeight = target.scrollHeight;
-    const scrollTop = target.scrollTop;
-    const clientHeight = target.clientHeight;
-    
-    // 当滚动到距离底部100px时，触发加载更多
-    if (scrollHeight - scrollTop - clientHeight < 100) {
-        console.log('触发加载更多', scrollHeight - scrollTop - clientHeight);
-        
-        loadMore();
-    }
-};
-
 // 设置懒加载参数
 const setLazyParams = () => {
     lazyLoadStore.type = 'home';
@@ -207,6 +196,14 @@ const sortVideos = (newOrder: Order) => {
     pn.value = 1; // 重置页码
     fetchUserVideos();
 };
+
+// 触发加载更多
+watch(() => props.loadMore, () => {
+    if (props.loadMore) {
+        loadMore();
+        emit('update:loadMore', false);
+    }
+});
 
 // 组件挂载时获取视频
 onMounted(() => {

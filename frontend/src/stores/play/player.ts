@@ -73,7 +73,7 @@ export const usePlayerStore = defineStore('player', () => {
       queueStore.setCurrentTrack(item);
       audioLoaded.value = false; // 新的播放项需要重新加载
       // 重置多P状态
-      // multiPageQueueStore.reset();
+      multiPageQueueStore.reset();
     }
 
     const currentItem = queueStore.currentItem;

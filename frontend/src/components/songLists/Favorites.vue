@@ -83,8 +83,8 @@ import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElDialog, ElMessage, ElCheckbox, ElCheckboxGroup, ElButton } from 'element-plus';
 import ContentSection from './ContentSection.vue';
-import { useUserStore, useFavoriteStore,useFavoriteContentStore, useQueueStore, usePlayerStore } from '@/stores';
-import { processResourceUrl } from '@/utils/processResoureUrl';
+import { useUserStore, useFavoriteStore,useFavoriteContentStore, useQueueStore, usePlayerStore, useLazyLoadStore } from '@/stores';
+import { processResourceUrl } from '@/utils';
 
 // 路由
 const router = useRouter();
@@ -95,6 +95,7 @@ const favoriteStore = useFavoriteStore();
 const favoriteContentStore = useFavoriteContentStore();
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
+const lazyLoad = useLazyLoadStore();
 
 // 对话框显示状态
 const showManageDialog = ref(false);
@@ -116,6 +117,11 @@ const isPrivate = (item: any) => {
 // 播放收藏夹内容
 const playFavorite = async (id: number) => {
   try {
+    if (lazyLoad.type === 'favorite' && lazyLoad.id === id) {
+      queueStore.setCurrentIndex(0);
+      playerStore.play();
+      return;
+    }
     // 完整加载收藏夹内容
     await favoriteContentStore.fetchFavoriteContent(Number(id));
     if (favoriteContentStore.medias.length > 0) {

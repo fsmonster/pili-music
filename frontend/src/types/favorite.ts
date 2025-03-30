@@ -191,7 +191,7 @@ export interface FavoriteContentListParams {
    */
   pn: number;
   /**
-   * 每页数量，定义域：1-20
+   * 每页数量，定义域：1-40
    */
   ps?: number;
   /**

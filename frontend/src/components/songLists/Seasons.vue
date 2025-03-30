@@ -74,8 +74,8 @@ import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { storeToRefs } from 'pinia';
 import ContentSection from './ContentSection.vue';
-import { useUserStore, useSeasonStore, useSeasonContentStore, useQueueStore, usePlayerStore } from '@/stores';
-import { processResourceUrl } from '@/utils/processResoureUrl';
+import { useUserStore, useSeasonStore, useSeasonContentStore, useQueueStore, usePlayerStore, useLazyLoadStore } from '@/stores';
+import { processResourceUrl } from '@/utils';
 import type { SeasonList } from '@/types';
 import { getSeasonCover } from '@/api';
 
@@ -85,6 +85,7 @@ const seasonContentStore = useSeasonContentStore();
 const userStore = useUserStore();
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
+const lazyLoad = useLazyLoadStore();
 
 // 订阅合集
 const seasons = ref<SeasonList[]>([]);
@@ -104,6 +105,8 @@ const goToPlaylist = (id: number) => {
 // 播放订阅合集内容
 const playSeason = async (id: number) => {
   try {
+    // 集合不需要懒加载
+    lazyLoad.reset();
     // 完整加载订阅合集内容
     await seasonContentStore.fetchAllSeasonContent(Number(id));
     if (medias.value.length > 0) {

@@ -16,7 +16,7 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
   // 懒加载状态
   const firstLoad = ref(true); // 记录是否为第一次加载
   const page = ref(1); // 当前页码
-  const pageSize = 20; // 每次加载的数量
+  const pageSize = 40; // 每次加载的数量
   const totalCount = ref(0); // 总数
   const totalPages = ref(0); // 总页数
   const hasMore = ref(false);
@@ -88,7 +88,7 @@ const fetchFavoriteContent = async (mediaId: number) => {
 
     // 计算当前最多请求到的页码
     const nextStartPage = page.value + 1;
-    const nextMaxPage = Math.min(page.value + 5, totalPages.value);
+    const nextMaxPage = Math.min(page.value + 1, totalPages.value);
 
     if (nextStartPage > totalPages.value) {
       hasMore.value = false;

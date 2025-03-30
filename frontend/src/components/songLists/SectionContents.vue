@@ -140,7 +140,8 @@ import { useSectionStore,
   useSeasonContentStore,
   useSeriesContentStore,
   useQueueStore, 
-  usePlayerStore 
+  usePlayerStore,
+  useLazyLoadStore 
 } from '../../stores';
 import { processResourceUrl, 
   extractIdAndType, 
@@ -166,6 +167,7 @@ const seriesStore = useSeriesContentStore();
 
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
+const lazyLoad = useLazyLoadStore();
 
 // 状态
 const section = ref<Section | null>(null);
@@ -209,6 +211,12 @@ const goToCollocation = async (type: CollocationType, id: number) => {
 // 播放资源内容
 const playCollocation = async (type: CollocationType, id: number) => {
   try {
+    if(type === lazyLoad.type && id === lazyLoad.id) {
+      queueStore.setCurrentIndex(0);
+      playerStore.play();
+      return;
+    }
+    else lazyLoad.reset();
     if (type === 'favorite') {
       // 完整加载收藏夹内容
       await favoriteStore.fetchFavoriteContent(id);

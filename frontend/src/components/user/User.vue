@@ -1,5 +1,7 @@
 <template>
-  <div class="user-container">
+  <div class="user-container" 
+    ref="userContainerRef"  
+    @scroll="handleScroll">
     <!-- 用户信息头部 -->
     <UserHeader 
       v-if="userInfo"
@@ -20,6 +22,7 @@
       <UserVideos 
         v-if="activeTab === 'videos' && userInfo" 
         :mid="userInfo.mid" 
+        v-model:loadMore="loadMore"
       />
 
       <!-- 收藏夹 -->
@@ -87,6 +90,10 @@ const privacy = ref<Privacy | null>(null);
 // 用户信息
 const userInfo = ref<Upper | null>(null);
 
+// 视频加载状态
+const loadMore = ref(false);
+const userContainerRef = ref<HTMLElement | null>(null);
+
 // 获取用户信息
 const fetchUserInfo = async () => {
   try {
@@ -115,6 +122,19 @@ const fetchUserSettings = async () => {
   } catch (error) {
     console.error('获取用户设置失败:', error);
     ElMessage.error('获取用户设置失败，请稍后重试');
+  }
+};
+
+// 处理滚动事件，实现触底加载
+const handleScroll = (e: Event) => {
+  const target = e.target as HTMLElement;
+  const scrollHeight = target.scrollHeight;
+  const scrollTop = target.scrollTop;
+  const clientHeight = target.clientHeight;
+  
+  // 当滚动到距离底部100px时，触发加载更多
+  if (scrollHeight - scrollTop - clientHeight < 350) {
+    loadMore.value = true;
   }
 };
 

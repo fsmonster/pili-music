@@ -1,6 +1,14 @@
 import type { Archive } from "../types";
 import type { MediaItem } from "../types/common";
 
+// 格式化时间
+export const formatTime = (seconds: number) => {
+  if (!seconds) return '00:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
 // 格式化时长
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);

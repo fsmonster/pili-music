@@ -1,15 +1,11 @@
-# 支持多P视频展示的媒体表格组件
 <template>
   <el-table
     :data="tableData"
-    :max-height="maxHeight"
     :border="false"
     :highlight-current-row="true"
-    :empty-text="loading ? '加载中...' : '暂无数据'"
-    :type="type"
-    style="width: 100%"
-    v-loading="loading"
     @row-dblclick="handleRowDblClick"
+    @row-click="handleRowClick"
+    :row-class-name="rowClassName"
     row-key="id"
     :expand-row-keys="expandedRows"
   >
@@ -110,95 +106,28 @@
     <!-- 展开行 - 用于显示多P内容 -->
     <el-table-column type="expand">
       <template #default="{ row }">
-        <div v-if="isMultiPage(row)" class="multi-page-content">
-          <!-- 多P内容表格 -->
-          <el-table
-            :data="paginatedPageList"
-            style="width: 100%"
-            :border="false"
-            :show-header="false"
-            class="sub-table"
-          >
-            <!-- 索引列 -->
-            <el-table-column width="60">
-              <template #default="{ row: pageItem }">
-                <div class="page-index">P{{ pageItem.page }}</div>
-              </template>
-            </el-table-column>
-
-            <!-- 空白列 - 替代封面 -->
-            <el-table-column width="70">
-              <template #default="{ row: pageItem }">
-                <div class="play-button-container">
-                  <el-button 
-                    type="primary" 
-                    circle 
-                    size="small"
-                    @click="playPage(row, pageItem)"
-                  >
-                    <i class="ri-play-fill"></i>
-                  </el-button>
-                </div>
-              </template>
-            </el-table-column>
-
-            <!-- 分P标题列 -->
-            <el-table-column min-width="250">
-              <template #default="{ row: pageItem }">
-                <div class="page-title" :class="{ 'playing-page': isCurrentPlayingPage(pageItem) }">{{ pageItem.part }}</div>
-              </template>
-            </el-table-column>
-
-            <!-- 空白列 - 替代up主 -->
-            <el-table-column min-width="50">
-              <template #default>
-                <div></div>
-              </template>
-            </el-table-column>
-
-            <!-- 时长列 -->
-            <el-table-column width="120">
-              <template #default="{ row: pageItem }">
-                {{ formatDuration(pageItem.duration) }}
-              </template>
-            </el-table-column>
-          </el-table>
-
-          <!-- 分页器 -->
-          <div v-if="pageList.length > pageSize" class="pagination-container">
-            <el-pagination
-              v-model:current-page="currentPage"
-              :page-size="pageSize"
-              layout="prev, pager, next"
-              :total="pageList.length"
-              @current-change="handlePageChange"
-              background
-              small
-            />
-          </div>
-        </div>
+        <MultiPageTable 
+          v-if="isMultiPage(row)" 
+          :parentMedia="row" 
+          :pageList="pageList"
+        />
       </template>
     </el-table-column>
   </el-table>
-  <div v-if="false || (type === 'favorite' && favoriteContentStore.hasMore)" class="load-more-container">
-    <el-tooltip content="一次只能请求这么多捏(っ °Д °;)っ" effect="dark" placement="right">
-      <el-button type="primary" @click="emit('load-more')">加载更多~</el-button>
-    </el-tooltip>
-  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { processResourceUrl } from '../../utils/processResoureUrl';
+import { processResourceUrl, formatDuration } from '../../utils';
 import { getCid } from '../../api';
-import { usePlayerStore, useMultiPageQueueStore, useFavoriteContentStore } from '../../stores';
+import { usePlayerStore } from '../../stores';
 import type { MediaItem, CidInfo } from '../../types';
+import MultiPageTable from './MultiPageTable.vue';
 
 const props = defineProps<{
   data: MediaItem[];
   type:'favorite' | 'season' | 'series'
   loading?: boolean;
-  maxHeight?: number;
   options?: {
     // 可扩展的选项
   }
@@ -211,38 +140,21 @@ const emit = defineEmits<{
   (e: 'load-more'): void
 }>();
 
-// 获取播放器和多P队列存储
+// 获取播放器存储
 const playerStore = usePlayerStore();
-const multiPageQueueStore = useMultiPageQueueStore();
-
-// 收藏夹内容存储
-const favoriteContentStore = useFavoriteContentStore();
 
 // 展开行的ID数组
 const expandedRows = ref<string[]>([]);
-
 // 当前选中的多P视频
 const currentMultiPageItem = ref<MediaItem | null>(null);
-
 // 分P列表
 const pageList = ref<CidInfo[]>([]);
-
-// 分页相关
-const pageSize = 20; // 每页显示20条
-const currentPage = ref(1);
 
 const tableData = computed(() => {
   if (props.type === 'favorite') {
     return props.data.filter(item => item.attr === 0);
   }
   return props.data;
-});
-
-// 计算当前页的分P列表
-const paginatedPageList = computed(() => {
-  const start = (currentPage.value - 1) * pageSize;
-  const end = start + pageSize;
-  return pageList.value.slice(start, end);
 });
 
 // 检查是否是多P视频
@@ -260,12 +172,6 @@ function isCurrentPlaying(item: MediaItem): boolean {
   return playerStore.currentItem?.id === item.id;
 }
 
-// 检查是否是当前播放的分P
-function isCurrentPlayingPage(pageItem: CidInfo): boolean {
-  if (!isCurrentPlaying(currentMultiPageItem.value as MediaItem)) return false;
-  return multiPageQueueStore.selectedPage === pageItem.page;
-}
-
 // 切换展开/折叠状态
 async function toggleExpand(item: MediaItem) {
   const itemId = item.id.toString();
@@ -275,7 +181,6 @@ async function toggleExpand(item: MediaItem) {
     // 展开
     expandedRows.value.push(itemId);
     currentMultiPageItem.value = item;
-    currentPage.value = 1; // 重置分页
     
     // 获取分P列表
     try {
@@ -299,58 +204,32 @@ async function toggleExpand(item: MediaItem) {
   }
 }
 
-// 播放指定分P
-async function playPage(item: MediaItem, pageItem: CidInfo) {
-  // 设置多P播放队列
-  multiPageQueueStore.setPageList(item.id, pageList.value);
-  
-  // 设置当前选中的分P
-  multiPageQueueStore.setSelectedPage(pageItem.page);
-  
-  // 播放
-  playerStore.play(item);
-}
-
-// 处理分页变化
-function handlePageChange(page: number) {
-  currentPage.value = page;
-}
-
-// 格式化时长
-function formatDuration(seconds: number) {
-  if (!seconds) return '00:00';
-  
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
-
 // 处理双击行事件
 function handleRowDblClick(row: MediaItem) {
   emit('play', row);
+}
+
+// 处理点击行事件
+function handleRowClick(row: MediaItem) {
+  if (isMultiPage(row)) {
+    toggleExpand(row);
+  }
+}
+
+// 行样式
+function rowClassName({ row }: { row: MediaItem }) {
+  return isCurrentPlaying(row) ? 'current-playing-row' : '';
 }
 
 // 监听数据变化，重置展开状态
 watch(() => props.data, () => {
   expandedRows.value = [];
   currentMultiPageItem.value = null;
-  pageList.value = [];
-  currentPage.value = 1;
 }, { deep: true });
 </script>
 
 <style lang="scss" scoped>
 @use '../../assets/styles/_mixins.scss';
-
-.load-more-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px;
-  cursor: pointer;
-}
-
 /* 当前播放动画 */
 .playing-indicator {
   width: 36px;
@@ -486,46 +365,83 @@ watch(() => props.data, () => {
   }
 }
 
-/* 多P内容样式 */
-.multi-page-content {
-  padding: 0 20px 20px 50px; // 左侧缩进
+.playing-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   
-  .sub-table {
-    background-color: var(--el-bg-color-page); // 略微暗一点的背景色
-    border-radius: 4px;
-    margin-bottom: 10px;
-    
-    .page-index {
-      text-align: center;
-      color: var(--el-text-color-secondary);
-      font-size: 12px;
-    }
-    
-    .play-button-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .page-title {
-      font-size: 13px;
-      @include mixins.text-ellipsis();
-    }
-    
-    .playing-page {
-      color: var(--el-color-primary);
-      font-style: italic;
-    }
-  }
-  
-  .pagination-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
+  .playing-icon {
+    color: var(--el-color-primary);
+    animation: pulse 1.5s infinite;
   }
 }
 
-:deep(.el-table__expand-icon) {
-  display: none; // 隐藏默认的展开图标
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+}
+
+.media-cover {
+  width: 60px;
+  height: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.media-title {
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  
+  &:hover {
+    color: var(--el-color-primary);
+  }
+  
+  &.playing {
+    color: var(--el-color-primary);
+  }
+}
+
+.media-uploader {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  
+  .uploader-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+:deep(.el-table__expanded-cell) {
+  padding: 0 !important;
+}
+
+:deep(.current-playing-row) {
+  background-color: var(--el-fill-color-light) !important;
 }
 </style>

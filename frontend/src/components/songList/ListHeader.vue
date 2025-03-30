@@ -109,15 +109,15 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       margin-bottom: 10px;
+      cursor: pointer;
       .creator-link {
         display: flex;
         align-items: center;
-        text-decoration: underline;
-        color: #409EFF;
+        color: var(--el-text-color-primary);
         transition: color 0.3s;
         
         &:hover {
-          color: #66b1ff;
+          text-decoration: underline;
         }
         .creator-avatar {
           width: 35px;
