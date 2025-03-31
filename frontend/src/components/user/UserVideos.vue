@@ -31,7 +31,7 @@
                 <div v-for="media in medias" 
                 :key="media.bvid" 
                 class="video-card" 
-                @click="playVideo(media)">
+                @click="playVideo()">
                     <div class="video-cover">
                         <img :src="processResourceUrl(media.cover) + '@200h'" alt="视频封面" loading="lazy" />
                         <div class="video-duration">{{ formatDuration(media.duration) }}</div>
@@ -67,7 +67,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { ElSkeleton, ElEmpty, ElMessage } from 'element-plus';
 import { searchVideoByKeywords } from '@/api/user';
-import type { Archive, MediaItem } from '@/types';
+import type { Archive } from '@/types';
 import { useQueueStore, usePlayerStore, useLazyLoadStore } from '@/stores';
 import { processResourceUrl, 
     formatDuration, 
@@ -177,16 +177,16 @@ const setLazyParams = () => {
 // 播放全部
 const playAllVideos = () => {
     queueStore.setQueue(medias.value);
-    queueStore.setCurrentTrack(medias.value[0]);
+    queueStore.setCurrentIndex(0);
     setLazyParams();
-    playerStore.play();
+    playerStore.replay();
 };
 
-const playVideo = (media: MediaItem) => {
+const playVideo = () => {
     queueStore.setQueue(medias.value);
-    queueStore.setCurrentTrack(media);
+    queueStore.setCurrentIndex(0);
     setLazyParams();
-    playerStore.play(media);
+    playerStore.replay();
 };
 
 const sortVideos = (newOrder: Order) => {
@@ -337,7 +337,6 @@ onUnmounted(() => {
     margin-bottom: 6px;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 

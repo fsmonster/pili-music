@@ -119,7 +119,8 @@ function handlePlayAll() {
   if (medias.value.length > 0) {
     queueStore.setQueue(medias.value);
     queueStore.total = currentInfo.value?.media_count ?? 0;
-    playerStore.play(medias.value[0]);
+    queueStore.setCurrentIndex(0);
+    playerStore.replay();
     playLock.value = true;
   }
 }
@@ -130,7 +131,8 @@ function handlePlayAll() {
 function handlePlay(item: MediaItem) {
   queueStore.setQueue(medias.value);
   queueStore.total = currentInfo.value?.media_count ?? 0;
-  playerStore.play(item);
+  queueStore.setCurrentTrack(item);
+  playerStore.replay();
   playLock.value = true;
 }
 

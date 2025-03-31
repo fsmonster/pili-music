@@ -6,7 +6,7 @@ export type AudioParams =
 /**
  * @desc 视频信息 - cid信息
  */
-export interface CidInfo {
+export interface PageInfo {
   cid: number;
   /**
    * 当前分P分辨率

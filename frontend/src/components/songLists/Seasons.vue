@@ -111,7 +111,9 @@ const playSeason = async (id: number) => {
     await seasonContentStore.fetchAllSeasonContent(Number(id));
     if (medias.value.length > 0) {
       queueStore.setQueue(medias.value);
-      playerStore.play(medias.value[0]);
+      queueStore.total = seasonContentStore.medias.length;
+      queueStore.setCurrentIndex(0);
+      playerStore.replay();
     }
   } catch (error) {
     console.error('播放订阅合集失败:', error);

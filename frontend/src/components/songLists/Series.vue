@@ -171,7 +171,9 @@ const playSeries = async (id: number) => {
     await seriesContentStore.fetchSeriesArchives(id, seriesMid(id));
     if (seriesContentStore.medias.length > 0) {
       queueStore.setQueue(seriesContentStore.medias);
-      playerStore.play(seriesContentStore.medias[0]);
+      queueStore.total = seriesContentStore.medias.length;
+      queueStore.setCurrentIndex(0);
+      playerStore.setAndPlay();
     } else {
       ElMessage.warning('该系列没有可播放的内容');
     }

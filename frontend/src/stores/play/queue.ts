@@ -1,35 +1,39 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { MediaItem } from '../../types';
+import { useCurrentTrackStore } from './currentTrack';
 
 /**
  * @desc 当前播放列表状态管理
  */
 export const useQueueStore = defineStore('queue', () => {
+  // 获取当前播放项存储
+  const currentTrackStore = useCurrentTrackStore();
+
   // 状态
-  const currentTrack = ref<MediaItem | null>(null);
+  // const currentTrack = ref<MediaItem | null>(null);
   const queue = ref<MediaItem[]>([]);
   const loading = ref(false);
   const error = ref<string>('');
   const total = ref(0);
-  const audioUrl = ref<string>('');
+  // const audioUrl = ref<string>('');
   const currentIndex = ref(-1); // 当前播放索引
   const isPopup = ref(false); // 队列弹出状态
 
   // 计算属性
-  const isPlaying = computed(() => !!currentTrack.value && !!audioUrl.value);
+  // const isPlaying = computed(() => !!currentTrack.value && !!audioUrl.value);
   const currentIndexComputed = computed(() => {
-    if (!currentTrack.value) return -1;
-    return queue.value.findIndex(item => item.id === currentTrack.value?.id);
+    if (!currentTrackStore.currentTrack) return -1;
+    return queue.value.findIndex(item => item.id === currentTrackStore.currentTrack?.id);
   });
 
   // 当前播放项
-  const currentItem = computed(() => {
-    if (currentIndex.value >= 0 && currentIndex.value < queue.value.length) {
-      return queue.value[currentIndex.value];
-    }
-    return null;
-  });
+  // const currentItem = computed(() => {
+  //   if (currentIndex.value >= 0 && currentIndex.value < queue.value.length) {
+  //     return queue.value[currentIndex.value];
+  //   }
+  //   return null;
+  // });
 
   // 设置播放列表
   function setQueue(items: MediaItem[]) {
@@ -38,7 +42,7 @@ export const useQueueStore = defineStore('queue', () => {
 
   // 设置当前播放项
   function setCurrentTrack(item: MediaItem | null) {
-    currentTrack.value = item;
+    currentTrackStore.currentTrack = item;
     if (item) {
       // 查找项目索引
       const index = queue.value.findIndex(i => i.bvid === item.bvid);
@@ -52,10 +56,36 @@ export const useQueueStore = defineStore('queue', () => {
     }
   }
 
-  // 设置音频URL
-  function setAudioUrl(url: string) {  
-    audioUrl.value = url;
+  // 设置当前索引
+  function setCurrentIndex(index: number) {
+    currentIndex.value = index;
+    setCurrentTrack(queue.value[index]);
   }
+
+  // 下一曲
+  function next() {
+    const nextIndex = (currentIndex.value + 1) % queue.value.length;
+    setCurrentItem(nextIndex);
+  }
+
+  // 上一曲
+  function prev() {
+    const prevIndex = (currentIndex.value - 1 + queue.value.length) % queue.value.length;
+    setCurrentItem(prevIndex);
+  }
+  
+  // 设置当前索引和当前播放项
+  function setCurrentItem(index: number) {
+    if (index >= -1 && index < queue.value.length) {
+      currentIndex.value = index;
+      currentTrackStore.currentTrack = queue.value[index];
+    }
+  }
+
+  // 设置音频URL
+  // function setAudioUrl(url: string) {  
+  //   audioUrl.value = url;
+  // }
 
   // 设置加载状态
   function setLoading(state: boolean) {
@@ -67,30 +97,22 @@ export const useQueueStore = defineStore('queue', () => {
     error.value = msg;
   }
 
-  // 下一曲索引
-  function nextIndex() {
-    if (queue.value.length === 0) return -1;    
-    return (currentIndex.value + 1) % queue.value.length;
-  }
+  // // 下一曲索引
+  // function nextIndex() {
+  //   if (queue.value.length === 0) return -1;    
+  //   return (currentIndex.value + 1) % queue.value.length;
+  // }
 
-  // 上一曲索引
-  function prevIndex() {
-    if (queue.value.length === 0) return -1;
+  // // 上一曲索引
+  // function prevIndex() {
+  //   if (queue.value.length === 0) return -1;
     
-    let index = currentIndex.value - 1;
-    if (index < 0) {
-      index = queue.value.length - 1;
-    }
-    return index;
-  }
-
-  // 设置当前索引
-  function setCurrentIndex(index: number) {
-    if (index >= -1 && index < queue.value.length) {
-      currentIndex.value = index;
-      currentTrack.value = currentItem.value;
-    }
-  }
+  //   let index = currentIndex.value - 1;
+  //   if (index < 0) {
+  //     index = queue.value.length - 1;
+  //   }
+  //   return index;
+  // }
 
   // 切换队列弹出状态
   function togglePopup() {
@@ -104,38 +126,39 @@ export const useQueueStore = defineStore('queue', () => {
 
   // 重置状态
   function reset() {
-    currentTrack.value = null;
+    // currentTrack.value = null;
     queue.value = [];
     loading.value = false;
     error.value = '';
-    audioUrl.value = '';
+    // audioUrl.value = '';
     currentIndex.value = -1;
     isPopup.value = false;
   }
 
   return {
     // 状态
-    currentTrack,
+    // currentTrack,
     queue,
     loading,
     error,
     total,
-    audioUrl,
+    // audioUrl,
     currentIndex,
     isPopup,   
     // 计算属性
-    isPlaying,
+    // isPlaying,
     currentIndexComputed,
-    currentItem,
+    // currentItem,
     // 方法
     setQueue,
     setCurrentTrack,
-    setAudioUrl,
+    setCurrentIndex,
+    // setAudioUrl,
     setLoading,
     setError,
-    setCurrentIndex,
-    nextIndex,
-    prevIndex,
+    setCurrentItem,
+    next,
+    prev,
     togglePopup,
     setPopupState,
     reset

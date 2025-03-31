@@ -71,18 +71,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { ElTable, ElTableColumn, ElButton, ElPagination } from 'element-plus';
-import { useQueueStore, usePlayerStore, useMultiPageQueueStore } from '@/stores';
+import { usePlayerStore, useMultiPageQueueStore } from '@/stores';
 import { formatDuration } from '@/utils';
-import type { MediaItem, CidInfo } from '@/types';
+import type { MediaItem, PageInfo } from '@/types';
 
 // 定义组件属性
 const props = defineProps<{
   parentMedia: MediaItem; // 父媒体项
-  pageList: CidInfo[]; // 分P列表
+  pageList: PageInfo[]; // 分P列表
 }>();
 
 // 播放队列和播放器
-const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
 const multiPageQueueStore = useMultiPageQueueStore();
 
@@ -103,26 +102,25 @@ const handlePageChange = (page: number) => {
 };
 
 // 播放指定分P
-const playPage = (pageItem: CidInfo) => {
+const playPage = (pageItem: PageInfo) => {
+  multiPageQueueStore.isExpanded = true;
   // 设置多P播放队列
   multiPageQueueStore.setPageList(props.parentMedia.id, props.pageList);
   
   // 设置当前选中的分P
-  multiPageQueueStore.setSelectedPage(pageItem.page);
+  multiPageQueueStore.setCurrentPage(pageItem.page);
   
   // 播放该媒体项
-  playerStore.play(props.parentMedia);
+  playerStore.setAndPlay();
 };
 
 // 判断是否为当前播放的分P
-const isCurrentPlayingPage = (pageItem: CidInfo) => {
-  const currentTrack = queueStore.currentTrack;
-  if (!currentTrack) return false;
+const isCurrentPlayingPage = (pageItem: PageInfo) => {
+  const currentPage = multiPageQueueStore.currentPage;
+  if (!currentPage) return false;
   
   // 检查是否是同一个视频的同一个分P
-  return currentTrack.bvid === props.parentMedia.bvid && 
-         currentTrack.cid === pageItem.cid &&
-         multiPageQueueStore.selectedPage === pageItem.page;
+  return currentPage === pageItem.page;
 };
 </script>
 

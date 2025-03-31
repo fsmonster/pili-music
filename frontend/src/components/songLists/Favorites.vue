@@ -119,14 +119,16 @@ const playFavorite = async (id: number) => {
   try {
     if (lazyLoad.type === 'favorite' && lazyLoad.id === id) {
       queueStore.setCurrentIndex(0);
-      playerStore.play();
+      playerStore.replay();
       return;
     }
     // 完整加载收藏夹内容
     await favoriteContentStore.fetchFavoriteContent(Number(id));
     if (favoriteContentStore.medias.length > 0) {
       queueStore.setQueue(favoriteContentStore.medias);
-      playerStore.play(favoriteContentStore.medias[0]);
+      queueStore.total = favoriteContentStore.totalCount;
+      queueStore.setCurrentIndex(0);
+      playerStore.replay();
     }
   } catch (error) {
     console.error('播放收藏夹失败:', error);

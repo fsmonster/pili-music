@@ -139,6 +139,7 @@ const fetchFavoriteContent = async (mediaId: number) => {
   return {
     // 状态
     favoriteContent,
+    totalCount,
     loading,
     page,
     currentFavoriteId,

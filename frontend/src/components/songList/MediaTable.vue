@@ -118,10 +118,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { processResourceUrl, formatDuration } from '../../utils';
 import { getCid } from '../../api';
-import { usePlayerStore } from '../../stores';
-import type { MediaItem, CidInfo } from '../../types';
+import { usePlayerStore, useCurrentTrackStore } from '../../stores';
+import type { MediaItem, PageInfo } from '../../types';
 import MultiPageTable from './MultiPageTable.vue';
 
 const props = defineProps<{
@@ -142,13 +143,15 @@ const emit = defineEmits<{
 
 // 获取播放器存储
 const playerStore = usePlayerStore();
+const currentTrackStore = useCurrentTrackStore();
+const { currentTrack } = storeToRefs(currentTrackStore);
 
 // 展开行的ID数组
 const expandedRows = ref<string[]>([]);
 // 当前选中的多P视频
 const currentMultiPageItem = ref<MediaItem | null>(null);
 // 分P列表
-const pageList = ref<CidInfo[]>([]);
+const pageList = ref<PageInfo[]>([]);
 
 const tableData = computed(() => {
   if (props.type === 'favorite') {
@@ -169,7 +172,7 @@ function isExpanded(item: MediaItem): boolean {
 
 // 检查是否是当前播放的媒体
 function isCurrentPlaying(item: MediaItem): boolean {
-  return playerStore.currentItem?.id === item.id;
+  return currentTrack.value?.id === item.id;
 }
 
 // 切换展开/折叠状态

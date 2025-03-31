@@ -106,18 +106,17 @@ const handlePlayAll = () => {
   
   // 设置播放队列
   queueStore.setQueue(medias.value);
-  
-  // 播放第一个
-  playerStore.play(medias.value[0]);
+  queueStore.total = seriesMeta.value?.total ?? 0;
+  playerStore.replay();
 };
 
 // 播放单曲
 const handlePlay = (item: MediaItem) => {
   // 设置播放队列
   queueStore.setQueue(medias.value);
-  
-  // 播放选中的
-  playerStore.play(item);
+  queueStore.total = seriesMeta.value?.total ?? 0;
+  queueStore.setCurrentTrack(item);
+  playerStore.replay();
 };
 
 // 排序处理

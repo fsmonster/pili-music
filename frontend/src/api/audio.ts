@@ -2,7 +2,7 @@
  * 播放列表相关API
  */
 import { request, biliRequest } from '../utils/request';
-import type { ApiResponse, AudioParams, CidInfo, DashAudioResponse } from '../types';
+import type { ApiResponse, AudioParams, PageInfo, DashAudioResponse } from '../types';
 import { AudioQuality } from '../types';
 
 /**
@@ -12,12 +12,12 @@ import { AudioQuality } from '../types';
  * @returns 如果fullList为true，返回完整的分P列表；否则返回第一P的cid
  * @access Public - 不需要登录
  */
-export async function getCid(params: AudioParams, fullList: boolean = false): Promise<number | CidInfo[]> {
+export async function getCid(params: AudioParams, fullList: boolean = false): Promise<number | PageInfo[]> {
   try {
     const xid = params.aid ? 'aid' : 'bvid';
     const id = params.aid ?? params.bvid;
 
-    const res = await biliRequest.get<ApiResponse<CidInfo[]>>('/player/pagelist', {
+    const res = await biliRequest.get<ApiResponse<PageInfo[]>>('/player/pagelist', {
       params: {
         [xid]: id
       }

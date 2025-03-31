@@ -5,12 +5,12 @@
       :class="{ playing: playStore.playing }"
     >
       <img 
-        :src="playStore.currentItem ? processResourceUrl(playStore.currentItem.cover)+'@120h' : defaultCover" 
-        :alt="playStore.currentItem?.title || '封面'" 
+        :src="currentTrack ? processResourceUrl(currentTrack.cover)+'@120h' : defaultCover" 
+        :alt="currentTrack?.title || '封面'" 
       />
       <div class="track-info">
-        <div class="track-name">{{ playStore.currentItem?.title || '点击播放你喜欢的音乐吧～' }}</div>
-        <div class="artist">{{ playStore.currentItem?.upper?.name }}</div>
+        <div class="track-name">{{ currentTrack?.title || '点击播放你喜欢的音乐吧～' }}</div>
+        <div class="artist">{{ currentTrack?.upper?.name }}</div>
       </div>
     </div>
 
@@ -60,9 +60,10 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import defaultCover from '@/assets/image/music_cover.png';
-import { usePlayerStore, useQueueStore } from '../../stores';
-import { processResourceUrl } from '../../utils/processResoureUrl';
+import { usePlayerStore, useQueueStore, useCurrentTrackStore } from '../../stores';
+import { processResourceUrl, formatTime } from '../../utils';
 // 导入自定义组件
 import { ProgressBar, VolumeBar } from './index';
 
@@ -70,6 +71,10 @@ import { ProgressBar, VolumeBar } from './index';
 const playStore = usePlayerStore();
 // 播放列表 store
 const queueStore = useQueueStore();
+// 当前播放项 store
+const currentTrackStore = useCurrentTrackStore();
+
+const { currentTrack } = storeToRefs(currentTrackStore);
 
 // 音量控制值
 const volumeValue = ref(playStore.volume * 100);
@@ -92,14 +97,6 @@ watch(() => playStore.volume, (newVolume) => {
 
 // 是否正在拖动进度条
 const isDragging = ref(false);
-
-// 格式化时间
-function formatTime(seconds: number) {
-  if (!seconds) return '00:00';
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
 
 // 切换播放状态
 function togglePlay() {

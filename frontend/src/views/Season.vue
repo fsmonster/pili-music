@@ -85,7 +85,8 @@ async function loadContent() {
 function handlePlayAll() {
   if (medias.value.length > 0) {
     queueStore.setQueue(medias.value);
-    playerStore.play(medias.value[0]);
+    queueStore.total = info.value?.media_count ?? 0;
+    playerStore.replay();
   }
 }
 
@@ -94,7 +95,9 @@ function handlePlayAll() {
  */
 function handlePlay(item: MediaItem) {
   queueStore.setQueue(medias.value);
-  playerStore.play(item);
+  queueStore.total = info.value?.media_count ?? 0;
+  queueStore.setCurrentTrack(item);
+  playerStore.replay();
 }
 
 /**
@@ -144,6 +147,7 @@ watchEffect(async () => {
     coverUrl.value = info.value.cover;
   }
 });
+
 onBeforeMount(() => {
   calculateTableHeight();
   window.addEventListener('resize', handleResize);

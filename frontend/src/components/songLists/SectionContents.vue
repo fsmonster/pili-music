@@ -213,7 +213,7 @@ const playCollocation = async (type: CollocationType, id: number) => {
   try {
     if(type === lazyLoad.type && id === lazyLoad.id) {
       queueStore.setCurrentIndex(0);
-      playerStore.play();
+      playerStore.replay();
       return;
     }
     else lazyLoad.reset();
@@ -222,14 +222,18 @@ const playCollocation = async (type: CollocationType, id: number) => {
       await favoriteStore.fetchFavoriteContent(id);
       if (favoriteStore.medias.length > 0) {
         queueStore.setQueue(favoriteStore.medias);
-        playerStore.play(favoriteStore.medias[0]);
+        queueStore.total = favoriteStore.totalCount;
+        queueStore.setCurrentIndex(0);
+        playerStore.replay();
       }
     } else if (type === 'season') {
       // 完整加载合集内容
       await seasonStore.fetchAllSeasonContent(id);
       if (seasonStore.medias.length > 0) {
         queueStore.setQueue(seasonStore.medias);
-        playerStore.play(seasonStore.medias[0]);
+        queueStore.total = seasonStore.medias.length;
+        queueStore.setCurrentIndex(0);
+        playerStore.replay();
       }
     } else if (type === 'series') {
       // 完整加载系列内容
@@ -237,7 +241,9 @@ const playCollocation = async (type: CollocationType, id: number) => {
       await seriesStore.fetchSeriesArchives(id);
       if (seriesStore.seriesArchives.length > 0) {
         queueStore.setQueue(seriesStore.medias);
-        playerStore.play(seriesStore.medias[0]);
+        queueStore.total = seriesStore.medias.length;
+        queueStore.setCurrentIndex(0);
+        playerStore.replay();
       }
     }
   } catch (error) {
