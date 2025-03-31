@@ -45,6 +45,15 @@
 
     <!-- 右侧：音量控制等 -->
     <div class="player-options">
+      <!-- 在这里 -->
+      <div class="multi-page-controls">
+        <span class="switch-label">连播</span>
+        <el-switch
+          v-model="multiPageQueueStore.enableMultiPagePlay"
+          size="small"
+          inline-prompt
+        />
+      </div>
       <i class="ri-play-list-line" @click="toggleQueue"></i>
       <i :class="[playStore.volume === 0 ? 'ri-volume-mute-line' : 'ri-volume-up-line']" @click="toggleMute"></i>
       <!-- 使用自定义音量控制组件 -->
@@ -61,8 +70,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { ElSwitch } from 'element-plus';
 import defaultCover from '@/assets/image/music_cover.png';
-import { usePlayerStore, useQueueStore, useCurrentTrackStore } from '../../stores';
+import { usePlayerStore, useQueueStore, useCurrentTrackStore, useMultiPageQueueStore } from '../../stores';
 import { processResourceUrl, formatTime } from '../../utils';
 // 导入自定义组件
 import { ProgressBar, VolumeBar } from './index';
@@ -73,6 +83,8 @@ const playStore = usePlayerStore();
 const queueStore = useQueueStore();
 // 当前播放项 store
 const currentTrackStore = useCurrentTrackStore();
+// 多P播放列表 store
+const multiPageQueueStore = useMultiPageQueueStore();
 
 const { currentTrack } = storeToRefs(currentTrackStore);
 
@@ -256,6 +268,18 @@ function toggleQueue() {
     justify-content: end;
     align-items: center;
     gap: 8px;
+
+    .multi-page-controls {
+      display: flex;
+      align-items: center;
+      padding-right: 8px;
+      gap: 4px;
+      
+      .switch-label {
+        font-size: 12px;
+        color: var(--el-text-color-secondary);
+      }
+    }
 
     i {
       font-size: 20px;

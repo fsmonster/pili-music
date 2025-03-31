@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import type { PageInfo, MediaItem } from '../../types';
-import { getCid } from '../../api';
-import { getAudioUrl } from "../../api";
+import { getCid, getAudioUrl } from '../../api';
 import { processResourceUrl } from "../../utils";
 
 /**
@@ -11,10 +10,11 @@ import { processResourceUrl } from "../../utils";
 export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
   // 状态信息
   const isMultiPage = ref(false);  // 是否多P
-  const enableMultiPagePlay = ref(false);  // 是否启用多P播放, 默认只播放第一p
+  const enableMultiPagePlay = ref(true);  // 是否启用多P播放, 默认启用
   const isExpanded = ref(false);  // 是否弹出多P列表
   const isSetMultiPageList = computed(() => isMultiPage.value && 
     (enableMultiPagePlay.value || isExpanded.value));
+  const isDisplay = ref(false);
 
   // 视频信息
   const pageList = ref<PageInfo[]>([]);  // 页面列表
@@ -37,29 +37,30 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
   // 当前选中分p的cid
   const currentCid = computed(() => currentPageInfo.value?.cid || null);
 
-  // 播放状态 - 暂时不用
-  // const isPlaying = computed(() => !!currentPage.value && !!audioUrl.value);
-
   // 音频 URL
   const audioUrl = ref("");
+
+  /**
+   * 判断是否为多P视频
+   * @param track 当前播放项
+   */
+  function isMultiPageVideo(track: MediaItem): boolean {
+    return typeof track.page === "number" && track.page > 1;
+  }
   
   /**
    * 加载多P列表
-   * @param track 当前播放项
+   * @param id 当前播放项的aid
    * 什么时候会设置多p列表呢？
    * 1. 勾选多p自动播放 && 播放到多p视频
    * 2. 主动展开多p列表并播放track 
    */
-  async function loadMultiPageList(track: MediaItem) {
-    if (!track) return;
-  
-    isMultiPage.value = typeof track.page === "number" && track.page > 1;
-    if (!isMultiPage.value) return;
-  
+  async function loadMultiPageList(id: number) {
+    if (!id) return;
     try {
-      const pageListResponse = await getCid({ aid: track.id }, true);
+      const pageListResponse = await getCid({ aid: id }, true);
       if (Array.isArray(pageListResponse)) {
-        setPageList(track.id, pageListResponse);
+        setPageList(id, pageListResponse);
       }
     } catch (error) {
       console.error("加载多P列表失败", error);
@@ -77,7 +78,7 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
   
   // 下一页
   function nextPage() {
-    const nextIndex = ( + 1) % pageList.value.length;
+    const nextIndex = (currentPage.value + 1) % pageList.value.length;
     setCurrentPage(nextIndex);
   }
   
@@ -92,6 +93,12 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
     if (page >= 1 && page <= pageList.value.length) {
       currentPage.value = page;
     }
+  }
+
+  // 切换多P列表弹出状态
+  function toggleDisplay() {
+    isDisplay.value = !isDisplay.value;
+    console.log('isDisplay', isDisplay.value);
   }
 
   // 重置状态
@@ -117,7 +124,7 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
     isMultiPage,
     isExpanded,
     isSetMultiPageList,
-    // isPlaying,
+    isDisplay,
     // 视频信息
     pageList,
     total,
@@ -126,11 +133,13 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
     currentPage,
     audioUrl,
     // 操作
+    isMultiPageVideo,
     loadMultiPageList,
     setCurrentPage,
     setPageList,
     reset,
     nextPage,
-    prevPage
+    prevPage,
+    toggleDisplay
   };
 });

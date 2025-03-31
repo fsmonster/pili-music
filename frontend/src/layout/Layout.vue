@@ -15,8 +15,8 @@
     <!-- 底部播放控制栏 -->
     <PlayerControler class="player" />
     
-    <!-- 播放队列 -->
-    <Queue />
+    <!-- 播放队列容器（包含普通队列和多P列表） -->
+    <QueueContainer />
   </div>
 </template>
 
@@ -24,16 +24,13 @@
 import Sidebar from './Sidebar.vue';
 import Header from './Header.vue';
 import PlayerControler from './PlayerControler.vue';
-import Queue from '@/components/queue/Queue.vue';
+import QueueContainer from '@/components/queue/QueueContainer.vue';
 </script>
 
 <style lang="scss" scoped>
 .app-container {
   height: 100vh;
   display: grid;
-  // grid-template-areas:
-  //   "sidebar main"
-  //   "player player";
   grid-template-areas:
     "main"
     "player";

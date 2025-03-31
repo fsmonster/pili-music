@@ -13,9 +13,6 @@ export const useCurrentTrackStore = defineStore('currentTrack', () => {
   // 状态
   const currentTrack = ref<MediaItem | null>(null);
 
-  // 播放状态 - 暂时不用
-  // const isPlaying = computed(() => !!currentTrack.value && !!audioUrl.value);
-
   /**
    * 当前视频的 cid 
    * ugc.first_cid 目前为收藏夹特有
@@ -51,12 +48,18 @@ export const useCurrentTrackStore = defineStore('currentTrack', () => {
       }
     }
   );
-  
 
   // 监听当前播放项变化, 如果是多P视频, 则获取完整的分P列表
   watch(() => currentTrack.value, async () => {
-    if(currentTrack.value && multiPageQueueStore.isSetMultiPageList) {
-      multiPageQueueStore.loadMultiPageList(currentTrack.value);
+    if(currentTrack.value) {
+      // 判断是否为多P视频
+      if(multiPageQueueStore.isMultiPageVideo(currentTrack.value)) {
+        multiPageQueueStore.loadMultiPageList(currentTrack.value.id);
+        multiPageQueueStore.isMultiPage = true;
+      }
+      else {
+        multiPageQueueStore.reset();
+      }
     }
   })
 
@@ -64,6 +67,5 @@ export const useCurrentTrackStore = defineStore('currentTrack', () => {
     currentTrack,
     cid,
     audioUrl,
-    // isPlaying,
   };
 });

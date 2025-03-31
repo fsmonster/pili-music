@@ -16,24 +16,14 @@ export const useQueueStore = defineStore('queue', () => {
   const loading = ref(false);
   const error = ref<string>('');
   const total = ref(0);
-  // const audioUrl = ref<string>('');
   const currentIndex = ref(-1); // 当前播放索引
   const isPopup = ref(false); // 队列弹出状态
 
   // 计算属性
-  // const isPlaying = computed(() => !!currentTrack.value && !!audioUrl.value);
   const currentIndexComputed = computed(() => {
     if (!currentTrackStore.currentTrack) return -1;
     return queue.value.findIndex(item => item.id === currentTrackStore.currentTrack?.id);
   });
-
-  // 当前播放项
-  // const currentItem = computed(() => {
-  //   if (currentIndex.value >= 0 && currentIndex.value < queue.value.length) {
-  //     return queue.value[currentIndex.value];
-  //   }
-  //   return null;
-  // });
 
   // 设置播放列表
   function setQueue(items: MediaItem[]) {
@@ -82,11 +72,6 @@ export const useQueueStore = defineStore('queue', () => {
     }
   }
 
-  // 设置音频URL
-  // function setAudioUrl(url: string) {  
-  //   audioUrl.value = url;
-  // }
-
   // 设置加载状态
   function setLoading(state: boolean) {
     loading.value = state;
@@ -96,23 +81,6 @@ export const useQueueStore = defineStore('queue', () => {
   function setError(msg: string) {
     error.value = msg;
   }
-
-  // // 下一曲索引
-  // function nextIndex() {
-  //   if (queue.value.length === 0) return -1;    
-  //   return (currentIndex.value + 1) % queue.value.length;
-  // }
-
-  // // 上一曲索引
-  // function prevIndex() {
-  //   if (queue.value.length === 0) return -1;
-    
-  //   let index = currentIndex.value - 1;
-  //   if (index < 0) {
-  //     index = queue.value.length - 1;
-  //   }
-  //   return index;
-  // }
 
   // 切换队列弹出状态
   function togglePopup() {
@@ -126,11 +94,9 @@ export const useQueueStore = defineStore('queue', () => {
 
   // 重置状态
   function reset() {
-    // currentTrack.value = null;
     queue.value = [];
     loading.value = false;
     error.value = '';
-    // audioUrl.value = '';
     currentIndex.value = -1;
     isPopup.value = false;
   }

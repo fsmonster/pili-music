@@ -62,14 +62,14 @@
         :total="pageList.length"
         @current-change="handlePageChange"
         background
-        small
+        size="small"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import { ElTable, ElTableColumn, ElButton, ElPagination } from 'element-plus';
 import { usePlayerStore, useMultiPageQueueStore } from '@/stores';
 import { formatDuration } from '@/utils';
@@ -109,9 +109,7 @@ const playPage = (pageItem: PageInfo) => {
   
   // 设置当前选中的分P
   multiPageQueueStore.setCurrentPage(pageItem.page);
-  
-  // 播放该媒体项
-  playerStore.setAndPlay();
+  playerStore.replay();
 };
 
 // 判断是否为当前播放的分P
@@ -122,6 +120,11 @@ const isCurrentPlayingPage = (pageItem: PageInfo) => {
   // 检查是否是同一个视频的同一个分P
   return currentPage === pageItem.page;
 };
+
+onUnmounted(() => {
+  multiPageQueueStore.isExpanded = false;
+});
+
 </script>
 
 <style lang="scss" scoped>
