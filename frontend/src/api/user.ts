@@ -63,7 +63,7 @@ export async function getUserSettings(mid: number): Promise<ApiResponse<Settings
 export async function searchVideoByKeywords(params: SearchVideoByKeywordsParams): Promise<ApiResponse<VideoResponse>> {
   try {
     const response = await biliRequest.get<ApiResponse<VideoResponse>>('/series/recArchivesByKeywords',
-      { params });
+      { params: { ...params, keywords:'' } });
     if (response.data.code !== 0) {
       throw new Error(response.data.message || '搜索视频失败');
     }

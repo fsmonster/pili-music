@@ -46,12 +46,10 @@ const playItem = (index: number) => {
 // 添加队列
 const addToQueue = async () => {
   if (loadLock.value) return;
-  if (lazyLoad.hasMore) {
-    loadLock.value = true;
-    lazyLoad.pn++;
-    queueStore.queue.push(...(await lazyLoad.getData()));
-    loadLock.value = false;
-  }
+  loadLock.value = true;
+  lazyLoad.pn++;
+  queueStore.queue.push(...(await lazyLoad.getData()));
+  loadLock.value = false;
 };
 
 // 滚动加载
@@ -59,7 +57,6 @@ const handleScroll = async () => {
   if (queueContentRef.value && lazyLoad.type) {
     const { scrollTop, clientHeight, scrollHeight } = queueContentRef.value;
     if (scrollTop + clientHeight >= scrollHeight - 150) {
-      console.log('滚动加载', scrollTop, clientHeight, scrollHeight);
       await addToQueue();
     }
   }

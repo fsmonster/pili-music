@@ -121,6 +121,8 @@ const playFavorite = async (id: number) => {
       queueStore.setCurrentIndex(0);
       playerStore.replay();
       return;
+    } else {
+      lazyLoad.set({ type: 'favorite', id });
     }
     // 完整加载收藏夹内容
     await favoriteContentStore.fetchFavoriteContent(Number(id));

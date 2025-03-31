@@ -225,6 +225,7 @@ const playCollocation = async (type: CollocationType, id: number) => {
         queueStore.total = favoriteStore.totalCount;
         queueStore.setCurrentIndex(0);
         playerStore.replay();
+        lazyLoad.set({ type, id });
       }
     } else if (type === 'season') {
       // 完整加载合集内容

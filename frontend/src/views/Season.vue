@@ -23,7 +23,13 @@
             />
 
             <!-- 表格 -->
-            <MediaTable
+            <!-- <MediaTable
+              type="season"
+              :data="medias"
+              :loading="seasonStore.loading"
+              @play="handlePlay"
+            /> -->
+            <MediaList
               type="season"
               :data="medias"
               :loading="seasonStore.loading"
@@ -57,7 +63,7 @@ import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
 import type { MediaItem } from '../types';
-import MediaTable from '../components/songList/MediaTable.vue';
+import MediaList from '../components/songList/MediaList.vue';
 import { getSeasonCover } from '@/api/season';
 
 const route = useRoute();

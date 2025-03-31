@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { useQueueStore, useMultiPageQueueStore, useCurrentTrackStore } from './index';
+import type { MediaItem } from '../../types';
 
 export const usePlayerStore = defineStore('player', () => {
   // 获取播放列表存储
@@ -150,6 +151,37 @@ export const usePlayerStore = defineStore('player', () => {
     audioLoaded.value = false; // 重置加载状态
   }
 
+  /**
+   * 播放单个媒体项
+   * @param item 要播放的媒体项
+   */
+  // function playMedia(item: MediaItem) {
+  //   // 设置当前播放项
+  //   currentTrackStore.currentTrack = item;
+  //   // 重置队列
+  //   queueStore.setQueue([item]);
+  //   // 播放
+  //   replay();
+  // }
+
+  /**
+   * 播放媒体列表
+   * @param items 要播放的媒体列表
+   * @param startIndex 开始播放的索引，默认为0
+   */
+  function playMediaList(items: MediaItem[], startIndex: number = 0) {
+    if (!items || items.length === 0) return;
+    
+    // 设置播放队列
+    queueStore.setQueue(items);
+    // 设置当前索引
+    queueStore.setCurrentIndex(startIndex);
+    // 设置当前播放项
+    currentTrackStore.currentTrack = items[startIndex];
+    // 播放
+    replay();
+  }
+
   // 监听 activeAudioUrl 变化，当它有值时播放
   watch(() => activeAudioUrl.value, (newUrl) => {
     if (newUrl) {
@@ -180,6 +212,8 @@ export const usePlayerStore = defineStore('player', () => {
     seek,
     setVolume,
     switchToPage,
+    // playMedia,
+    playMediaList,
   };
 }, { 
   persist: true

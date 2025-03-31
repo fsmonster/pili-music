@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { useQueueStore } from './queue';
+import { ref } from 'vue';
 import {
   getFavoriteContent,
   searchVideoByKeywords,
@@ -11,16 +10,18 @@ import { convertArchiveToMediaItem } from '@/utils/common';
  * @desc 懒加载状态管理
  */
 export const useLazyLoadStore = defineStore('lazyLoad', () => {
-  const queueStore = useQueueStore();
-
   // 状态
   const type = ref<'favorite' | 'home' | null>(null);
   const id = ref(0);
   const pn = ref(1);
   const ps = 40;
-  // 收藏为media_count，主页视频为total
-  const total = ref(0);
-  const hasMore = computed(() => queueStore.queue.length < total.value);
+
+  // 设置状态
+  const set = (state: { type: 'favorite' | 'home'; id: number }) => {
+    type.value = state.type;
+    id.value = state.id;
+    pn.value = 1;
+  };
 
   // 获取数据
   const getData = async () => {
@@ -30,7 +31,6 @@ export const useLazyLoadStore = defineStore('lazyLoad', () => {
         pn: pn.value,
         ps: ps
       });
-      total.value = res.info.media_count;
       return res.medias;
     } else {
       const res = await searchVideoByKeywords({
@@ -38,7 +38,6 @@ export const useLazyLoadStore = defineStore('lazyLoad', () => {
         pn: pn.value,
         ps: ps
       });
-      total.value = res.data.page.total;
       return res.data.archives.map(convertArchiveToMediaItem);
     }
   };
@@ -48,7 +47,6 @@ export const useLazyLoadStore = defineStore('lazyLoad', () => {
     type.value = null;
     id.value = 0;
     pn.value = 1;
-    total.value = 0;
   }
 
   return {
@@ -57,8 +55,7 @@ export const useLazyLoadStore = defineStore('lazyLoad', () => {
     id,
     pn,
     ps,
-    total,
-    hasMore,
+    set,
     getData,
     reset
   };

@@ -31,7 +31,7 @@
                 <div v-for="media in medias" 
                 :key="media.bvid" 
                 class="video-card" 
-                @click="playVideo()">
+                @click="playVideo(media)">
                     <div class="video-cover">
                         <img :src="processResourceUrl(media.cover) + '@200h'" alt="视频封面" loading="lazy" />
                         <div class="video-duration">{{ formatDuration(media.duration) }}</div>
@@ -67,7 +67,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { ElSkeleton, ElEmpty, ElMessage } from 'element-plus';
 import { searchVideoByKeywords } from '@/api/user';
-import type { Archive } from '@/types';
+import type { Archive, MediaItem } from '@/types';
 import { useQueueStore, usePlayerStore, useLazyLoadStore } from '@/stores';
 import { processResourceUrl, 
     formatDuration, 
@@ -102,7 +102,7 @@ const loading = ref(true);
 const loadingMore = ref(false);
 const order = ref<Order>(Order.Pubdate);
 const pn = ref(1);
-const ps = ref(20);
+const ps = ref(40);
 const total = ref(0);
 // const mediaListRef = ref<HTMLElement | null>(null);
 
@@ -167,24 +167,22 @@ const loadMore = async () => {
 
 // 设置懒加载参数
 const setLazyParams = () => {
-    lazyLoadStore.type = 'home';
-    lazyLoadStore.id = props.mid;
-    lazyLoadStore.pn = pn.value;
-    lazyLoadStore.ps = ps.value;
-    lazyLoadStore.total = total.value;
+    lazyLoadStore.set({ type: 'home', id: props.mid});
 };
 
 // 播放全部
 const playAllVideos = () => {
     queueStore.setQueue(medias.value);
     queueStore.setCurrentIndex(0);
+    queueStore.total = total.value;
     setLazyParams();
     playerStore.replay();
 };
 
-const playVideo = () => {
+const playVideo = (item: MediaItem) => {
     queueStore.setQueue(medias.value);
-    queueStore.setCurrentIndex(0);
+    queueStore.setCurrentTrack(item);
+    queueStore.total = total.value;
     setLazyParams();
     playerStore.replay();
 };

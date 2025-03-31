@@ -36,6 +36,8 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
   function setFirstLoadContent(newContent: FavoriteContentResponse) {
     favoriteContent.value = newContent;
     page.value = 1;
+    totalCount.value = newContent.info.media_count;
+    totalPages.value = Math.ceil(newContent.info.media_count / pageSize);
   }
   
   /**
@@ -57,6 +59,7 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
 /**
  * @desc 增量加载收藏夹内容（每次最多 5 页，支持多次调用）
  * @param mediaId 收藏夹ID
+ * @returns Promise<MediaItem[]>
  */
 const fetchFavoriteContent = async (mediaId: number) => {
   if (currentFavoriteId.value !== mediaId) {
@@ -80,9 +83,9 @@ const fetchFavoriteContent = async (mediaId: number) => {
 
     if (!firstPage.has_more) {
       hasMore.value = false;
-      return;
+      return firstPage.medias;
     }
-    return;
+    return firstPage.medias;
   }
 
   // 获取后续页
@@ -96,6 +99,7 @@ const fetchFavoriteContent = async (mediaId: number) => {
 
   page.value++;
   hasMore.value = response.has_more;
+  return response.medias;
 } catch (err) {
   console.error('加载收藏夹内容失败:', err);
     throw err;

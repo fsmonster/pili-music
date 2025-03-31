@@ -2,7 +2,7 @@
   <Layout>
     <template #main>
       <div class="playlist-container">
-        <div class="playlist-scroll">
+        <div class="playlist-scroll" ref="playlistScroll" @scroll="debouncedScroll">
           <!-- 列表头部 -->
           <ListHeader 
             v-if="currentInfo"
@@ -17,26 +17,19 @@
             <!-- 控制栏 -->
             <ListControls
               :disabled="!medias.length"
-              @update:sort="handleSort"
               @play-all="handlePlayAll"
-              @sort="handleSort"
             />
 
             <!-- 表格 -->
-            <MediaTable
-              :data="medias"
+            <MediaList
+              ref="mediaListRef"
+              :data="initialData"
               type="favorite"
               :loading="favoriteContentStore.loading"
               @play="handlePlay"
             />
-
-            <!-- 加载更多 -->
-            <div v-if="favoriteContentStore.hasMore" class="loading-more">
-              <el-button type="primary" @click="loadMore">加载更多</el-button>
-            </div>
-
             <!-- 加载状态 -->
-            <div v-if="favoriteContentStore.loading" class="loading">
+            <div v-if="favoriteContentStore.loading && medias.length === 0" class="loading">
               <el-icon class="is-loading"><Loading /></el-icon>
               <span>加载中...</span>
             </div>
@@ -56,7 +49,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useFavoriteContentStore, usePlayerStore, useQueueStore, useLazyLoadStore } from '../stores';
 import Layout from '../layout/Layout.vue';
-import MediaTable from '../components/songList/MediaTable.vue';
+import MediaList from '../components/songList/MediaList.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
@@ -76,11 +69,23 @@ const { id } = route.params;
 // 当前收藏夹信息
 const currentInfo = ref<FavoriteInfo | null>(null);
 
-// 播放状态锁 - 设置懒加载状态信息
-const playLock = ref(false);
-
 // 计算属性
 const { medias } = storeToRefs(favoriteContentStore);
+
+// 初始数据，只用于 MediaList 组件的初始渲染
+const initialData = ref<MediaItem[]>([]);
+
+// MediaList 组件引用
+const mediaListRef = ref<InstanceType<typeof MediaList> | null>(null);
+
+// 滚动容器引用
+const playlistScroll = ref<HTMLElement | null>(null);
+
+// 滚动锁，防止多次触发
+const scrollLock = ref(false);
+
+// 防抖定时器
+let scrollTimer: number | null = null;
 
 /**
  * @desc 加载内容
@@ -97,15 +102,64 @@ async function loadContent() {
   }
   
   // 加载收藏夹内容
-  await favoriteContentStore.fetchFavoriteContent(Number(id));
+  const firstPageData = await favoriteContentStore.fetchFavoriteContent(Number(id));
+  initialData.value = firstPageData || [];
 }
 
 /**
  * @desc 加载更多
  */
 const loadMore = async () => {
-  await favoriteContentStore.fetchFavoriteContent(Number(id));
+  if (favoriteContentStore.loading || !favoriteContentStore.hasMore) return;
+  
+  // 记录当前滚动位置
+  const scrollPosition = playlistScroll.value ? playlistScroll.value.scrollTop : 0;
+  
+  const currentLength = medias.value.length;
+  const newData = await favoriteContentStore.fetchFavoriteContent(Number(id));
+  
+  // 如果有新数据并且 MediaList 组件已挂载，使用 updateData 方法更新
+  if (mediaListRef.value && newData && newData.length > 0) {
+    // 使用 updateData 方法增量更新
+    mediaListRef.value.updateData(newData, false);
+    
+    // 恢复滚动位置
+    setTimeout(() => {
+      if (playlistScroll.value) {
+        playlistScroll.value.scrollTop = scrollPosition;
+      }
+    }, 10);
+  }
+  
+  scrollLock.value = false;
 };
+
+/**
+ * @desc 处理滚动事件
+ */
+function handleScroll() {
+  if (scrollLock.value || !playlistScroll.value || !favoriteContentStore.hasMore || favoriteContentStore.loading) return;
+  
+  const { scrollHeight, scrollTop, clientHeight } = playlistScroll.value;
+  // 当滚动到距离底部 200px 时触发加载更多
+  if (scrollHeight - scrollTop - clientHeight < 200) {
+    scrollLock.value = true;
+    // 使用 requestAnimationFrame 确保在下一帧渲染前执行，避免阻塞滚动
+    requestAnimationFrame(() => {
+      loadMore();
+    });
+  }
+}
+
+// 添加防抖函数，避免频繁触发滚动事件
+function debouncedScroll() {
+  if (scrollTimer) {
+    clearTimeout(scrollTimer);
+  }
+  scrollTimer = window.setTimeout(() => {
+    handleScroll();
+  }, 100);
+}
 
 /**
  * @desc 播放全部
@@ -116,7 +170,7 @@ function handlePlayAll() {
     queueStore.total = currentInfo.value?.media_count ?? 0;
     queueStore.setCurrentIndex(0);
     playerStore.replay();
-    playLock.value = true;
+    setLazyParams();
   }
 }
 
@@ -128,50 +182,74 @@ function handlePlay(item: MediaItem) {
   queueStore.total = currentInfo.value?.media_count ?? 0;
   queueStore.setCurrentTrack(item);
   playerStore.replay();
-  playLock.value = true;
+  setLazyParams();
 }
 
 /**
- * @desc 排序处理
+ * @desc 设置懒加载参数
  */
-function handleSort(value: 'desc' | 'asc') {
-  console.log('排序:', value);
-  // TODO: 实现排序功能
-  // 可能需要调用 API 重新获取数据
+function setLazyParams() {
+  lazyLoad.set({ type: 'favorite', id: currentInfo.value?.id ?? 0 });
+  lazyLoad.pn = favoriteContentStore.page;
 }
 
-// 播放状态变化
-watch(() => playLock.value, () => {
-  if (playLock.value) {
-    // 设置懒加载
-    lazyLoad.reset();
-    lazyLoad.type = 'favorite';
-    lazyLoad.id = currentInfo.value?.id ?? 0;
-    lazyLoad.pn = favoriteContentStore.page;
-    lazyLoad.total = currentInfo.value?.media_count ?? 0;
-  }
-  playLock.value = false;
-});
-
 onMounted(() => {
-  playLock.value = false;
   loadContent();
+  
+  // 添加滚动事件监听
+  if (playlistScroll.value) {
+    playlistScroll.value.addEventListener('scroll', debouncedScroll);
+  }
 });
 
 onUnmounted(() => {
   lazyLoad.pn = favoriteContentStore.page;
   favoriteContentStore.reset();
+  
+  // 移除滚动事件监听
+  if (playlistScroll.value) {
+    playlistScroll.value.removeEventListener('scroll', debouncedScroll);
+  }
+  
+  // 清除定时器
+  if (scrollTimer) {
+    clearTimeout(scrollTimer);
+  }
 });
 </script>
 
 <style lang="scss" scoped>
 @import './style/playlist.scss';
 
+.playlist-scroll {
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding: 0 16px;
+}
+
 .loading-more {
   display: flex;
   justify-content: center;
+  margin: 20px 0;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
   align-items: center;
-  padding-top: 15px;
+  padding: 20px 0;
+  color: var(--el-text-color-secondary);
+  
+  .el-icon {
+    margin-right: 8px;
+  }
+}
+
+.empty-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
   color: var(--el-text-color-secondary);
 }
 </style>

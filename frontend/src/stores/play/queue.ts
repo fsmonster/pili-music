@@ -101,6 +101,14 @@ export const useQueueStore = defineStore('queue', () => {
     isPopup.value = false;
   }
 
+  /**
+   * 添加媒体项到队列
+   * @param medias 要添加的媒体项
+   */
+  function addToQueue(medias: MediaItem[]) {
+    queue.value.push(...medias);
+  }
+
   return {
     // 状态
     // currentTrack,
@@ -127,6 +135,7 @@ export const useQueueStore = defineStore('queue', () => {
     prev,
     togglePopup,
     setPopupState,
-    reset
+    reset,
+    addToQueue
   };
 });

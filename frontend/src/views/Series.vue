@@ -23,8 +23,14 @@
             />
 
             <!-- 表格 -->
-            <MediaTable
+            <!-- <MediaTable
               v-if="medias.length > 0"
+              type="series"
+              :data="medias"
+              :loading="loading"
+              @play="handlePlay"
+            /> -->
+            <MediaList
               type="series"
               :data="medias"
               :loading="loading"
@@ -57,7 +63,7 @@ import { Loading } from '@element-plus/icons-vue';
 import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
-import MediaTable from '../components/songList/MediaTable.vue';
+import MediaList from '../components/songList/MediaList.vue';
 import {useSeriesStore,useSeriesContentStore, usePlayerStore, useQueueStore } from '../stores';
 import type { MediaItem } from '../types';
 
