@@ -47,12 +47,16 @@
     <div class="player-options">
       <!-- 在这里 -->
       <div class="multi-page-controls">
-        <span class="switch-label">连播</span>
-        <el-switch
-          v-model="multiPageQueueStore.enableMultiPagePlay"
-          size="small"
-          inline-prompt
-        />
+        <el-tooltip placement="top">
+          <template #content>
+            多P连播开启时，会依次播放所有P<br />关闭则只播放第一P~
+          </template>
+          <el-switch
+            v-model="multiPageQueueStore.enableMultiPagePlay"
+            size="small"
+            inline-prompt
+          />
+        </el-tooltip>
       </div>
       <i class="ri-play-list-line" @click="toggleQueue"></i>
       <i :class="[playStore.volume === 0 ? 'ri-volume-mute-line' : 'ri-volume-up-line']" @click="toggleMute"></i>
@@ -274,11 +278,6 @@ function toggleQueue() {
       align-items: center;
       padding-right: 8px;
       gap: 4px;
-      
-      .switch-label {
-        font-size: 12px;
-        color: var(--el-text-color-secondary);
-      }
     }
 
     i {

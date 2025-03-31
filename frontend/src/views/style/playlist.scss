@@ -12,7 +12,7 @@
         overflow: visible;
         position: relative;
         /* 加载更多样式 */
-        .loading-more {
+        .loading {
           display: flex;
           justify-content: center;
           align-items: center;
@@ -20,7 +20,7 @@
           color: var(--el-text-color-secondary);
         }
   
-        .loading-more .el-icon {
+        .loading .el-icon {
           margin-right: 5px;
         }
   

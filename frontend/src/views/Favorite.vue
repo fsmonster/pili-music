@@ -2,9 +2,7 @@
   <Layout>
     <template #main>
       <div class="playlist-container">
-        <div class="playlist-scroll" 
-          ref="playlistScroll"
-        >
+        <div class="playlist-scroll">
           <!-- 列表头部 -->
           <ListHeader 
             v-if="currentInfo"
@@ -30,11 +28,15 @@
               type="favorite"
               :loading="favoriteContentStore.loading"
               @play="handlePlay"
-              @load-more="handleLoadMore"
             />
 
+            <!-- 加载更多 -->
+            <div v-if="favoriteContentStore.hasMore" class="loading-more">
+              <el-button type="primary" @click="loadMore">加载更多</el-button>
+            </div>
+
             <!-- 加载状态 -->
-            <div v-if="favoriteContentStore.loading" class="loading-more">
+            <div v-if="favoriteContentStore.loading" class="loading">
               <el-icon class="is-loading"><Loading /></el-icon>
               <span>加载中...</span>
             </div>
@@ -51,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useFavoriteContentStore, usePlayerStore, useQueueStore, useLazyLoadStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import MediaTable from '../components/songList/MediaTable.vue';
@@ -74,8 +76,8 @@ const { id } = route.params;
 // 当前收藏夹信息
 const currentInfo = ref<FavoriteInfo | null>(null);
 
+// 播放状态锁 - 设置懒加载状态信息
 const playLock = ref(false);
-const playlistScroll = ref<HTMLElement | null>(null);
 
 // 计算属性
 const { medias } = storeToRefs(favoriteContentStore);
@@ -101,16 +103,9 @@ async function loadContent() {
 /**
  * @desc 加载更多
  */
-async function handleLoadMore() {
+const loadMore = async () => {
   await favoriteContentStore.fetchFavoriteContent(Number(id));
-}
-
-/**
- * @desc 移除内容
- */
-function removeContent() {
-  favoriteContentStore.reset();
-}
+};
 
 /**
  * @desc 播放全部
@@ -145,25 +140,6 @@ function handleSort(value: 'desc' | 'asc') {
   // 可能需要调用 API 重新获取数据
 }
 
-// 表格最大高度
-const tableMaxHeight = ref(500);
-
-/**
- * 计算表格高度
- */
-function calculateTableHeight() {
-  const windowHeight = window.innerHeight;
-  // 减去其他元素的高度，如头部、控制栏等
-  tableMaxHeight.value = windowHeight - 200;
-}
-
-/**
- * 监听窗口大小变化
- */
-function handleResize() {
-  calculateTableHeight();
-}
-
 // 播放状态变化
 watch(() => playLock.value, () => {
   if (playLock.value) {
@@ -177,11 +153,6 @@ watch(() => playLock.value, () => {
   playLock.value = false;
 });
 
-onBeforeMount(() => {
-  calculateTableHeight();
-  window.addEventListener('resize', handleResize);
-});
-
 onMounted(() => {
   playLock.value = false;
   loadContent();
@@ -189,11 +160,18 @@ onMounted(() => {
 
 onUnmounted(() => {
   lazyLoad.pn = favoriteContentStore.page;
-  removeContent();
-  window.removeEventListener('resize', handleResize);
+  favoriteContentStore.reset();
 });
 </script>
 
 <style lang="scss" scoped>
 @import './style/playlist.scss';
+
+.loading-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 15px;
+  color: var(--el-text-color-secondary);
+}
 </style>

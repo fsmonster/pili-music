@@ -19,7 +19,7 @@ export const useFavoriteContentStore = defineStore('favoriteContent', () => {
   const pageSize = 40; // 每次加载的数量
   const totalCount = ref(0); // 总数
   const totalPages = ref(0); // 总页数
-  const hasMore = ref(false);
+  const hasMore = ref(true);
   
   // 当前收藏夹ID
   const currentFavoriteId = ref<number | null>(null);
@@ -63,75 +63,121 @@ const fetchFavoriteContent = async (mediaId: number) => {
     reset();
   }
   currentFavoriteId.value = mediaId;
+
   try {
     loading.value = true;
 
-    // 获取第一页（仅在首次加载时）
-    if (firstLoad.value) {
-      const firstPage = await favoriteApi.getFavoriteContent({
-        media_id: mediaId,
-        pn: 1,
-        ps: pageSize
-      });
-      firstLoad.value = false;
+  // 获取第一页（仅在首次加载时）
+  if (firstLoad.value) {
+    const firstPage = await favoriteApi.getFavoriteContent({
+      media_id: mediaId,
+      pn: 1,
+      ps: pageSize
+    });
+    firstLoad.value = false;
 
-      setFirstLoadContent(firstPage);
+    setFirstLoadContent(firstPage);
 
-      if (!firstPage.has_more) {
-        hasMore.value = false;
-        return;
-      }
-
-      totalCount.value = firstPage.info.media_count;
-      totalPages.value = Math.ceil(totalCount.value / pageSize);
-    }
-
-    // 计算当前最多请求到的页码
-    const nextStartPage = page.value + 1;
-    const nextMaxPage = Math.min(page.value + 1, totalPages.value);
-
-    if (nextStartPage > totalPages.value) {
+    if (!firstPage.has_more) {
       hasMore.value = false;
       return;
     }
+    return;
+  }
 
-    // 创建并行请求
-    const requests: Promise<FavoriteContentResponse>[] = [];
-    for (let p = nextStartPage; p <= nextMaxPage; p++) {
-      requests.push(favoriteApi.getFavoriteContent({
-        media_id: mediaId,
-        pn: p,
-        ps: pageSize
-      }));
-    }
+  // 获取后续页
+  const response = await favoriteApi.getFavoriteContent({
+    media_id: mediaId,
+    pn: page.value + 1,
+    ps: pageSize
+  });
 
-    // 并行请求
-    const results = await Promise.all(requests);
+  appendFavoriteContent(response);
 
-    // 追加数据
-    results.forEach(appendFavoriteContent);
-
-    // 更新状态
-    page.value = nextMaxPage;
-    hasMore.value = results[results.length - 1]?.has_more ?? false;
-
-  } catch (err) {
-    console.error('加载收藏夹内容失败:', err);
+  page.value++;
+  hasMore.value = response.has_more;
+} catch (err) {
+  console.error('加载收藏夹内容失败:', err);
     throw err;
   } finally {
     loading.value = false;
   }
 };
+// const fetchFavoriteContent = async (mediaId: number) => {
+//   if (currentFavoriteId.value !== mediaId) {
+//     reset();
+//   }
+//   currentFavoriteId.value = mediaId;
+//   try {
+//     loading.value = true;
+
+//     // 获取第一页（仅在首次加载时）
+//     if (firstLoad.value) {
+//       const firstPage = await favoriteApi.getFavoriteContent({
+//         media_id: mediaId,
+//         pn: 1,
+//         ps: pageSize
+//       });
+//       firstLoad.value = false;
+
+//       setFirstLoadContent(firstPage);
+
+//       if (!firstPage.has_more) {
+//         hasMore.value = false;
+//         return;
+//       }
+
+//       totalCount.value = firstPage.info.media_count;
+//       totalPages.value = Math.ceil(totalCount.value / pageSize);
+//     }
+
+//     // 计算当前最多请求到的页码
+//     const nextStartPage = page.value + 1;
+//     const nextMaxPage = Math.min(page.value + 1, totalPages.value);
+
+//     if (nextStartPage > totalPages.value) {
+//       hasMore.value = false;
+//       return;
+//     }
+
+//     // 创建并行请求
+//     const requests: Promise<FavoriteContentResponse>[] = [];
+//     for (let p = nextStartPage; p <= nextMaxPage; p++) {
+//       requests.push(favoriteApi.getFavoriteContent({
+//         media_id: mediaId,
+//         pn: p,
+//         ps: pageSize
+//       }));
+//     }
+
+//     // 并行请求
+//     const results = await Promise.all(requests);
+
+//     // 追加数据
+//     results.forEach(appendFavoriteContent);
+
+//     // 更新状态
+//     page.value = nextMaxPage;
+//     hasMore.value = results[results.length - 1]?.has_more ?? false;
+
+//   } catch (err) {
+//     console.error('加载收藏夹内容失败:', err);
+//     throw err;
+//   } finally {
+//     loading.value = false;
+//   }
+// };
 
 
   // 重置状态
+  
   const reset = () => {
     loading.value = false;
     page.value = 1;
     firstLoad.value = true;
     totalCount.value = 0;
     totalPages.value = 0;
-    hasMore.value = false;
+    hasMore.value = true;
     favoriteContent.value = null;
     currentFavoriteId.value = null;
   };

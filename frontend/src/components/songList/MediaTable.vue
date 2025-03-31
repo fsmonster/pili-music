@@ -4,7 +4,6 @@
     :border="false"
     :highlight-current-row="true"
     @row-dblclick="handleRowDblClick"
-    @row-click="handleRowClick"
     :row-class-name="rowClassName"
     row-key="id"
     :expand-row-keys="expandedRows"
@@ -43,21 +42,23 @@
     <!-- 歌曲名列 -->
     <el-table-column min-width="250">
       <template #default="{ row }">
-        <div class="media-text">
-          <div class="media-title" :class="{ 'playing': isCurrentPlaying(row) }">{{ row.title }}</div>
-          <!-- 如果是多P视频，显示展开按钮 -->
-          <div v-if="isMultiPage(row)" class="multi-page-indicator">
-            <el-button 
-              type="primary" 
-              link 
+        <div class="media-text" :class="{ 'multi-page': isMultiPage(row) }">
+          <div class="media-title" :class="{ 'playing': isCurrentPlaying(row) }">
+            {{ row.title }}
+          </div>
+        </div>
+        <!-- 如果是多P视频，显示展开按钮 -->
+        <!-- <div v-if="isMultiPage(row)" class="multi-page-indicator">
+          <el-button 
+            type="primary" 
+            link 
               size="small" 
               @click.stop="toggleExpand(row)"
             >
               <i :class="isExpanded(row) ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'"></i>
               {{ isExpanded(row) ? '收起' : '查看' }} {{ row.page }} P
             </el-button>
-          </div>
-        </div>
+          </div> -->
       </template>
     </el-table-column>
 
@@ -104,7 +105,7 @@
     </el-table-column>
 
     <!-- 展开行 - 用于显示多P内容 -->
-    <el-table-column type="expand">
+    <!-- <el-table-column type="expand">
       <template #default="{ row }">
         <MultiPageTable 
           v-if="isMultiPage(row)" 
@@ -112,7 +113,7 @@
           :pageList="pageList"
         />
       </template>
-    </el-table-column>
+    </el-table-column> -->
   </el-table>
 </template>
 
@@ -120,10 +121,10 @@
 import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { processResourceUrl, formatDuration } from '../../utils';
-import { getCid } from '../../api';
+// import { getCid } from '../../api';
 import { usePlayerStore, useCurrentTrackStore } from '../../stores';
-import type { MediaItem, PageInfo } from '../../types';
-import MultiPageTable from './MultiPageTable.vue';
+import type { MediaItem } from '../../types';
+// import MultiPageTable from './MultiPageTable.vue';
 
 const props = defineProps<{
   data: MediaItem[];
@@ -138,7 +139,6 @@ const emit = defineEmits<{
   (e: 'play', item: MediaItem): void
   (e: 'add', item: MediaItem): void
   (e: 'play-all'): void
-  (e: 'load-more'): void
 }>();
 
 // 获取播放器存储
@@ -151,7 +151,7 @@ const expandedRows = ref<string[]>([]);
 // 当前选中的多P视频
 const currentMultiPageItem = ref<MediaItem | null>(null);
 // 分P列表
-const pageList = ref<PageInfo[]>([]);
+// const pageList = ref<PageInfo[]>([]);
 
 const tableData = computed(() => {
   if (props.type === 'favorite') {
@@ -165,58 +165,14 @@ function isMultiPage(item: MediaItem): boolean {
   return typeof item.page === "number" && item.page > 1;
 }
 
-// 检查是否已展开
-function isExpanded(item: MediaItem): boolean {
-  return expandedRows.value.includes(item.id.toString());
-}
-
 // 检查是否是当前播放的媒体
 function isCurrentPlaying(item: MediaItem): boolean {
   return currentTrack.value?.id === item.id;
 }
 
-// 切换展开/折叠状态
-async function toggleExpand(item: MediaItem) {
-  const itemId = item.id.toString();
-  const index = expandedRows.value.indexOf(itemId);
-  
-  if (index === -1) {
-    // 展开
-    expandedRows.value.push(itemId);
-    currentMultiPageItem.value = item;
-    
-    // 获取分P列表
-    try {
-      const response = await getCid({
-        aid: item.id,
-      }, true);
-      
-      if (Array.isArray(response)) {
-        pageList.value = response;
-      }
-    } catch (error) {
-      console.error('获取分P列表失败:', error);
-    }
-  } else {
-    // 折叠
-    expandedRows.value.splice(index, 1);
-    if (currentMultiPageItem.value?.id === item.id) {
-      currentMultiPageItem.value = null;
-      pageList.value = [];
-    }
-  }
-}
-
 // 处理双击行事件
 function handleRowDblClick(row: MediaItem) {
   emit('play', row);
-}
-
-// 处理点击行事件
-function handleRowClick(row: MediaItem) {
-  if (isMultiPage(row)) {
-    toggleExpand(row);
-  }
 }
 
 // 行样式
@@ -228,7 +184,7 @@ function rowClassName({ row }: { row: MediaItem }) {
 watch(() => props.data, () => {
   expandedRows.value = [];
   currentMultiPageItem.value = null;
-}, { deep: true });
+});
 </script>
 
 <style lang="scss" scoped>
@@ -319,6 +275,10 @@ watch(() => props.data, () => {
   display: flex;
   flex-direction: column;
   cursor: pointer;
+  &.multi-page {
+    font-style: italic;
+  }
+  
   .media-title {
     cursor: pointer;
     font-size: 14px;
@@ -329,16 +289,6 @@ watch(() => props.data, () => {
       color: var(--el-color-primary);
     }
   } 
-  .multi-page-indicator {
-    font-size: 12px;
-    color: var(--el-color-primary);
-    display: flex;
-    align-items: center;
-    
-    i {
-      margin-right: 4px;
-    }
-  }
 }
 
 .media-up {

@@ -31,7 +31,7 @@
             />
 
             <!-- 加载状态 -->
-            <div v-if="seasonStore.loading" class="loading-more">
+            <div v-if="seasonStore.loading" class="loading">
               <el-icon class="is-loading"><Loading /></el-icon>
               <span>加载中...</span>
             </div>
