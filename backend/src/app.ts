@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import { createProxyMiddleware, Options } from 'http-proxy-middleware';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
@@ -58,27 +58,29 @@ app.use('/api/play', playRoutes); // 注册音频代理路由
 app.use('/api/user', userRoutes); // 注册用户路由
 
 // B站API代理
-const biliProxyOptions: Options = {
-  target: 'https://api.bilibili.com',
-  changeOrigin: true,
-  pathRewrite: {
-    '^/api/bilibili': ''
-  },
-  onProxyReq: (proxyReq, _req, _res) => {
-    // 设置必要的请求头
-    proxyReq.setHeader('Referer', 'https://www.bilibili.com');
-    proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-  },
-  onError: (err, _req, res) => {
-    console.error('代理请求错误:', err);
-    res.status(500).json({ 
-      code: 500, 
-      message: '代理请求失败' 
-    });
-  }
-};
+// const biliProxyOptions = {
+//   target: 'https://api.bilibili.com',
+//   changeOrigin: true,
+//   pathRewrite: {
+//     '^/api/bilibili': ''
+//   },
+//   onProxyReq: (proxyReq, _req, _res) => {
+//     // 设置必要的请求头
+//     proxyReq.setHeader('Referer', 'https://www.bilibili.com');
+//     proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+//   },
+//   onError: (err, _req, res: any) => {
+//     console.error('代理请求错误:', err);
+//     res.status(500).json({ 
+//       code: 500, 
+//       message: '代理请求失败' 
+//     });
+//   }
+// };
 
-app.use('/api/bilibili', createProxyMiddleware(biliProxyOptions));
+// // 正确使用 createProxyMiddleware
+// const biliProxy = createProxyMiddleware(biliProxyOptions);
+// app.use('/api/bilibili', biliProxy);
 
 // 健康检查端点 - 用于监控
 app.get('/health', (_req: Request, res: Response) => {
