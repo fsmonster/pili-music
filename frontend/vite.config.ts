@@ -109,7 +109,7 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     // 生成环境移除 console 和 debugger
-    minify: 'terser',
+    minify: 'esbuild',
     terserOptions: {
       compress: {
         drop_console: true,

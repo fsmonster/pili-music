@@ -32,12 +32,12 @@ defineEmits<{
 
 <style lang="scss" scoped>
 .controls-sticky {
-  position: sticky;
-  top: -20px;
-  background: var(--el-bg-color);
+  // position: sticky;
+  // top: -20px;
+  // background: var(--el-bg-color);
   padding: 20px 0;
-  margin: 0;
-  z-index: 2;
+  // margin: 0;
+  // z-index: 2;
   .controls {
     display: flex;
     justify-content: space-between;

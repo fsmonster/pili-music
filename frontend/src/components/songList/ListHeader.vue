@@ -14,10 +14,6 @@
       <div class="info">
         <h1>{{ title }}</h1>
         <div class="creator-info" v-if="upperInfo?.face">
-          <!-- <a :href="`https://space.bilibili.com/${upperInfo?.mid}`" target="_blank" class="creator-link">
-            <img :src="processResourceUrl(upperInfo?.face) + '@70w'" class="creator-avatar" />
-            <span class="creator-name">{{ upperInfo?.name }}</span>
-          </a> -->
           <div 
             @click="goToUser(upperInfo?.mid)"
             class="creator-link"
@@ -26,9 +22,6 @@
             <span class="creator-name">{{ upperInfo?.name }}</span>
           </div>
         </div>
-        <!-- <div class="tags">
-          <span class="tag" v-for="(tag, index) in fakeTags" :key="index">{{ tag }}</span>
-        </div> -->
         <p>{{ count }}个内容</p>
       </div>
     </div>
@@ -53,9 +46,6 @@ const router = useRouter();
 
 const upperInfo = ref<Upper | null>(null);
 
-// 假数据标签
-// const fakeTags = ref(['音乐', '流行', '华语', '经典']);
-
 const goToUser = (mid: number) => {
   router.push(`/user/${mid}`);
 };
@@ -78,7 +68,6 @@ onMounted(async () => {
     margin-bottom: 20px;
   }
   .cover {
-    // width: 200px;
     height: 150px;
     aspect-ratio: 16/9;
     overflow: hidden;

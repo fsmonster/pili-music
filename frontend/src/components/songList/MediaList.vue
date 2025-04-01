@@ -230,10 +230,11 @@ function handleAdd(item: MediaItem): void {
   border-bottom: 1px solid var(--el-border-color-lighter);
   background-color: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
+  border-radius: 8px 8px 0 0;
   font-size: 14px;
   font-weight: 500;
   position: sticky;
-  top: 0;
+  top: -20px;
   z-index: 10;
   
   &.favorite {
@@ -286,18 +287,6 @@ function handleAdd(item: MediaItem): void {
   
   &.season, &.series {
     grid-template-columns: 60px 1fr 150px auto auto;
-  }
-  
-  &:hover {
-    background-color: var(--el-fill-color-light);
-    
-    .cover-overlay {
-      opacity: 1;
-    }
-    
-    .media-cover {
-      filter: brightness(0.8);
-    }
   }
   
   &.is-playing {
@@ -388,10 +377,6 @@ function handleAdd(item: MediaItem): void {
       
       .playing-icon {
         animation: spin 2s linear infinite;
-      }
-      
-      &:hover {
-        opacity: 1;
       }
     }
   }
@@ -508,6 +493,18 @@ function handleAdd(item: MediaItem): void {
   
   .el-icon {
     margin-right: 8px;
+  }
+}
+
+.media-list-item:hover {
+  background-color: var(--el-fill-color-light);
+  
+  .cover-overlay {
+    opacity: 1;
+  }
+  
+  .media-cover {
+    filter: brightness(0.8);
   }
 }
 

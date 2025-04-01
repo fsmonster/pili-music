@@ -8,9 +8,6 @@
       overflow-y: auto;
       padding: 20px;
       .playlist-content {
-        flex: 1;
-        overflow: visible;
-        position: relative;
         /* 加载更多样式 */
         .loading {
           display: flex;
