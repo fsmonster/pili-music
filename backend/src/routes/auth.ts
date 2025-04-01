@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import axios from 'axios';
-import { generateToken, verifyToken } from '../middleware/auth.js';
+import { authMiddleware, generateToken, verifyToken } from '../middleware/auth.js';
 import * as userController from '../controllers/userController.js';
+import { AuthRequest } from '../types/index.js';
 import { JwtPayload } from '../types/index.js';
 
 const router = express.Router();
@@ -135,13 +136,16 @@ router.get('/qrcode/status', async (req: Request, res: Response) => {
   }
 });
 
+// 鉴权中间件
+router.use(authMiddleware);
+
 /**
  * @desc 获取用户信息
  * @route GET /api/auth/user/info
  * @access Private
  * @returns {Object} 用户信息 - 包含B站API返回的信息和本地数据库中的用户偏好设置
  */
-router.get('/user/info', async (req: Request, res: Response) => {
+router.get('/user/info', async (req: AuthRequest, res: Response) => {
   // 从请求头中获取认证令牌
   const authHeader = req.headers.authorization;
   

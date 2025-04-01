@@ -5,49 +5,6 @@ import { AuthRequest } from '../types/index.js';
 import { getHeaders } from '../utils/getHeader.js';
 
 const router = express.Router();
-
-/**
- * @describe 查看视频分p信息， avid/bvid转cid，cid表示当前分p
- * @route   GET /api/audioInfo/player/pagelist
- * @param {string} bvid - 视频bvid
- * @param {number} aid - 视频aid
- * @returns {Object} 视频分p信息
- * @access Public - 不需要认证
- */
-// router.get('/player/pagelist', async (req: Request, res: Response) => {
-//   try {
-//     const { aid, bvid } = req.query;
-    
-//     if(!aid && !bvid) {
-//       return res.status(400).json({ 
-//         code: 400, 
-//         message: '缺少必要参数：aid 或 bvid' 
-//       });
-//     }
-    
-//     let xid = aid ? 'aid' : 'bvid';
-//     let id = aid ?? bvid;
-    
-//     // 调用B站API获取视频信息
-//     const response = await axios.get('https://api.bilibili.com/x/player/pagelist', {
-//       params: {
-//         [xid]: id,
-//       },
-//       headers: {
-//         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-//         'Referer': 'https://www.bilibili.com'
-//       }
-//     });
-    
-//     res.json(response.data);
-//   } catch (error) {
-//     console.error('获取视频分P列表失败:', error);
-//     res.status(500).json({ 
-//       code: 500, 
-//       message: '获取视频分P列表失败' 
-//     });
-//   }
-// });
   
 // 应用认证中间件到需要认证的路由
 router.use(authMiddleware);

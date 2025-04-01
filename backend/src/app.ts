@@ -2,13 +2,15 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import cookieParser from 'cookie-parser';
-import { createProxyMiddleware } from 'http-proxy-middleware';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
 // 加载环境变量
 dotenv.config();
+
+// 导入配置
+import config from './config/index.js';
+const { env, server, rateLimit: rateLimitConfig, db } = config;
 
 // 导入数据库连接
 import { connectDB } from './models/db.js';
@@ -23,27 +25,35 @@ import infoRoutes from './routes/audioInfo.js'; // 音频信息路由
 import playRoutes from './routes/play.js'; // 音频代理路由
 import userRoutes from './routes/user.js'; // 用户路由
 
-
 const app = express();
-const PORT: number = parseInt(process.env.PORT || '3000', 10);
+const PORT: number = server.port;
+
+console.log(`当前运行环境: ${env.nodeEnv}`);
 
 // 基础中间件
 app.use(cors({
-  origin: true,
+  origin: env.isProduction 
+    ? server.allowedOrigins
+    : true,
   credentials: true // 允许跨域携带 cookie
 }));
+
 app.use(helmet({
-  contentSecurityPolicy: false, // 在生产环境中可能需要配置CSP
+  contentSecurityPolicy: env.isProduction, // 生产环境启用 CSP
   crossOriginEmbedderPolicy: false
 }));
-app.use(morgan('dev'));
-app.use(express.json());
-app.use(cookieParser());
 
-// 速率限制
+// 根据环境配置日志
+app.use(morgan(env.isDevelopment ? 'dev' : 'combined'));
+app.use(express.json());
+// app.use(cookieParser());
+
+// 速率限制 - 根据环境设置不同的限制
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15分钟
-  max: 500 // 限制每个IP在windowMs内最多500个请求
+  windowMs: rateLimitConfig.windowMs,
+  max: rateLimitConfig.max,
+  standardHeaders: rateLimitConfig.standardHeaders,
+  legacyHeaders: rateLimitConfig.legacyHeaders
 });
 app.use(limiter);
 
@@ -57,48 +67,30 @@ app.use('/api/audioInfo', infoRoutes); // 注册音频信息路由
 app.use('/api/play', playRoutes); // 注册音频代理路由
 app.use('/api/user', userRoutes); // 注册用户路由
 
-// B站API代理
-// const biliProxyOptions = {
-//   target: 'https://api.bilibili.com',
-//   changeOrigin: true,
-//   pathRewrite: {
-//     '^/api/bilibili': ''
-//   },
-//   onProxyReq: (proxyReq, _req, _res) => {
-//     // 设置必要的请求头
-//     proxyReq.setHeader('Referer', 'https://www.bilibili.com');
-//     proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-//   },
-//   onError: (err, _req, res: any) => {
-//     console.error('代理请求错误:', err);
-//     res.status(500).json({ 
-//       code: 500, 
-//       message: '代理请求失败' 
-//     });
-//   }
-// };
-
-// // 正确使用 createProxyMiddleware
-// const biliProxy = createProxyMiddleware(biliProxyOptions);
-// app.use('/api/bilibili', biliProxy);
-
 // 健康检查端点 - 用于监控
 app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({ 
+    status: 'ok',
+    environment: env.nodeEnv,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // 错误处理中间件
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  res.status(500).json({
+    error: env.isProduction ? 'Internal Server Error' : err.message,
+    stack: env.isProduction ? undefined : err.stack
+  });
 });
 
 app.listen(PORT, async () => {
-  console.log(`服务器运行在端口 ${PORT}`);
+  console.log(`服务器运行在端口 ${PORT} (${env.nodeEnv}环境)`);
   
   // 连接到MongoDB数据库
   try {
-    await connectDB();
+    await connectDB(db.uri);
     console.log('成功连接到MongoDB数据库');
   } catch (error) {
     console.error('MongoDB数据库连接失败:', error instanceof Error ? error.message : String(error));

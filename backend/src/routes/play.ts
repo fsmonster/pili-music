@@ -12,7 +12,6 @@ const router = express.Router();
  * @access Public - 不需要JWT认证
  */
 router.get("/url", async (req: Request, res: Response) => {
-  // const { url, token } = req.query;
   const { url } = req.query;
   const range = req.headers.range; // 获取前端传来的 Range 头
 
@@ -27,20 +26,6 @@ router.get("/url", async (req: Request, res: Response) => {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       "Referer": "http://www.bilibili.com",
     };
-    
-    // 尝试从 JWT 中获取 SESSDATA
-    // 如果请求中有 token 参数，则解析它
-    // if (token && typeof token === 'string') {
-    //   try {
-    //     const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-    //     if (decoded && decoded.sessdata) {
-    //       headers.Cookie = `SESSDATA=${decoded.sessdata}`;
-    //     }
-    //   } catch (err) {
-    //     const error = err as Error;
-    //     console.error("解析令牌失败:", error.message);
-    //   }
-    // }
     
     if (range) {
       headers.Range = range; // 透传前端的 Range 请求头

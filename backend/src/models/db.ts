@@ -1,23 +1,33 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import config from '../config/index.js';
 
 // 加载环境变量
 dotenv.config();
 
-// MongoDB连接URI
-const MONGODB_URI: string = process.env.MONGODB_URI || 'mongodb://localhost:27017/bilibili-music';
+// 环境变量
+const { env, db } = config;
 
 /**
  * 连接MongoDB数据库
+ * @param uri 可选的数据库连接字符串，如果不提供则使用环境变量中的配置
  */
-export const connectDB = async (): Promise<void> => {
+export const connectDB = async (uri?: string): Promise<void> => {
   try {
-    await mongoose.connect(MONGODB_URI);
-    console.log('MongoDB数据库连接成功');
+    const mongoURI = uri || db.uri;
+    console.log(`正在连接到数据库: ${mongoURI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@')}`); // 隐藏敏感信息
+    
+    await mongoose.connect(mongoURI, db.options);
+    
+    console.log(`MongoDB数据库连接成功 (${env.nodeEnv}环境)`);
   } catch (error) {
     const err = error as Error;
     console.error('MongoDB数据库连接失败:', err.message);
-    process.exit(1);
+    
+    // 在生产环境中不要立即退出，而是记录错误并尝试恢复
+    if (!env.isProduction) {
+      process.exit(1);
+    }
   }
 };
 

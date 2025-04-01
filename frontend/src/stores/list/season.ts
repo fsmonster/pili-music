@@ -28,8 +28,40 @@ export const useSeasonStore = defineStore(
     const totalPages = ref(0); // 总页数
     const hasMore = ref(false);
 
+    // 存储合集封面的映射关系
+    const seasonCovers = ref<Record<number, string>>({});
+
     // 计算属性：当前显示的订阅合集
-    // const seasons = computed(() => allSeasons.value.filter((s) => displaySeasonIds.value.includes(s.id)));
+    const seasons = computed(() => {
+      // 过滤出要显示的合集
+      const displaySeasons = allSeasons.value.filter((s) => displaySeasonIds.value.includes(s.id));
+      
+      // 处理默认封面
+      return displaySeasons.map(season => {
+        // 如果已经获取过封面，使用缓存的封面
+        if (seasonCovers.value[season.id]) {
+          return { ...season, cover: seasonCovers.value[season.id] };
+        }
+        
+        // 如果是默认封面，尝试获取第一个视频的封面
+        if (season.cover && season.cover.includes("viedeo_material_default.png")) {
+          // 异步获取封面
+          seasonApi.getSeasonCover(season.id)
+            .then(newCover => {
+              // 确保获取到的封面有效（不为空且不是默认封面）
+              if (newCover && !newCover.includes("viedeo_material_default.png")) {
+                // 更新封面缓存，这会触发响应式更新
+                seasonCovers.value[season.id] = newCover;
+              }
+            })
+            .catch(error => {
+              console.error(`获取合集封面失败: ${season.id}`, error);
+            });
+        }
+        
+        return season;
+      });
+    });
 
     // 获取订阅合集显示设置
     const fetchDisplaySeasons = async () => {
@@ -124,18 +156,19 @@ export const useSeasonStore = defineStore(
     const reset = () => {
       loading.value = false;
       isLoaded.value = false;
-      allSeasons.value = [];
       displaySeasonIds.value = [];
+      allSeasons.value = [];
       page.value = 1;
       totalCount.value = 0;
       totalPages.value = 0;
       hasMore.value = false;
+      seasonCovers.value = {};
     };
 
     return {
       // 状态
       loading,
-      // seasons,
+      seasons,
       allSeasons,
       displaySeasonIds,
       isLoaded,

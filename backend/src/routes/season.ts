@@ -7,78 +7,6 @@ import { getHeaders } from '../utils/getHeader.js';
 
 const router = express.Router();
 
-/**
- * @route   GET /api/season/meta
- * @desc    查询系列meta信息
- * @param {number} season_id - 合集ID
- * @param {number} page_num - 页码
- * @param {number} page_size - 每页项数
- * @access  Public - 不需要登录
- */
-// router.get('/meta', async (req: Request, res: Response) => {
-//   try {
-//     const { season_id, page_num, page_size } = req.query;
-    
-//     // 调用B站API获取系列meta信息
-//     const response = await axios.get('https://api.bilibili.com/x/polymer/web-space/seasons_archives_list', {
-//       params: {
-//         season_id,
-//         page_num,
-//         page_size
-//       },
-//       headers: {
-//         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-//         'Referer': 'https://www.bilibili.com'
-//       }
-//     });
-  
-//     res.json(response.data);
-//   } catch (error) {
-//     console.error('获取系列meta信息失败:', error);
-//     res.status(500).json({ 
-//       code: 500, 
-//       message: '获取系列meta信息失败' 
-//     });
-//   }
-// });
-  
-/**
- * @route   GET /api/season/season/list
- * @desc    获取指定合集的内容列表
- * @param {number} season_id - 合集ID
- * @access  Public - 不需要认证
- */
-// router.get('/season/list', async (req: Request, res: Response) => {
-//   try {
-//     const { season_id } = req.query;
-//     if (!season_id) {
-//       return res.status(400).json({ 
-//         code: 400, 
-//         message: '缺少必要参数：season_id' 
-//       });
-//     }
-
-//     // 调用B站API获取合集内容
-//     const response = await axios.get('https://api.bilibili.com/x/space/fav/season/list', {
-//       params: {
-//         season_id
-//       },
-//       headers: {
-//         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-//         'Referer': 'https://www.bilibili.com'
-//       }
-//     });
-
-//     res.json(response.data);
-//   } catch (error) {
-//     console.error('获取合集内容列表失败:', error);
-//     res.status(500).json({ 
-//       code: 500, 
-//       message: '获取合集内容列表失败' 
-//     });
-//   }
-// });
-
 // 可选鉴权中间件
 router.use('/collected/list', optionalAuthMiddleware);
 
@@ -92,15 +20,6 @@ router.use('/collected/list', optionalAuthMiddleware);
  */
 router.get('/collected/list', async (req: AuthRequest, res: Response) => {
   try {
-    // if (!req.user) {
-    //   return res.status(401).json({ 
-    //     code: 401, 
-    //     message: '未授权访问' 
-    //   });
-    // }
-    
-    // const { sessdata } = req.user;
-    
     const { pn, ps, up_mid='' } = req.query;
 
     const sessdata = req.user?.sessdata; // 可能为 undefined
