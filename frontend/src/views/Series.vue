@@ -22,14 +22,7 @@
               @sort="handleSort"
             />
 
-            <!-- 表格 -->
-            <!-- <MediaTable
-              v-if="medias.length > 0"
-              type="series"
-              :data="medias"
-              :loading="loading"
-              @play="handlePlay"
-            /> -->
+            <!-- 媒体列表 -->
             <MediaList
               type="series"
               :data="medias"
@@ -56,7 +49,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
+import { ref, onUnmounted, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { Loading } from '@element-plus/icons-vue';
@@ -65,11 +58,13 @@ import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import MediaList from '../components/songList/MediaList.vue';
 import {useSeriesStore,useSeriesContentStore, usePlayerStore, useQueueStore } from '../stores';
-import type { MediaItem } from '../types';
+import type { MediaItem, SeriesMeta } from '@/types';
+import { getSeriesCover, getSeriesMeta } from '@/api';
 
 // 路由参数
 const route = useRoute();
-const seriesId = computed(() => Number(route.params.id));
+// const seriesId = computed(() => Number(route.params.id));
+const { id } = route.params;
 
 // Store
 const seriesStore = useSeriesStore();
@@ -81,12 +76,31 @@ const queueStore = useQueueStore();
 const loading = ref(false);
 
 // 计算属性
-const seriesMeta = computed(() => seriesStore.series.find(s => s.series_id === seriesId.value));
+const seriesMeta = ref<SeriesMeta | null>(null);
 const { medias } = storeToRefs(seriesContentStore);
+
+// 加载信息
+const loadInfo = async () => {
+  if (!id) return;
+  try {
+    const existingInfo = seriesStore.series.find(s => s.series_id === Number(id));
+    if (existingInfo) {
+      seriesMeta.value = existingInfo;
+    } else {
+      // 获取系列信息
+      const seriesInfo = await getSeriesMeta(Number(id));
+      seriesMeta.value = seriesInfo;
+      seriesMeta.value.cover = await getSeriesCover(Number(id), seriesInfo.mid);
+    }
+  } catch (error) {
+    console.error('获取系列信息失败:', error);
+    ElMessage.error('获取系列信息失败');
+  }
+};
 
 // 加载内容
 const loadContent = async () => {
-  if (!seriesId.value) return;
+  if (!id) return;
   
   try {
     loading.value = true;
@@ -94,7 +108,7 @@ const loadContent = async () => {
     // 获取系列内容
     const mid = seriesMeta.value?.mid;
     if (mid) {
-      await seriesContentStore.fetchSeriesArchives(seriesId.value, mid);
+      await seriesContentStore.fetchSeriesArchives(Number(id), mid);
     } else {
       ElMessage.error('获取系列信息失败');
     }
@@ -131,20 +145,6 @@ const handleSort = (value: 'desc' | 'asc') => {
   console.log('排序方式:', value);
 };
 
-// 表格最大高度
-const tableMaxHeight = ref(500);
-
-// 计算表格高度
-const calculateTableHeight = () => {
-  const containerHeight = window.innerHeight; // 减去其他元素的高度
-  tableMaxHeight.value = Math.max(300, containerHeight);
-};
-
-// 监听窗口大小变化
-const handleResize = () => {
-  calculateTableHeight();
-};
-
 /**
  * @desc 移除内容
  */
@@ -152,18 +152,13 @@ function removeContent() {
   seriesContentStore.reset();
 }
 
-onBeforeMount(() => {
-  calculateTableHeight();
-  window.addEventListener('resize', handleResize);
-});
-
 onMounted(() => {
+  loadInfo();
   loadContent();
 });
 
 onUnmounted(() => {
   removeContent();
-  window.removeEventListener('resize', handleResize);
 });
 </script>
 

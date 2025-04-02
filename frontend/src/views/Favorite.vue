@@ -87,10 +87,8 @@ const scrollLock = ref(false);
 // 防抖定时器
 let scrollTimer: number | null = null;
 
-/**
- * @desc 加载内容
- */
-async function loadContent() {  
+// 加载收藏夹信息
+const loadInfo = async () => {
   if (!id) return;
   
   // 获取收藏夹信息
@@ -100,7 +98,11 @@ async function loadContent() {
   } catch (error) {
     console.error('获取收藏夹信息失败:', error);
   }
-  
+};
+
+// 加载内容
+async function loadContent() {  
+  if (!id) return;
   // 加载收藏夹内容
   const firstPageData = await favoriteContentStore.fetchFavoriteContent(Number(id));
   initialData.value = firstPageData || [];
@@ -194,6 +196,7 @@ function setLazyParams() {
 }
 
 onMounted(() => {
+  loadInfo();
   loadContent();
   
   // 添加滚动事件监听

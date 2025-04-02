@@ -77,7 +77,11 @@
           </div>
 
           <!-- UP主 -->
-          <div v-if="type === 'favorite'" class="item-uploader">
+          <div 
+            v-if="type === 'favorite'" 
+            class="item-uploader"
+            @click="goToUploader(item.upper?.mid || 0)"
+          >
             <span>{{ item.upper?.name || '-' }}</span>
           </div>
 
@@ -121,6 +125,7 @@ import { storeToRefs } from 'pinia';
 import { usePlayerStore, useCurrentTrackStore } from '../../stores';
 import { processResourceUrl, formatDuration, formatDate } from '../../utils';
 import type { MediaItem } from '../../types';
+import router from '@/router';
 
 const props = defineProps<{
   data: MediaItem[];
@@ -137,6 +142,11 @@ const emit = defineEmits<{
   (e: 'play-all'): void
 }>();
 
+// 暴露 updateData 方法给父组件
+defineExpose({
+  updateData
+});
+
 // 获取播放器存储
 const playerStore = usePlayerStore();
 const currentTrackStore = useCurrentTrackStore();
@@ -144,14 +154,6 @@ const { currentTrack } = storeToRefs(currentTrackStore);
 
 // 内部数据，与 props.data 分离
 const mediaList = ref<MediaItem[]>([]);
-
-// 初始化和数据变化时更新内部数据
-watch(() => props.data, (newData) => {
-  if (newData) {
-    // 使用 updateData 方法更新数据
-    updateData(newData, true);
-  }
-}, { immediate: true });
 
 /**
  * 更新数据方法
@@ -177,38 +179,38 @@ function updateData(newItems: MediaItem[], replace: boolean = false) {
   }
 }
 
-// 暴露 updateData 方法给父组件
-defineExpose({
-  updateData
-});
-
-/**
- * 检查是否是多P视频
- */
+// 检查是否是多P视频
 function isMultiPage(item: MediaItem): boolean {
   return typeof item.page === "number" && item.page > 1;
 }
 
-/**
- * 检查是否是当前播放的媒体
- */
+// 检查是否是当前播放的媒体
 function isCurrentPlaying(item: MediaItem): boolean {
   return currentTrack.value?.id === item.id;
 }
 
-/**
- * 处理播放事件
- */
+// 处理播放事件
 function handlePlay(item: MediaItem): void {
   emit('play', item);
 }
 
-/**
- * 处理添加到队列事件
- */
+// 处理添加到队列事件
 function handleAdd(item: MediaItem): void {
   emit('add', item);
 }
+
+// 
+function goToUploader(id: number): void {
+  router.push(`/user/${id}`);
+}
+
+// 初始化和数据变化时更新内部数据
+watch(() => props.data, (newData) => {
+  if (newData) {
+    // 使用 updateData 方法更新数据
+    updateData(newData, true);
+  }
+}, { immediate: true });
 </script>
 
 <style lang="scss" scoped>
@@ -420,6 +422,11 @@ function handleAdd(item: MediaItem): void {
   color: var(--el-text-color-secondary);
   width: 120px;
   @include mixins.text-ellipsis();
+  cursor: pointer;
+  
+  &:hover {
+    color: var(--el-color-primary);
+  }
 }
 
 // 上传时间列

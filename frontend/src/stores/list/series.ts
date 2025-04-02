@@ -13,9 +13,7 @@ export const useSeriesStore = defineStore('series', () => {
     const isLoggedIn = computed(() => userStore.isLoggedIn);
 
     // 系列状态
-    // const seriesList = ref<SeriesList[]>([]);
     const series = ref<SeriesMeta[]>([]);
-    // const seriesMeta = ref<SeriesMeta | null>(null);
     const displaySeries = ref<number[]>([]);
     // 系列媒体列表
     const isLoaded = ref(false);

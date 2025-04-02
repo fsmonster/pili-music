@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, onBeforeMount, onMounted, onUnmounted, watchEffect } from 'vue';
+import { ref, onMounted, onUnmounted, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSeasonStore, useSeasonContentStore, usePlayerStore, useQueueStore } from '../stores';
 import Layout from '../layout/Layout.vue';
@@ -115,23 +115,6 @@ function handleSort(value: 'desc' | 'asc') {
   loadContent();
 }
 
-// 表格最大高度
-const tableMaxHeight = ref(500);
-
-// 计算表格高度
-function calculateTableHeight() {
-  // 获取视窗高度
-  const windowHeight = window.innerHeight;
-  // 减去其他元素的高度（头部、控制栏、分页等）
-  // 预留 padding 和其他元素的空间
-  tableMaxHeight.value = windowHeight - 400; // 根据实际情况调整
-}
-
-// 监听窗口大小变化
-function handleResize() {
-  calculateTableHeight();
-}
-
 /**
  * @desc 移除内容
  */
@@ -154,18 +137,12 @@ watchEffect(async () => {
   }
 });
 
-onBeforeMount(() => {
-  calculateTableHeight();
-  window.addEventListener('resize', handleResize);
-});
-
 onMounted(() => {
   loadContent();
 });
 
 onUnmounted(() => {
   removeContent();
-  window.removeEventListener('resize', handleResize);
 });
 </script>
 
