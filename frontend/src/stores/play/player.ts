@@ -58,6 +58,7 @@ export const usePlayerStore = defineStore('player', () => {
   // 播放
   function replay() {
     if (!activeAudioUrl.value) return;
+    audio.pause();
     audio.currentTime = 0;
     audio.play();
     setVolume();

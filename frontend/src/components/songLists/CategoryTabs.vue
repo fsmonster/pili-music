@@ -72,6 +72,15 @@
         <el-table-column label="操作" width="150">
           <template #default="scope">
             <el-button 
+              type="primary" 
+              size="small" 
+              @click="handleEditSection(scope.row)"
+              :disabled="editing"
+              style="margin-right: 5px"
+            >
+              编辑
+            </el-button>
+            <el-button 
               type="danger" 
               size="small" 
               @click="confirmDeleteSection(scope.row)"
@@ -82,6 +91,32 @@
           </template>
         </el-table-column>
       </el-table>
+    </el-dialog>
+    
+    <!-- 编辑分区对话框 -->
+    <el-dialog
+      v-model="showEditDialog"
+      title="编辑分区"
+      width="30%"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="editSection" label-width="80px">
+        <el-form-item label="名称">
+          <el-input v-model="editSection.name" placeholder="请输入分区名称"></el-input>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input 
+            v-model="editSection.description" 
+            type="textarea" 
+            placeholder="请输入分区描述"
+          ></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="updateSectionInfo" :loading="editing">
+            保存
+          </el-button>
+        </el-form-item>
+      </el-form>
     </el-dialog>
     
     <!-- 添加分区对话框 -->
@@ -151,11 +186,20 @@ const isAllSelected = computed(() => selectedCategories.value.length === 0);
 const showAddDialog = ref(false);
 const showSettingsDialog = ref(false);
 const showConfirmDialog = ref(false);
+const showEditDialog = ref(false);
 const creating = ref(false);
 const deleting = ref(false);
+const editing = ref(false);
 
 // 新分区表单
 const newSection = ref({
+  name: '',
+  description: ''
+});
+
+// 编辑分区表单
+const editSection = ref({
+  _id: '',
   name: '',
   description: ''
 });
@@ -197,6 +241,16 @@ function handleAddSection() {
 // 处理设置按钮点击
 function handleSettings() {
   showSettingsDialog.value = true;
+}
+
+// 处理编辑分区
+function handleEditSection(section: Section) {
+  editSection.value = {
+    _id: section._id,
+    name: section.name,
+    description: section.description || ''
+  };
+  showEditDialog.value = true;
 }
 
 // 创建新分区
@@ -257,10 +311,36 @@ async function deleteSection() {
     ElMessage.success('删除分区成功');
     showConfirmDialog.value = false;
   } catch (error) {
-    console.error('删除分区失败:', error);
     ElMessage.error('删除分区失败');
+    console.error('删除分区失败:', error);
   } finally {
     deleting.value = false;
+  }
+}
+
+// 更新分区信息
+async function updateSectionInfo() {
+  if (!editSection.value.name.trim()) {
+    ElMessage.warning('分区名称不能为空');
+    return;
+  }
+  
+  editing.value = true;
+  
+  try {
+    await sectionStore.updateSection(
+      editSection.value._id,
+      editSection.value.name,
+      editSection.value.description
+    );
+    
+    ElMessage.success('分区更新成功');
+    showEditDialog.value = false;
+  } catch (error) {
+    ElMessage.error('分区更新失败');
+    console.error('更新分区失败:', error);
+  } finally {
+    editing.value = false;
   }
 }
 

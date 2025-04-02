@@ -2,7 +2,7 @@
   <ContentSection 
     :title="section?.name || ''" 
     :show-manage="true" 
-    :show-refresh="true" 
+    :show-refresh="false" 
     :isEmpty="!collocations.length && !loading"
     @manage="showManageDialog = true"
   >

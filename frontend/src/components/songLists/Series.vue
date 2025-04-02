@@ -3,7 +3,7 @@
   <ContentSection 
     title="系列" 
     :show-manage="true" 
-    :show-refresh="true" 
+    :show-refresh="false" 
     :isEmpty="!seriesStore.series.length && !seriesStore.loading"
     @manage="showManageDialog = true"
     @refresh="seriesStore.refreshSeries"
@@ -173,7 +173,7 @@ const playSeries = async (id: number) => {
       queueStore.setQueue(seriesContentStore.medias);
       queueStore.total = seriesContentStore.medias.length;
       queueStore.setCurrentIndex(0);
-      playerStore.setAndPlay();
+      playerStore.replay();
     } else {
       ElMessage.warning('该系列没有可播放的内容');
     }

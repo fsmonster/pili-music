@@ -71,7 +71,7 @@ export const useSectionStore = defineStore('section', () => {
       });
       
       // 添加到列表
-      sections.value.push({
+      sections.value.unshift({
         ...newSection,
         name: newSection.name,
         collocation_count: 0,
@@ -109,7 +109,6 @@ export const useSectionStore = defineStore('section', () => {
           name: updatedSection.name,
           collocation_count: updatedSection.collocationIds.length,
           collocationIds: updatedSection.collocationIds,
-          // collocationList: updatedSection.collocationList
         };
       }
       return updatedSection;
