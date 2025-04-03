@@ -1,24 +1,25 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { JwtPayload } from '../types/index.js';
+import config from '../config/index.js';
+import { AuthRequest, JwtPayload } from '../types/index.js';
 
 // JWT 密钥，实际应用中应该存储在环境变量中
-const JWT_SECRET: string = process.env.JWT_SECRET || 'bili-music-secret-key';
+const JWT_SECRET: string = config.jwt.secret;
 
 /**
  * 生成 JWT token
- * @param {Object} payload - 要包含在 token 中的数据
+ * @param {JwtPayload} payload - 要包含在 token 中的数据
  * @param {string} expiresIn - token 过期时间
  * @returns {string} JWT token
  */
-export const generateToken = (payload: JwtPayload, expiresIn: string = '7d'): string => {
+export const generateToken = (payload: JwtPayload, expiresIn: string = config.jwt.expiresIn): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn });
 };
 
 /**
  * 验证 JWT token
  * @param {string} token - JWT token
- * @returns {Object|null} 解析后的 payload 或 null（如果验证失败）
+ * @returns {JwtPayload|null} 解析后的 payload 或 null（如果验证失败）
  */
 export const verifyToken = (token: string): JwtPayload | null => {
   try {
@@ -31,29 +32,25 @@ export const verifyToken = (token: string): JwtPayload | null => {
 
 /**
  * 从请求中提取 token
- * @param {Request} req - Express 请求对象
+ * @param { AuthRequest } req - 认证请求对象
  * @returns {string|null} JWT token 或 null
  */
-export const getTokenFromRequest = (req: Request): string | null => {
-  // 1. 首先尝试从 Authorization 头中获取
+export const getTokenFromRequest = (req: AuthRequest): string | null => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
-  
-  // 2. 如果没有 Authorization 头，尝试从 URL 参数中获取
-  // if (req.query && req.query.token) {
-  //   return req.query.token as string;
-  // }
-  
   return null;
 };
 
 /**
  * JWT 认证中间件
- * 验证请求中的 JWT token，并将用户信息添加到 req.user
+ * 验证请求中的 JWT token，并将用户信息添加到请求对象
+ * @param { AuthRequest } req - 认证请求对象
+ * @param { Response } res - 响应对象
+ * @param { NextFunction } next - 下一个中间件
  */
-export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const token = getTokenFromRequest(req);
   
   if (!token) {
@@ -75,18 +72,23 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
   }
   
   // 将解码后的用户信息添加到请求对象
-  req.user = {
+  req.auth = {
     mid: decoded.mid,
-    sessdata: decoded.sessdata
+    sessdata: decoded.sessdata,
+    ckMd5: decoded.ckMd5,
+    biliJct: decoded.biliJct
   };
   next();
 };
 
 /**
  * 可选鉴权中间件
- * 验证请求中的 JWT token，并将用户信息添加到 req.user
+ * 验证请求中的 JWT token，并将用户信息添加到请求对象
+ * @param { AuthRequest } req - 认证请求对象
+ * @param { Response } res - 响应对象
+ * @param { NextFunction } next - 下一个中间件
  */
-export const optionalAuthMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const optionalAuthMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const token = getTokenFromRequest(req);
   
   if (token) {
@@ -94,9 +96,11 @@ export const optionalAuthMiddleware = (req: Request, res: Response, next: NextFu
     
     if (decoded) {
       // 将解码后的用户信息添加到请求对象
-      req.user = {
+      req.auth = {
         mid: decoded.mid,
-        sessdata: decoded.sessdata
+        sessdata: decoded.sessdata,
+        ckMd5: decoded.ckMd5,
+        biliJct: decoded.biliJct
       };
     }
   }

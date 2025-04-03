@@ -15,14 +15,14 @@ router.use(authMiddleware);
  */
 router.get('', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    const { mid } = req.user;
+    const { mid } = req.auth;
     
     // 获取用户所有自定义分区
     const sections = await sectionController.getUserSections(mid);
@@ -48,14 +48,14 @@ router.get('', async (req: AuthRequest, res: Response) => {
  */
 router.get('/with-item/:type/:id', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const type = req.params.type as CollocationType;
     const id = Number(req.params.id);
     
@@ -84,14 +84,14 @@ router.get('/with-item/:type/:id', async (req: AuthRequest, res: Response) => {
  */
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const sectionId = req.params.id;
     
     // 获取指定分区详情
@@ -120,14 +120,14 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
  */
 router.post('', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const { name, description } = req.body;
     
     if (!name) {
@@ -163,14 +163,14 @@ router.post('', async (req: AuthRequest, res: Response) => {
  */
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const sectionId = req.params.id;
     const { name, description } = req.body;
     
@@ -212,14 +212,14 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
  */
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const sectionId = req.params.id;
     
     // 删除分区
@@ -247,14 +247,14 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
  */
 router.post('/content/collocation', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const { sectionId, collocationId, type } = req.body;
     
     if (!collocationId || !type) {
@@ -290,14 +290,14 @@ router.post('/content/collocation', async (req: AuthRequest, res: Response) => {
  */
 router.delete('/content/collocation', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const { sectionId, collocationId, type } = req.body;
     
     if (!collocationId || !type) {
@@ -333,14 +333,14 @@ router.delete('/content/collocation', async (req: AuthRequest, res: Response) =>
  */
 router.delete('/content/collocation/all', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const sectionId = req.body.id;
     
     // 清空分区内的所有资源

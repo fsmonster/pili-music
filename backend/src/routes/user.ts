@@ -26,14 +26,14 @@ interface UserPreferences {
  */
 router.get('/profile', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
     
-    const { sessdata } = req.user;
+    const { sessdata } = req.auth;
     
     // 调用B站API获取用户信息
     const response = await axios.get('https://api.bilibili.com/x/web-interface/nav', {
@@ -78,14 +78,14 @@ router.get('/profile', async (req: AuthRequest, res: Response) => {
  */
 router.put('/preferences', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
     
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const { preferences } = req.body as { preferences: UserPreferences };
     
     // 更新用户偏好设置
@@ -111,16 +111,16 @@ router.put('/preferences', async (req: AuthRequest, res: Response) => {
  * @returns {Promise<ApiResponse<boolean>>} 登出是否成功
  * @access Private - 需要登录
  */
-router.get('/logout', async (req: Request, res: Response) => {
+router.get('/logout', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
 
-    await userController.logout(req.user.mid);
+    await userController.logout(req.auth.mid);
 
     res.json({
       code: 0,

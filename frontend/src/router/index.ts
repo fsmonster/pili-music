@@ -37,6 +37,11 @@ const router = createRouter({
       name: 'series',
       component: () => import('../views/Series.vue')
     },
+    {
+      path: '/search',
+      name: 'search',
+      component: () => import('../views/Search.vue')
+    },
   ]
 });
 

@@ -14,14 +14,14 @@ router.use(authMiddleware);
  */
 router.get('/display', async (req: AuthRequest, res: Response) => {
     try {
-      if (!req.user) {
+      if (!req.auth) {
         return res.status(401).json({ 
           code: 401, 
           message: '未授权访问' 
         });
       }
       
-      const { mid } = req.user;
+      const { mid } = req.auth;
       
       // 获取用户显示的系列ID列表
       const displaySeries = await seriesController.getDisplaySeries(mid);
@@ -48,14 +48,14 @@ router.get('/display', async (req: AuthRequest, res: Response) => {
    */
   router.put('/display', async (req: AuthRequest, res: Response) => {
     try {    
-      if (!req.user) {
+      if (!req.auth) {
         return res.status(401).json({ 
           code: 401, 
           message: '未授权访问' 
         });
       }
       
-      const { mid } = req.user;
+      const { mid } = req.auth;
       const displayIds = req.body.displayIds;
       
       // 更新用户显示的系列ID列表

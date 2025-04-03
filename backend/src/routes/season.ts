@@ -22,7 +22,7 @@ router.get('/collected/list', async (req: AuthRequest, res: Response) => {
   try {
     const { pn, ps, up_mid='' } = req.query;
 
-    const sessdata = req.user?.sessdata; // 可能为 undefined
+    const sessdata = req.auth?.sessdata; // 可能为 undefined
 
     const headers = getHeaders(sessdata);
 
@@ -57,14 +57,14 @@ router.use(authMiddleware);
  */
 router.get('/display', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
     
-    const { mid } = req.user;
+    const { mid } = req.auth;
     
     // 获取用户显示的合集ID列表
     const displayIds = await seasonController.getDisplaySeasons(mid);
@@ -91,14 +91,14 @@ router.get('/display', async (req: AuthRequest, res: Response) => {
  */
 router.put('/display', async (req: AuthRequest, res: Response) => {
   try {    
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
     
-    const { mid } = req.user;
+    const { mid } = req.auth;
     const { displayIds } = req.body;
     
     // 更新用户显示的合集ID列表

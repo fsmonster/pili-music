@@ -23,7 +23,7 @@ router.get('/list', async (req: AuthRequest, res: Response) => {
   try {
     const { up_mid, rid } = req.query;
 
-    const sessdata = req.user?.sessdata; // 可能为 undefined
+    const sessdata = req.auth?.sessdata; // 可能为 undefined
 
     const headers = getHeaders(sessdata);
 
@@ -65,7 +65,7 @@ router.get('/resource/list', async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const sessdata = req.user?.sessdata; // 可能为 undefined
+    const sessdata = req.auth?.sessdata; // 可能为 undefined
 
     const headers = getHeaders(sessdata);
 
@@ -100,14 +100,14 @@ router.use(authMiddleware);
  */ 
 router.get('/display', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
     
-    const { mid } = req.user;
+    const { mid } = req.auth;
     
     // 获取用户显示的收藏夹ID列表
     const displayIds = await favoriteController.getDisplayFavorites(mid);
@@ -134,14 +134,14 @@ router.get('/display', async (req: AuthRequest, res: Response) => {
  */
 router.put('/display', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
     
-    const { mid }: { mid: number } = req.user;
+    const { mid }: { mid: number } = req.auth;
     const { displayIds }: { displayIds: number[] } = req.body;
     
     // 更新用户显示的收藏夹列表

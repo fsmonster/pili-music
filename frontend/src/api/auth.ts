@@ -1,10 +1,19 @@
-import { request } from '../utils/request';
+import { request, biliRequest } from '../utils/request';
+import { getBuvidFromCookie, saveBuvid } from '../utils/buvid';
 import type { 
     QRCodeGenerateData, 
     QRCodeStatusData, 
     BiliUserInfo, 
     ApiResponse 
 } from '../types';
+
+export interface Buvid {
+    // buvid3
+    b_3: string;
+    // buvid4
+    b_4: string;
+    [property: string]: any;
+}
 
 /**
  * 认证相关 API
@@ -46,6 +55,33 @@ export const authApi = {
     },
 
     /**
+     * 获取 Buvid
+     */
+    async getBuvid(): Promise<Buvid> {
+        try {
+            // 先尝试从 Cookie 获取 Buvid
+            const cookieBuvid = getBuvidFromCookie();
+            if (cookieBuvid && (cookieBuvid.b_3 || cookieBuvid.b_4)) {
+                return cookieBuvid;
+            }
+
+            // Cookie 中不存在或无效，从服务器获取
+            const response = await biliRequest.get<ApiResponse<Buvid>>('/frontend/finger/spi');
+            if (response.data.code !== 0) {
+                throw new Error(`获取 Buvid 失败: ${response.data.message}`);
+            }
+            
+            // 保存到 Cookie
+            saveBuvid(response.data.data);
+            
+            return response.data.data;
+        } catch (error) {
+            console.error('获取 Buvid 失败:', error);
+            throw error;
+        }
+    },
+
+    /**
      * 获取用户信息
      */
     async getUserInfo(){
@@ -62,17 +98,17 @@ export const authApi = {
     },
 
     /**
-     * 刷新 JWT 令牌
+     * 验证 JWT 令牌
      */
-    async refreshToken() {
+    async validateToken() {
         try {
-            const response = await request.post<ApiResponse<{token: string}>>('/auth/refresh');
+            const response = await request.post<ApiResponse<{data: boolean}>>('/auth/validate');
             if(response.data.code !== 0) {
-                throw new Error(response.data.message || '刷新令牌失败');
+                throw new Error(response.data.message || '验证令牌失败');
             }
-            return response.data.data.token;
+            return response.data.data.data;
         } catch (error) {
-            console.error('刷新令牌失败:', error);
+            console.error('验证令牌失败:', error);
             throw error;
         }
     },

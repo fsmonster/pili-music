@@ -131,21 +131,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     /**
-     * 刷新令牌
-     */
-    async function refreshToken() {
-        try {
-            const newToken = await authApi.refreshToken();
-            setTokenAndUpdateState(newToken);
-            return true;
-        } catch (error) {
-            console.error('刷新令牌失败:', error);
-            logout();
-            return false;
-        }
-    }
-
-    /**
      * 登出
      */
     async function logout() {
@@ -177,12 +162,9 @@ export const useAuthStore = defineStore('auth', () => {
         if (token.value) {
             // 检查令牌是否过期
             if (isTokenExpired(token.value)) {
-                // 令牌过期，尝试刷新
-                const refreshSuccess = await refreshToken();
-                if (!refreshSuccess) {
-                    logout();
-                    return;
-                }
+                // 令牌过期，登出
+                logout();
+                return;
             }
             
             try {
@@ -210,7 +192,6 @@ export const useAuthStore = defineStore('auth', () => {
         startPolling,
         stopPolling,
         getUserInfo,
-        refreshToken,
         logout,
         init
     };

@@ -19,14 +19,14 @@ router.use(authMiddleware);
  */
 router.get('/audio/url', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.auth) {
       return res.status(401).json({ 
         code: 401, 
         message: '未授权访问' 
       });
     }
     
-    const { sessdata } = req.user;
+    const { sessdata } = req.auth;
     
     const { avid, cid } = req.query;
     if (!avid || !cid) {

@@ -2,35 +2,10 @@ import express, { Request, Response } from 'express';
 import axios from 'axios';
 import { authMiddleware, generateToken, verifyToken } from '../middleware/auth.js';
 import * as userController from '../controllers/userController.js';
-import { AuthRequest } from '../types/index.js';
-import { JwtPayload } from '../types/index.js';
+import { ApiResponse, AuthRequest, JwtPayload, BilibiliUserData, QRCodeStatusData } from '../types/index.js';
+import { getHeaders } from '../utils/getHeader.js';
 
 const router = express.Router();
-
-/**
- * 用户信息接口
- */
-interface UserInfo {
-  mid: string;
-  uname: string;
-  face: string;
-  level_info: {
-    current_level: number;
-    [key: string]: any;
-  };
-  [key: string]: any;
-}
-
-/**
- * JWT令牌有效载荷接口
- */
-interface TokenPayload {
-  mid: string;
-  uname: string;
-  sessdata: string;
-  [key: string]: any;
-}
-
 /**
  * @desc 获取二维码
  * @route GET /api/auth/qrcode
@@ -67,66 +42,88 @@ router.get('/qrcode/status', async (req: Request, res: Response) => {
   }
 
   try {
-    const response = await axios.get('https://passport.bilibili.com/x/passport-login/web/qrcode/poll', {
+    const response = await axios.get<ApiResponse<QRCodeStatusData>>('https://passport.bilibili.com/x/passport-login/web/qrcode/poll', {
       params: { qrcode_key }
     });
 
     // 如果登录成功，生成JWT令牌
-    if (response.data.code === 0 && response.headers['set-cookie']) {
+    if(response.data.code === 0 && response.headers['set-cookie']) {
       // 从Cookie中提取SESSDATA
       const cookies = response.headers['set-cookie'] as string[];
       let sessdata = '';
+      let dedeUserID = '';
+      let dedeUserID__ckMd5 = '';
+      let bili_jct = '';
       
+      // 遍历所有cookie
       for (const cookie of cookies) {
+        // 提取SESSDATA
         if (cookie.includes('SESSDATA=')) {
           const match = cookie.match(/SESSDATA=([^;]+)/);
           if (match && match[1]) {
             sessdata = match[1];
-            break;
+          }
+        }
+        
+        // 提取DedeUserID
+        else if (cookie.includes('DedeUserID=')) {
+          const match = cookie.match(/DedeUserID=([^;]+)/);
+          if (match && match[1]) {
+            dedeUserID = match[1];
+          }
+        }
+        
+        // 提取DedeUserID__ckMd5
+        else if (cookie.includes('DedeUserID__ckMd5=')) {
+          const match = cookie.match(/DedeUserID__ckMd5=([^;]+)/);
+          if (match && match[1]) {
+            dedeUserID__ckMd5 = match[1];
+          }
+        }
+        
+        // 提取bili_jct
+        else if (cookie.includes('bili_jct=')) {
+          const match = cookie.match(/bili_jct=([^;]+)/);
+          if (match && match[1]) {
+            bili_jct = match[1];
           }
         }
       }
       
-      if (sessdata) {
-        // 获取用户信息
-        const userInfoResponse = await axios.get('https://api.bilibili.com/x/web-interface/nav', {
-          headers: {
-            Cookie: `SESSDATA=${sessdata}`,
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Referer': 'https://www.bilibili.com'
-          }
-        });
-        
-        if (userInfoResponse.data.code === 0 && userInfoResponse.data.data) {
-          const userData = userInfoResponse.data.data as UserInfo;
-          
-          // 生成JWT令牌，包含用户ID和SESSDATA
-          const token = generateToken({
-            mid: Number(userData.mid),
-            // uname: userData.uname,
-            sessdata: sessdata
-          });
-          
-          // 返回JWT令牌和用户信息
-          return res.json({
-            code: 0,
-            data: {
-              ...response.data.data,
-              token,
-              user_info: {
-                mid: userData.mid,
-                uname: userData.uname,
-                face: userData.face,
-                level: userData.level_info.current_level
-              }
-            }
-          });
-        }
+      // 验证是否获取了所有必要信息
+      if (!sessdata || !dedeUserID || !dedeUserID__ckMd5 || !bili_jct) {
+        throw new Error('无法获取完整的登录凭证');
       }
+      
+      // 生成JWT令牌，包含用户ID和SESSDATA
+      const token = generateToken({
+        mid: Number(dedeUserID),
+        sessdata: sessdata,
+        ckMd5: dedeUserID__ckMd5,
+        biliJct: bili_jct
+      });
+          
+      // 返回JWT令牌和用户信息
+      return res.json({
+        code: 0,
+        message: '登录成功',
+        data: {
+          code: response.data.data.code,
+          token,
+          mid: dedeUserID
+        }
+      });
     }
-
-    // 如果未登录成功或未获取到用户信息，返回原始响应
-    res.json(response.data);
+    
+    // 如果不是登录成功状态，直接返回B站API的状态码和消息
+    return res.json({
+      code: 0,
+      message: '查询成功',
+      data: {
+        code: response.data.data.code,
+        message: response.data.data.message || response.data.message
+      }
+    });
   } catch (error) {
     console.error('查询扫码状态失败:', error);
     res.status(500).json({ 
@@ -143,7 +140,7 @@ router.use(authMiddleware);
  * @desc 获取用户信息
  * @route GET /api/auth/user/info
  * @access Private
- * @returns {Object} 用户信息 - 包含B站API返回的信息和本地数据库中的用户偏好设置
+ * @returns {Object} 用户信息 - 包含B站API返回的信息
  */
 router.get('/user/info', async (req: AuthRequest, res: Response) => {
   // 从请求头中获取认证令牌
@@ -161,14 +158,14 @@ router.get('/user/info', async (req: AuthRequest, res: Response) => {
     const token = authHeader.substring(7);
     
     // 解析令牌获取用户信息
-    let decoded: JwtPayload | TokenPayload | null = null;
+    let decoded: JwtPayload | null = null;
     try {
       // 首先尝试使用verifyToken函数验证
       decoded = verifyToken(token);
       
       // 如果验证失败，尝试使用Base64解码
       if (!decoded) {
-        decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()) as TokenPayload;
+        decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
       }
     } catch (e) {
       return res.status(401).json({ 
@@ -187,12 +184,8 @@ router.get('/user/info', async (req: AuthRequest, res: Response) => {
     const { sessdata } = decoded;
 
     // 调用B站API获取用户信息
-    const response = await axios.get('https://api.bilibili.com/x/web-interface/nav', {
-      headers: {
-        Cookie: `SESSDATA=${sessdata}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.bilibili.com'
-      }
+    const response = await axios.get<ApiResponse<BilibiliUserData>>('https://api.bilibili.com/x/web-interface/nav', {
+      headers: getHeaders(sessdata)
     });
 
     if (response.data.code === 0 && response.data.data) {
@@ -204,12 +197,7 @@ router.get('/user/info', async (req: AuthRequest, res: Response) => {
       // 返回合并后的用户信息
       return res.json({
         code: 0,
-        data: {
-          ...userData,
-          preferences: user.preferences,
-          displayFavoriteIds: user.displayFavoriteIds,
-          displaySeasonIds: user.displaySeasonIds
-        }
+        data: userData
       });
     } else {
       // 如果B站API返回错误，直接返回原始响应
@@ -225,86 +213,44 @@ router.get('/user/info', async (req: AuthRequest, res: Response) => {
 });
 
 /**
- * @desc 刷新JWT令牌
- * @route POST /api/auth/refresh
+ * @desc 验证JWT令牌是否过期
+ * @route POST /api/auth/validate
  * @access Private
- * @returns {Object} 新的JWT令牌
+ * @returns Boolean - 是否过期
  */
-router.post('/refresh', async (req: Request, res: Response) => {
+router.post('/validate', async (req: AuthRequest, res: Response) => {
   // 从请求头中获取认证令牌
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ 
-      code: 401, 
-      message: '未提供认证令牌' 
-    });
-  }
+  const sessdata = req.auth?.sessdata;
   
   try {
-    // 从令牌中提取SESSDATA
-    const token = authHeader.substring(7);
-    // 注意：这里不验证令牌，因为这个路由是用来刷新过期令牌的
-    
-    // 解析令牌获取SESSDATA（简化处理，实际应使用jwt.verify）
-    let sessdata = '';
-    let mid = '';
-    let uname = '';
-    
+    // 验证SESSDATA是否仍然有效
     try {
-      const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()) as TokenPayload;
-      sessdata = decoded.sessdata;
-      mid = decoded.mid;
-      uname = decoded.uname;
+      const response = await axios.get('https://api.bilibili.com/x/web-interface/nav', {
+        headers: getHeaders(sessdata)
+      });
+      if (response.data.code !== 0) {
+        return res.status(401).json({ 
+          code: 401, 
+          data: true,
+          message: 'SESSDATA已过期' 
+        });
+      }
     } catch (e) {
       return res.status(401).json({ 
         code: 401, 
         message: '无效的认证令牌' 
       });
     }
-    
-    if (!sessdata) {
-      return res.status(401).json({ 
-        code: 401, 
-        message: '认证令牌中缺少必要信息' 
-      });
-    }
 
-    // 验证SESSDATA是否仍然有效
-    const response = await axios.get('https://api.bilibili.com/x/web-interface/nav', {
-      headers: {
-        Cookie: `SESSDATA=${sessdata}`,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.bilibili.com'
-      }
+    res.json({
+      code: 0,
+      data: false
     });
-
-    if (response.data.code === 0 && response.data.data && response.data.data.isLogin) {
-      // SESSDATA仍然有效，生成新的JWT令牌
-      const newToken = generateToken({
-        mid: Number(mid),
-        // uname,
-        sessdata
-      });
-      
-      res.json({
-        code: 0,
-        data: {
-          token: newToken
-        }
-      });
-    } else {
-      // SESSDATA已失效
-      res.status(401).json({ 
-        code: 401, 
-        message: 'SESSDATA已失效，请重新登录' 
-      });
-    }
   } catch (error) {
-    console.error('刷新令牌失败:', error);
+    console.error('验证令牌失败:', error);
     res.status(500).json({ 
       code: 500, 
-      message: '刷新令牌失败' 
+      message: '验证令牌失败' 
     });
   }
 });

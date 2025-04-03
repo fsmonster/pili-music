@@ -1,5 +1,32 @@
 import mongoose, { Schema } from 'mongoose';
-import { IUser } from '../types/models.js';
+
+/**
+ * 用户偏好设置接口
+ */
+export interface UserPreferences {
+  theme?: string;
+  audioQuality?: string;
+  [key: string]: any;
+}
+
+/**
+ * 用户模型接口
+ */
+export interface IUser extends Document {
+  mid: number;
+  username: string;
+  avatar: string;
+  isLogin: boolean;
+  accessToken?: string;
+  refreshToken?: string;
+  tokenExpiry?: Date;
+  lastLogin: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  preferences?: UserPreferences;
+  displayFavoriteIds?: string[];
+  displaySeasonIds?: string[];
+}
 
 /**
  * 用户模型 - 只存储基本信息，不存储敏感凭证

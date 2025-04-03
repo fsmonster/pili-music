@@ -1,25 +1,6 @@
 import User from '../models/user.js';
-import { IUser } from '../types/models.js';
-
-/**
- * B站用户数据接口
- */
-interface BilibiliUserData {
-  mid: string;
-  uname: string;
-  face: string;
-  [key: string]: any;
-}
-
-/**
- * 用户偏好设置接口
- */
-interface UserPreferences {
-  theme?: string;
-  audioQuality?: string;
-  showLyrics?: boolean;
-  [key: string]: any;
-}
+import { IUser } from '../models/user.js';
+import { BilibiliUserData, UserPreferences } from '../types/user.js';
 
 /**
  * @desc 处理用户登录后的信息保存
