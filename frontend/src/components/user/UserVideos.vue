@@ -52,9 +52,6 @@
                 <div v-if="loadingMore" class="loading-more">
                     <el-skeleton :rows="1" animated />
                 </div>
-                <div v-else class="load-more-text" @click="loadMore">
-                    加载更多
-                </div>
             </div>
             <div v-else-if="medias.length > 0" class="no-more">
                 没有更多内容了
@@ -104,14 +101,13 @@ const order = ref<Order>(Order.Pubdate);
 const pn = ref(1);
 const ps = ref(40);
 const total = ref(0);
-// const mediaListRef = ref<HTMLElement | null>(null);
 
 // 转换后的视频列表
 const medias = computed(() => archives.value.map(convertArchiveToMediaItem));
 
 // 是否有更多内容
 const hasMore = computed(() => {
-    return medias.value.length < total.value;
+    return medias.value.length < total.value ? true : false;
 });
 
 // 获取用户投稿视频
@@ -360,18 +356,6 @@ onUnmounted(() => {
     
     .loading-more {
         padding: 0 20%;
-    }
-    
-    .load-more-text {
-        cursor: pointer;
-        color: var(--el-color-primary);
-        font-size: 14px;
-        padding: 10px;
-        
-        &:hover {
-            background-color: var(--el-fill-color-light);
-            border-radius: 4px;
-        }
     }
 }
 

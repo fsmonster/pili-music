@@ -110,8 +110,8 @@ const goToPlaylist = (id: number) => {
 // 判断收藏夹是否私密
 const isPrivate = (item: any) => {
   // 根据 attr 值判断是否为私密收藏夹
-  // attr 值为 23 或 119 表示私密收藏夹
-  return item.attr === 23 || item.attr === 119;
+  // attr 值为 23 或 3 表示私密收藏夹
+  return item.attr === 23 || item.attr === 3;
 };
 
 // 播放收藏夹内容

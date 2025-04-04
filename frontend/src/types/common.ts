@@ -154,8 +154,6 @@ export interface Ugc {
 /**
  * UP主信息
  */
-export type Upper = MediaUpper;
-
 export interface MediaUpper {
   /**
    * 创建者头像 URL

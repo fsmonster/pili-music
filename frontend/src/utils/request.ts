@@ -52,3 +52,18 @@ export const biliRequest = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
+/**
+ * HTTP 客户端
+ * - B站搜索 API 请求
+ * - 请求/响应拦截
+ * - 错误处理
+ */
+export const biliSearchRequest = axios.create({
+  baseURL: '/bilisearch',
+  timeout: 10000,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});

@@ -1,4 +1,4 @@
-import type { MediaItem, Info, Upper, Archive, SeriesArchivesResponse } from "./index";
+import type { MediaItem, Info, MediaUpper, Archive, SeriesArchivesResponse } from "./index";
 
 /**
  * 该合集的元数据请求参数
@@ -184,7 +184,7 @@ export interface SeasonList {
   state: number;
   title: string;
   type: number;
-  upper: Upper;
+  upper: MediaUpper;
   view_count: number;
   vt: number;
   [property: string]: any;

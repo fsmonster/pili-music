@@ -66,7 +66,7 @@ import {
   getUserInfo, 
   getUserSettings,
 } from '@/api';
-import type { Privacy, Upper } from '@/types';
+import type { Privacy, MediaUpper } from '@/types';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -88,11 +88,17 @@ const activeTab = ref('videos');
 const privacy = ref<Privacy | null>(null);
 
 // 用户信息
-const userInfo = ref<Upper | null>(null);
+const userInfo = ref<MediaUpper | null>(null);
 
 // 视频加载状态
 const loadMore = ref(false);
 const userContainerRef = ref<HTMLElement | null>(null);
+
+// 加载状态控制
+const isLoading = ref(false);
+
+// 滚动防抖定时器
+let scrollTimer: number | null = null;
 
 // 获取用户信息
 const fetchUserInfo = async () => {
@@ -127,15 +133,33 @@ const fetchUserSettings = async () => {
 
 // 处理滚动事件，实现触底加载
 const handleScroll = (e: Event) => {
-  const target = e.target as HTMLElement;
-  const scrollHeight = target.scrollHeight;
-  const scrollTop = target.scrollTop;
-  const clientHeight = target.clientHeight;
+  // 如果正在加载中，不触发新的加载
+  if (isLoading.value) return;
   
-  // 当滚动到距离底部100px时，触发加载更多
-  if (scrollHeight - scrollTop - clientHeight < 350) {
-    loadMore.value = true;
+  // 清除之前的定时器，实现防抖
+  if (scrollTimer) {
+    clearTimeout(scrollTimer);
+    scrollTimer = null;
   }
+  
+  // 设置新的定时器，延迟200ms执行
+  scrollTimer = window.setTimeout(() => {
+    const target = e.target as HTMLElement;
+    const scrollHeight = target.scrollHeight;
+    const scrollTop = target.scrollTop;
+    const clientHeight = target.clientHeight;
+    
+    // 当滚动到距离底部350px时，触发加载更多
+    if (scrollHeight - scrollTop - clientHeight < 350) {
+      isLoading.value = true; // 设置加载状态
+      loadMore.value = true;
+      
+      // 2秒后重置加载状态，避免频繁触发
+      setTimeout(() => {
+        isLoading.value = false;
+      }, 2000);
+    }
+  }, 200);
 };
 
 // 组件挂载时获取用户信息
@@ -155,7 +179,7 @@ onMounted(() => {
 .content-area {
   background-color: var(--el-bg-color-overlay);
   border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  // box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
   padding: 24px;
 }
 </style>

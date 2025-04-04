@@ -8,7 +8,7 @@
             v-if="seriesMeta"
             :mid="seriesMeta.mid"
             :title="seriesMeta.name"
-            :cover="seriesMeta.cover!"
+            :cover="medias[0].cover"
             :count="seriesMeta.total"
           />
 
@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, onUnmounted, onMounted } from 'vue';
+import { ref, onUnmounted, onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { Loading } from '@element-plus/icons-vue';
@@ -90,7 +90,6 @@ const loadInfo = async () => {
       // 获取系列信息
       const seriesInfo = await getSeriesMeta(Number(id));
       seriesMeta.value = seriesInfo;
-      seriesMeta.value.cover = await getSeriesCover(Number(id), seriesInfo.mid);
     }
   } catch (error) {
     console.error('获取系列信息失败:', error);
@@ -110,7 +109,7 @@ const loadContent = async () => {
     if (mid) {
       await seriesContentStore.fetchSeriesArchives(Number(id), mid);
     } else {
-      ElMessage.error('获取系列信息失败');
+      ElMessage.error('获取系列内容失败');
     }
   } catch (error) {
     console.error('加载系列内容失败:', error);
@@ -152,9 +151,9 @@ function removeContent() {
   seriesContentStore.reset();
 }
 
-onMounted(() => {
-  loadInfo();
-  loadContent();
+onMounted(async () => {
+  await loadInfo();
+  await loadContent();
 });
 
 onUnmounted(() => {

@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { processResourceUrl } from '../../utils/processResoureUrl';
-import type { Upper } from '../../types';
+import type { MediaUpper } from '../../types';
 import { ref, onMounted } from 'vue';
 import { getUserInfo } from '../../api';
 
@@ -44,7 +44,7 @@ const props = defineProps<{
 
 const router = useRouter();
 
-const upperInfo = ref<Upper | null>(null);
+const upperInfo = ref<MediaUpper | null>(null);
 
 const goToUser = (mid: number) => {
   router.push(`/user/${mid}`);

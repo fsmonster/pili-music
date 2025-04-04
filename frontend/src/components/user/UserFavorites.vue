@@ -16,22 +16,76 @@
           v-for="item in favorites" 
           :key="item.id" 
           class="favorite-card"
-          @click="goToFavorite(item.id)"
+          @mouseenter="startHoverTimer(item.id)"
+          @mouseleave="clearHoverTimer"
         >
-          <div class="favorite-cover">
-            <img :src="item.cover" alt="收藏夹封面" loading="lazy">
-            <!-- 私密收藏夹标识 -->
-            <div v-if="isPrivate(item)" class="private-badge">
-              <i class="ri-lock-line"></i>
-            </div>
-            <div class="play-button" @click.stop="playFavorite(item.id)">
-              <i class="ri-play-fill"></i>
+          <!-- 收藏夹卡片内容 -->
+          <div class="favorite-card-content">
+            <!-- 收藏夹信息 -->
+            <div class="favorite-info" @click="goToFavorite(item.id)">
+              <div class="favorite-info-content">
+                <div 
+                  class="private-badge" 
+                  v-if="isPrivate(item)"
+                ><i class="ri-lock-line"></i></div>
+                <div class="favorite-title" :title="item.title">{{ item.title }}</div>
+              </div>
+              <div class="favorite-count">{{ item.media_count }}个内容</div>
             </div>
           </div>
-          <div class="favorite-info">
-            <div class="favorite-title" :title="item.title">{{ item.title }}</div>
-            <div class="favorite-count">{{ item.media_count }}个内容</div>
-          </div>
+          
+          <!-- 收藏夹详情弹窗 -->
+          <el-popover
+            :visible="currentHoverId === item.id && showPopover"
+            placement="bottom"
+            :width="300"
+            trigger="hover"
+            :show-after="1000"
+            :hide-after="0"
+            :teleported="true"
+            popper-class="favorite-popover"
+            @show="fetchFavoriteInfo(item.id)"
+            @hide="clearFavoriteInfo()"
+          >
+            <template #default>
+              <div v-if="favoriteInfo" class="favorite-detail">
+                <!-- 封面图片 -->
+                <div class="favorite-detail-cover" v-if="favoriteInfo.cover">
+                  <img :src="processResourceUrl(favoriteInfo.cover) + '@200h'" :alt="favoriteInfo.title" loading="lazy" />
+                  <!-- 私密标识 -->
+                  <div v-if="isPrivate(favoriteInfo)" class="detail-private-badge">
+                    <i class="ri-lock-fill"></i>
+                  </div>
+                </div>
+                
+                <div class="favorite-detail-header">
+                  <h4>{{ favoriteInfo.title }}</h4>
+                  <div class="favorite-detail-meta">
+                    <span>{{ favoriteInfo.media_count }}个内容</span>
+                  </div>
+                </div>
+                <div class="favorite-detail-desc" v-if="favoriteInfo.intro">
+                  <p>{{ favoriteInfo.intro }}</p>
+                </div>
+                <div class="favorite-detail-stats">
+                  <div class="stat-item">
+                    <i class="ri-time-line"></i>
+                    <span>创建: {{ formatDate2(favoriteInfo.ctime) }}</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="ri-refresh-line"></i>
+                    <span>更新: {{ formatDate2(favoriteInfo.mtime) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="favorite-detail-loading">
+                <el-skeleton :rows="3" animated />
+              </div>
+            </template>
+            <template #reference>
+              <div class="popover-reference"></div>
+            </template>
+          </el-popover>
         </div>
       </div>
     </div>
@@ -40,10 +94,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { ElSkeleton, ElEmpty, ElMessage } from 'element-plus';
+import { ElSkeleton, ElEmpty, ElMessage, ElPopover } from 'element-plus';
 import { useRouter } from 'vue-router';
-import { getFavoriteList } from '@/api';
-import type { FavoriteList } from '@/types';
+import { getFavoriteList, getFavoriteInfo } from '@/api';
+import type { FavoriteList, FavoriteInfoResponse } from '@/types';
+import { processResourceUrl, formatDate2 } from '@/utils';
 
 // 定义组件属性
 const props = defineProps<{
@@ -56,6 +111,12 @@ const router = useRouter();
 // 收藏夹列表数据
 const favorites = ref<FavoriteList[]>([]);
 const loading = ref(true);
+
+// 悬停相关状态
+const hoverTimer = ref<number | null>(null);
+const currentHoverId = ref<number | null>(null);
+const showPopover = ref(false);
+const favoriteInfo = ref<FavoriteInfoResponse | null>(null);
 
 // 获取用户收藏夹
 const fetchUserFavorites = async () => {
@@ -76,22 +137,56 @@ const fetchUserFavorites = async () => {
   }
 };
 
+// 获取收藏夹详情
+const fetchFavoriteInfo = async (id: number) => {
+  try {
+    const data = await getFavoriteInfo(id);
+    favoriteInfo.value = data;
+  } catch (error) {
+    console.error('获取收藏夹详情失败:', error);
+    // 不显示错误消息，避免打扰用户
+  }
+};
+
+// 清空收藏夹详情
+const clearFavoriteInfo = () => {
+  favoriteInfo.value = null;
+};
+
+// 开始悬停计时器
+const startHoverTimer = (id: number) => {
+  // 清除之前的计时器
+  clearHoverTimer();
+  
+  // 设置当前悬停的收藏夹ID
+  currentHoverId.value = id;
+  
+  // 创建新的计时器，0.5秒后显示详情
+  hoverTimer.value = window.setTimeout(() => {
+    showPopover.value = true;
+  }, 500);
+};
+
+// 清除悬停计时器
+const clearHoverTimer = () => {
+  if (hoverTimer.value) {
+    clearTimeout(hoverTimer.value);
+    hoverTimer.value = null;
+  }
+  showPopover.value = false;
+  currentHoverId.value = null;
+};
+
 // 判断收藏夹是否为私密
-const isPrivate = (item: FavoriteList) => {
-  // attr 为 23 或 119 时为私密收藏夹
-  return item.attr === 23 || item.attr === 119;
+const isPrivate = (item: FavoriteList | FavoriteInfoResponse) => {
+  // attr 为 23 或 3 时为私密收藏夹
+  return item.attr === 23 || item.attr === 3;
 };
 
 // 跳转到收藏夹详情
 const goToFavorite = (id: number) => {
   // 实际项目中应该跳转到收藏夹详情页
   router.push(`/favorite/${id}`);
-};
-
-// 播放收藏夹内容
-const playFavorite = (id: number) => {
-  // 实际项目中应该调用播放器播放收藏夹内容
-  console.log('播放收藏夹:', id);
 };
 
 // 组件挂载时获取收藏夹
@@ -114,6 +209,7 @@ onMounted(() => {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
+    color: var(--el-text-color-primary);
   }
 }
 
@@ -123,91 +219,174 @@ onMounted(() => {
 
 .favorites-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 .favorite-card {
-  cursor: pointer;
-  transition: transform 0.2s;
+  background-color: var(--el-bg-color-overlay);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
   
   &:hover {
     transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   }
 }
 
-.favorite-cover {
+.favorite-card-content {
   position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  aspect-ratio: 1 / 1;
-  
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .private-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 30px 30px 0;
-    border-color: transparent rgba(0, 0, 0, 0.6) transparent transparent;
-    
-    i {
-      position: absolute;
-      top: 2px;
-      right: -25px;
-      color: white;
-      font-size: 12px;
-    }
-  }
-  
-  .play-button {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 48px;
-    height: 48px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s;
-    
-    i {
-      color: white;
-      font-size: 24px;
-    }
-  }
-  
-  &:hover .play-button {
-    opacity: 1;
-  }
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .favorite-info {
-  padding: 8px 0;
-}
-
-.favorite-title {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  flex: 1;
+  cursor: pointer;
+  padding-bottom: 12px;
+  .favorite-info-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    .private-badge {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .favorite-title {
+      font-size: 15px;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--el-text-color-primary);
+    }
+  }
 }
 
 .favorite-count {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
+}
+
+// 弹窗引用元素
+.popover-reference {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+// 收藏夹详情弹窗样式
+.favorite-detail {
+  padding: 8px;
+  
+  &-cover {
+    position: relative;
+    width: 100%;
+    height: 140px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .detail-private-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+  
+  &-header {
+    margin-bottom: 12px;
+    
+    h4 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  }
+  
+  &-meta {
+    font-size: 13px;
+    color: var(--el-text-color-secondary);
+  }
+  
+  &-desc {
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--el-text-color-regular);
+    
+    p {
+      margin: 0;
+      line-height: 1.5;
+      // 最多显示3行
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  
+  &-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--el-text-color-secondary);
+      
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+  
+  &-loading {
+    padding: 8px;
+  }
+}
+
+// 自定义弹窗样式
+:deep(.favorite-popover) {
+  padding: 0;
+  overflow: hidden;
+  
+  .el-popover__title {
+    margin: 0;
+    padding: 0;
+  }
 }
 </style>

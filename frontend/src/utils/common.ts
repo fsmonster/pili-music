@@ -24,10 +24,26 @@ export const formatCount = (count: number) => {
   return count.toString();
 };
 
-// 格式化日期
+/**
+ * 格式化日期
+ * 2025-04-03
+ */
 export const formatDate = (timestamp: number) => {
   const date = new Date(timestamp * 1000);
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+};
+
+/**
+ * 格式化日期
+ * 2025/04/03
+ */
+export const formatDate2 = (timestamp: number) => {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
 };
 
 /**

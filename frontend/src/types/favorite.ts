@@ -1,4 +1,4 @@
-import type { MediaItem, Info, Upper } from './common';
+import type { MediaItem, Info, MediaUpper } from './common';
 
 /**
  * 收藏夹 - 列表参数
@@ -30,10 +30,11 @@ export interface FavoriteListResponse {
 
 export interface FavoriteList {
   /**
-   * 属性位，- 22 - 公开
+   * 属性位，
+   * - 22 - 公开
    * - 2 - 公开、有描述
    * - 23 - 私密
-   * - 119 - 私密，有描述
+   * - 3 - 私密，有描述
    */
   attr: number;
   /**
@@ -144,7 +145,7 @@ export interface FavoriteInfoResponse {
   /**
    * 创建者信息
    */
-  upper: Upper;
+  upper: MediaUpper;
   [property: string]: any;
 }
 

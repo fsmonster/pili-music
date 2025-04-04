@@ -1,6 +1,6 @@
 import type { ApiResponse, 
   UpInfoCardResponse, 
-  Upper, 
+  MediaUpper, 
   VideoResponse, 
   SearchVideoByKeywordsParams,
   SettingsResponse,
@@ -15,7 +15,7 @@ import { biliRequest } from "../utils/request";
  * @returns 用户信息
  * @access  Public - 不需要登录
  */
-export async function getUserInfo(mid: number): Promise<Upper> {
+export async function getUserInfo(mid: number): Promise<MediaUpper> {
   try {
     const response = await biliRequest.get<ApiResponse<UpInfoCardResponse>>('/web-interface/card',
       { params: { mid } });

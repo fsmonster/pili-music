@@ -10,3 +10,4 @@ export * from './series';
 export * from './section';
 export * from './video';
 export * from './audio';
+export * from './search';
