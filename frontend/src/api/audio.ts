@@ -4,15 +4,13 @@
 import { request, biliRequest } from '../utils/request';
 import type { ApiResponse, AudioParams, PageInfo, DashAudioResponse } from '../types';
 import { AudioQuality } from '../types';
-
 /**
  * @desc 获取视频cid
  * @param params 视频参数，包含aid或bvid
- * @param fullList 是否返回完整分P列表，默认false只返回第一P的cid
- * @returns 如果fullList为true，返回完整的分P列表；否则返回第一P的cid
+ * @returns 返回完整的分P列表
  * @access Public - 不需要登录
  */
-export async function getCid(params: AudioParams, fullList: boolean = false): Promise<number | PageInfo[]> {
+export async function getCid(params: AudioParams): Promise<PageInfo[]> {
   try {
     const xid = params.aid ? 'aid' : 'bvid';
     const id = params.aid ?? params.bvid;
@@ -25,14 +23,7 @@ export async function getCid(params: AudioParams, fullList: boolean = false): Pr
     if(res.data.code !== 0) {
       throw new Error(res.data.message || '获取视频信息失败');
     }
-    
-    // 如果请求完整列表，返回所有分P信息
-    if (fullList) {
-      return res.data.data;
-    }
-    
-    // 否则只返回第一P的cid
-    return res.data.data[0].cid;
+    return res.data.data;
   } catch (error) {
     console.error('获取视频信息失败:', error);
     throw error;

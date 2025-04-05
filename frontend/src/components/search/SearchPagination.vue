@@ -37,5 +37,6 @@ const currentPageModel = computed({
 .pagination {
   display: flex;
   justify-content: center;
+  margin-top: 10px;
 }
 </style>

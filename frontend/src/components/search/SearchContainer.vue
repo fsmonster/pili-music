@@ -16,9 +16,19 @@
 
       <!-- 搜索结果列表 -->
       <template v-else>
-        <SearchResults 
+        <!-- 视频搜索结果 -->
+        <SearchVideoResults 
+          v-if="searchType === SearchType.Video"
           :results="results" 
-          @itemClick="handleItemClick" 
+          v-model:currentPage="currentPage"
+          :pageSize="pageSize"
+          :totalResults="totalResults"
+          :totalPages="totalPages"
+        />
+        <!-- 用户搜索结果 -->
+        <SearchUserResults 
+          v-else-if="searchType === SearchType.User"
+          :results="results" 
           v-model:currentPage="currentPage"
           :pageSize="pageSize"
           :totalResults="totalResults"
@@ -39,7 +49,8 @@ import type { SearchResult } from '@/types';
 
 // 导入子组件
 import SearchHeader from './SearchHeader.vue';
-import SearchResults from './SearchResults.vue';
+import SearchVideoResults from './SearchVideoResults.vue';
+import SearchUserResults from './SearchUserResults.vue';
 import SearchEmpty from './SearchEmpty.vue';
 import SearchLoading from './SearchLoading.vue';
 
@@ -130,12 +141,6 @@ const handleFilterChange = (type: string, order: string) => {
   fetchSearchResults();
 };
 
-// 处理搜索结果项点击
-const handleItemClick = (item: SearchResult) => {
-  console.log('点击了搜索结果项:', item);
-  // 这里可以添加跳转到详情页或播放音乐的逻辑
-};
-
 // 监听当前页变化
 watch(() => currentPage.value, (newPage) => {
   // 更新路由参数
@@ -171,7 +176,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .search-container {
-  padding: 20px 2%;
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
   height: calc(100vh - 60px); // 减去顶部导航栏的高度

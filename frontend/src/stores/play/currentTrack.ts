@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 import { ref, watch } from 'vue';
 import type { MediaItem } from '../../types';
 import { useMultiPageQueueStore } from './index';
@@ -20,14 +20,29 @@ export const useCurrentTrackStore = defineStore('currentTrack', () => {
   const cid = ref<number | null>(null);
   const audioUrl = ref('');
 
-  // 监听 currentTrack 变化，异步获取 CID
+  const { isMultiPage } = storeToRefs(multiPageQueueStore);
+  
+  // 监听 currentTrack 变化，异步获取 CID，多P视频时加载分P列表
   watch(() => currentTrack.value,
     async (newTrack) => {
       if (!newTrack) {
         cid.value = null;
+        isMultiPage.value = false;
         return;
       }
-      cid.value = newTrack.ugc?.first_cid || (await getCid({ aid: newTrack.id })) as number;
+      if(newTrack.cid) {
+        cid.value = newTrack.cid;
+      } else {
+        let cidRes = await getCid({ aid: newTrack.id });
+        if (cidRes.length > 1) {
+          cid.value = cidRes[0].cid;
+          multiPageQueueStore.loadMultiPageList(newTrack.id);
+        }
+        else {
+          cid.value = cidRes[0].cid;
+          multiPageQueueStore.reset();
+        }
+      }
     }
   );
   
@@ -48,20 +63,6 @@ export const useCurrentTrackStore = defineStore('currentTrack', () => {
       }
     }
   );
-
-  // 监听当前播放项变化, 如果是多P视频, 则获取完整的分P列表
-  watch(() => currentTrack.value, async () => {
-    if(currentTrack.value) {
-      // 判断是否为多P视频
-      if(multiPageQueueStore.isMultiPageVideo(currentTrack.value)) {
-        multiPageQueueStore.loadMultiPageList(currentTrack.value.id);
-        multiPageQueueStore.isMultiPage = true;
-      }
-      else {
-        multiPageQueueStore.reset();
-      }
-    }
-  })
 
   return {
     currentTrack,

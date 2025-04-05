@@ -44,9 +44,9 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
    * 判断是否为多P视频
    * @param track 当前播放项
    */
-  function isMultiPageVideo(track: MediaItem): boolean {
-    return typeof track.page === "number" && track.page > 1;
-  }
+  // function isMultiPageVideo(track: MediaItem): boolean {
+  //   return typeof track.page === "number" && track.page > 1;
+  // }
   
   /**
    * 加载多P列表
@@ -58,8 +58,8 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
   async function loadMultiPageList(id: number) {
     if (!id) return;
     try {
-      const pageListResponse = await getCid({ aid: id }, true);
-      if (Array.isArray(pageListResponse)) {
+      const pageListResponse = await getCid({ aid: id });
+      if (Array.isArray(pageListResponse) && pageListResponse.length > 1) {
         setPageList(id, pageListResponse);
       }
     } catch (error) {
@@ -133,7 +133,6 @@ export const useMultiPageQueueStore = defineStore('multiPageQueue', () => {
     currentPage,
     audioUrl,
     // 操作
-    isMultiPageVideo,
     loadMultiPageList,
     setCurrentPage,
     setPageList,

@@ -1,7 +1,7 @@
 <template>
   <div class="search-results-container">
     <div class="result-list">
-      <SearchResultItem 
+      <SearchVideoResultItem 
         v-for="item in results" 
         :key="item.id" 
         :item="item"
@@ -20,28 +20,43 @@
 
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue';
-import SearchResultItem from './SearchResultItem.vue';
+import { usePlayerStore } from '@/stores';
+import SearchVideoResultItem from './SearchVideoResultItem.vue';
 import SearchPagination from './SearchPagination.vue';
-import type { SearchResult } from '@/types';
+import type { MediaItem, SearchVideoResult } from '@/types';
+import { removeHtmlTags } from '@/utils';
 
 // 定义属性
 defineProps<{
-  results: SearchResult[];
+  results: SearchVideoResult[];
   pageSize: number;
   totalResults: number;
   totalPages: number;
 }>();
 
-const currentPage = defineModel<number>('currentPage');
+const playerStore = usePlayerStore();
 
-// 定义事件
-const emit = defineEmits<{
-  (e: 'itemClick', item: SearchResult): void;
-}>();
+const currentPage = defineModel<number>('currentPage', { default: 1 });
 
 // 处理项目点击
-const handleItemClick = (item: SearchResult) => {
-  emit('itemClick', item);
+const handleItemClick = (item: SearchVideoResult) => {
+  if (item && item.aid) {
+    // 创建媒体项
+    const mediaItem: MediaItem = {
+      id: item.aid,
+      title: removeHtmlTags(item.title),
+      cover: 'https:' + item.pic,
+      duration: parseInt(item.duration.split(':')[0]) * 60 + parseInt(item.duration.split(':')[1]),
+      author: '',
+      bvid: item.bvid,
+      // 添加必要的字段
+      bv_id: item.bvid,
+      pubtime: item.pubdate || 0
+    };
+    
+    // 使用 playMediaList 方法播放单个视频
+    playerStore.playMedia(mediaItem);
+  }
 };
 </script>
 

@@ -11,7 +11,6 @@ export const useQueueStore = defineStore('queue', () => {
   const currentTrackStore = useCurrentTrackStore();
 
   // 状态
-  // const currentTrack = ref<MediaItem | null>(null);
   const queue = ref<MediaItem[]>([]);
   const loading = ref(false);
   const error = ref<string>('');
@@ -116,18 +115,15 @@ export const useQueueStore = defineStore('queue', () => {
     loading,
     error,
     total,
-    // audioUrl,
     currentIndex,
     isPopup,   
     // 计算属性
-    // isPlaying,
     currentIndexComputed,
     // currentItem,
     // 方法
     setQueue,
     setCurrentTrack,
     setCurrentIndex,
-    // setAudioUrl,
     setLoading,
     setError,
     setCurrentItem,

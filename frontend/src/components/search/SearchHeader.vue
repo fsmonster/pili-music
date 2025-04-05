@@ -8,6 +8,9 @@
       </div>
     </div>
 
+    <!-- 分割线 -->
+    <div class="divider"></div>
+
     <!-- 次筛选栏：根据所选类型显示不同的排序选项 -->
     <div class="filter-row secondary-filter">
       <div v-for="order in currentOrderOptions" :key="order.value"
@@ -106,15 +109,15 @@ const handleOrderChange = (order: string) => {
 
   .filter-row {
     display: flex;
-    margin-bottom: 12px;
+    padding: 0 4%;
+    margin-bottom: 2px;
 
     &.primary-filter {
-          border-bottom: 1px solid #eee;
       .filter-item {
         padding: 8px 16px;
         margin-right: 8px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         border-radius: 4px 4px 0 0;
         transition: all 0.2s ease;
 
@@ -124,7 +127,7 @@ const handleOrderChange = (order: string) => {
 
         &.active {
           color: $primary-color;
-          border-bottom: 3px solid $primary-color;
+          border-bottom: 4px solid $primary-color;
           font-weight: 500;
         }
       }
@@ -133,25 +136,29 @@ const handleOrderChange = (order: string) => {
     &.secondary-filter {
       margin-top: 8px;
       .filter-item {
-        padding: 8px 16px;
+        padding: 5px 14px;
         margin-right: 8px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         border-radius: 16px;
         background-color: $background-color;
         transition: all 0.2s ease;
 
         &:hover {
-          background-color: $border-color;
+          background-color: $background-color-hover;
         }
 
         &.active {
           color: #fff;
-          background-color: $primary-color;
+          background-color: $primary-secondary-color;
           font-weight: 500;
         }
       }
     }
+  }
+
+  .divider {
+    border: 1px solid $border-secondary-color;
   }
 }
 </style>

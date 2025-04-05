@@ -3,8 +3,8 @@
  */
 import SearchContainer from './SearchContainer.vue';
 import SearchHeader from './SearchHeader.vue';
-import SearchResults from './SearchResults.vue';
-import SearchResultItem from './SearchResultItem.vue';
+import SearchVideoResults from './SearchVideoResults.vue';
+import SearchVideoResultItem from './SearchVideoResultItem.vue';
 import SearchEmpty from './SearchEmpty.vue';
 import SearchLoading from './SearchLoading.vue';
 import SearchPagination from './SearchPagination.vue';
@@ -12,8 +12,8 @@ import SearchPagination from './SearchPagination.vue';
 export {
   SearchContainer,
   SearchHeader,
-  SearchResults,
-  SearchResultItem,
+  SearchVideoResults,
+  SearchVideoResultItem,
   SearchEmpty,
   SearchLoading,
   SearchPagination

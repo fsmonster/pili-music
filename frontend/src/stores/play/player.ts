@@ -156,14 +156,16 @@ export const usePlayerStore = defineStore('player', () => {
    * 播放单个媒体项
    * @param item 要播放的媒体项
    */
-  // function playMedia(item: MediaItem) {
-  //   // 设置当前播放项
-  //   currentTrackStore.currentTrack = item;
-  //   // 重置队列
-  //   queueStore.setQueue([item]);
-  //   // 播放
-  //   replay();
-  // }
+  function playMedia(item: MediaItem) {
+    // 重置队列
+    queueStore.setQueue([item]);
+    queueStore.total = 1;
+    queueStore.currentIndex = 0;
+    // 设置当前播放项
+    currentTrackStore.currentTrack = item;
+    // 播放
+    replay();
+  }
 
   /**
    * 播放媒体列表
@@ -175,6 +177,7 @@ export const usePlayerStore = defineStore('player', () => {
     
     // 设置播放队列
     queueStore.setQueue(items);
+    queueStore.total = items.length;
     // 设置当前索引
     queueStore.setCurrentIndex(startIndex);
     // 设置当前播放项
@@ -213,7 +216,7 @@ export const usePlayerStore = defineStore('player', () => {
     seek,
     setVolume,
     switchToPage,
-    // playMedia,
+    playMedia,
     playMediaList,
   };
 }, { 
