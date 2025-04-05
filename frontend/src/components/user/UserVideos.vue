@@ -64,8 +64,9 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { ElSkeleton, ElEmpty, ElMessage } from 'element-plus';
 import { searchVideoByKeywords } from '@/api/user';
+import { CollectionType } from '@/types';
 import type { Archive, MediaItem } from '@/types';
-import { useQueueStore, usePlayerStore, useLazyLoadStore } from '@/stores';
+import { useQueueStore, usePlayerStore, useLazyLoadStore, useRecentlyStore } from '@/stores';
 import { processResourceUrl, 
     formatDuration, 
     formatCount, 
@@ -76,6 +77,8 @@ import { processResourceUrl,
 // 定义组件属性
 const props = defineProps<{
     mid: number;
+    name: string;
+    cover: string;
     loadMore: boolean;
 }>();
 
@@ -92,6 +95,7 @@ const enum Order {
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
 const lazyLoadStore = useLazyLoadStore();
+const recentlyStore = useRecentlyStore();
 
 // 视频列表数据
 const archives = ref<Archive[]>([]);
@@ -166,21 +170,41 @@ const setLazyParams = () => {
     lazyLoadStore.set({ type: 'home', id: props.mid});
 };
 
+/**
+ * @desc 播放媒体列表
+ * @param queue 媒体列表
+ * @param total 总数
+ * @param currentTrack 当前播放项
+ */
+function playMedia(queue: MediaItem[], total: number, currentTrack?: MediaItem) {
+  queueStore.setQueue(queue);
+  queueStore.total = total;
+
+  if (currentTrack) {
+    queueStore.setCurrentTrack(currentTrack);
+  } else {
+    queueStore.setCurrentIndex(0);
+  }
+
+  playerStore.replay();
+
+  recentlyStore.addRecentCollection({
+    type: CollectionType.UP,
+    id: props.mid,
+    name: props.name,
+    cover: props.cover
+  });
+
+  setLazyParams();
+}
+
 // 播放全部
 const playAllVideos = () => {
-    queueStore.setQueue(medias.value);
-    queueStore.setCurrentIndex(0);
-    queueStore.total = total.value;
-    setLazyParams();
-    playerStore.replay();
+    playMedia(medias.value, total.value);
 };
 
 const playVideo = (item: MediaItem) => {
-    queueStore.setQueue(medias.value);
-    queueStore.setCurrentTrack(item);
-    queueStore.total = total.value;
-    setLazyParams();
-    playerStore.replay();
+    playMedia(medias.value, total.value, item);
 };
 
 const sortVideos = (newOrder: Order) => {

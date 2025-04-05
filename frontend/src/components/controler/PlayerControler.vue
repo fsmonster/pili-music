@@ -75,7 +75,7 @@
 import { ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { ElSwitch } from 'element-plus';
-import defaultCover from '@/assets/image/music_cover.png';
+import defaultCover from '@/assets/image/music_cover.avif';
 import { usePlayerStore, useQueueStore, useCurrentTrackStore, useMultiPageQueueStore } from '../../stores';
 import { processResourceUrl, formatTime } from '../../utils';
 // 导入自定义组件

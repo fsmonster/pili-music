@@ -46,23 +46,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
-import { useFavoriteContentStore, usePlayerStore, useQueueStore, useLazyLoadStore } from '../stores';
+import { ref, onMounted, onUnmounted } from 'vue';
 import Layout from '../layout/Layout.vue';
 import MediaList from '../components/songList/MediaList.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
+import { CollectionType } from '../types';
 import type { FavoriteInfo, MediaItem } from '../types';
 import * as favoriteApi from '../api/favorite';
 import { storeToRefs } from 'pinia';
+import { 
+  useFavoriteContentStore, 
+  usePlayerStore, 
+  useQueueStore, 
+  useLazyLoadStore,
+  useRecentlyStore
+} from '../stores';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
 const favoriteContentStore = useFavoriteContentStore();
 const lazyLoad = useLazyLoadStore();
+const recentlyStore = useRecentlyStore();
 
 const { id } = route.params;
 
@@ -164,15 +172,39 @@ function debouncedScroll() {
 }
 
 /**
+ * @desc 播放媒体列表
+ * @param queue 媒体列表
+ * @param total 总数
+ * @param currentTrack 当前播放项
+ */
+function playMedia(queue: MediaItem[], total: number, currentTrack?: MediaItem) {
+  queueStore.setQueue(queue);
+  queueStore.total = total;
+
+  if (currentTrack) {
+    queueStore.setCurrentTrack(currentTrack);
+  } else {
+    queueStore.setCurrentIndex(0);
+  }
+
+  playerStore.replay();
+
+  recentlyStore.addRecentCollection({
+    type: CollectionType.Favorite,
+    id: currentInfo.value?.id ?? 0,
+    name: currentInfo.value?.title ?? '',
+    cover: currentInfo.value?.cover ?? ''
+  });
+
+  setLazyParams();
+}
+
+/**
  * @desc 播放全部
  */
 function handlePlayAll() {
   if (medias.value.length > 0) {
-    queueStore.setQueue(medias.value);
-    queueStore.total = currentInfo.value?.media_count ?? 0;
-    queueStore.setCurrentIndex(0);
-    playerStore.replay();
-    setLazyParams();
+    playMedia(medias.value, currentInfo.value?.media_count ?? 0);
   }
 }
 
@@ -180,11 +212,7 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  queueStore.setQueue(medias.value);
-  queueStore.total = currentInfo.value?.media_count ?? 0;
-  queueStore.setCurrentTrack(item);
-  playerStore.replay();
-  setLazyParams();
+  playMedia(medias.value, currentInfo.value?.media_count ?? 0, item);
 }
 
 /**

@@ -37,7 +37,7 @@
           <!-- 收藏夹详情弹窗 -->
           <el-popover
             :visible="currentHoverId === item.id && showPopover"
-            placement="bottom"
+            placement="left"
             :width="300"
             trigger="hover"
             :show-after="1000"

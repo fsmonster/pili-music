@@ -1,7 +1,7 @@
 <template>
   <div class="header">
     <div class="header-left">
-      <Logo />
+      <Logo @goToHome="goToHome" />
     </div>
     <div class="header-right">
       <SearchBar ref="searchBarRef" />
@@ -12,10 +12,19 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { Logo, SearchBar, UserInfo } from '@/components/header';
 
 // 搜索栏引用
 const searchBarRef = ref<InstanceType<typeof SearchBar> | null>(null);
+
+// 路由
+const router = useRouter();
+
+// 跳转到首页
+const goToHome = () => {
+  router.push('/');
+};
 </script>
 
 <style lang="scss" scoped>

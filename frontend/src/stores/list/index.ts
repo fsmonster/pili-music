@@ -5,3 +5,5 @@ export * from './section';
 export * from './favoriteContent';
 export * from './seasonContent';
 export * from './seriesContent';
+export * from './recentCollections';
+

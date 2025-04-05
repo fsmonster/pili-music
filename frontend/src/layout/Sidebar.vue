@@ -1,114 +1,129 @@
 <template>
-  <div class="sidebar">
-    <div class="logo">
-      <i class="ri-bilibili-fill"></i>
-      <span>哔哩音乐 <br> (｡･∀･)ﾉﾞ</span>
-    </div>
-
-    <div class="nav-menu">
-      <div class="menu-item active">
+  <div class="sidebar" :class="{ collapsed: isCollapsed }">
+    <!-- 导航菜单 -->
+    <!-- <div class="nav-menu">
+      <div 
+        class="menu-item" 
+        :class="{ active: currentRoute === '/' }"
+        @click="navigateTo('/')"
+      >
         <i class="ri-home-4-line"></i>
-        <span>首页</span>
+        <span v-if="!isCollapsed">首页</span>
       </div>
-      <div class="menu-item">
+      <div 
+        class="menu-item" 
+        :class="{ active: currentRoute.includes('/search') }"
+        @click="navigateTo('/search')"
+      >
         <i class="ri-search-line"></i>
-        <span>搜索</span>
+        <span v-if="!isCollapsed">搜索</span>
       </div>
-    </div>
-
-    <div class="playlist-section">
-      <div class="section-header">
-        <i class="ri-folder-music-line"></i>
-        <span>歌单</span>
-      </div>
-      <div class="playlist-list">
-        <!-- 歌单列表将在这里动态生成 -->
-      </div>
+    </div> -->
+    
+    <!-- 分割线 -->
+    <!-- <div class="divider"></div> -->
+    
+    <!-- 最近播放记录 -->
+    <div class="recent-section">
+      <RecentCollections 
+        v-model:is-collapsed="isCollapsed"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// 这里可以添加收藏夹相关的逻辑
+import { ref } from 'vue';
+import { RecentCollections } from '@/components/sider';
+
+// 侧边栏状态
+const isCollapsed = ref(false);
+
 </script>
 
 <style lang="scss" scoped>
 .sidebar {
-  background-color: var(--el-bg-color);
-  border-right: 1px solid var(--el-border-color-light);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
+  width: 220px;
   height: 100%;
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 30px;
+  background-color: #fff;
+  border-right: 1px solid $border-color;
+  transition: width 0.3s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  // 折叠状态
+  &.collapsed {
+    width: 100px;
     
-    i {
-      font-size: 32px;
-      color: var(--el-color-primary);
-    }
-    
-    span {
-      font-size: 18px;
-      font-weight: bold;
-      line-height: 1.2;
-    }
-  }
-
-  .nav-menu {
-    margin-bottom: 30px;
-
     .menu-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-
-      i {
-        font-size: 20px;
-      }
-
-      &:hover {
-        background-color: var(--el-color-primary-light-9);
-      }
-
-      &.active {
-        background-color: var(--el-color-primary-light-9);
-        color: var(--el-color-primary);
-      }
-    }
-  }
-
-  .playlist-section {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px;
-      font-weight: 500;
+      justify-content: center;
       
       i {
-        font-size: 20px;
+        margin-right: 0;
       }
     }
-
-    .playlist-list {
-      flex: 1;
-      overflow-y: auto;
-      margin-top: 10px;
+  }
+  
+  // 折叠按钮
+  .collapse-btn {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+    cursor: pointer;
+    
+    i {
+      font-size: 18px;
+      color: $text-color-secondary;
+      
+      &:hover {
+        color: $primary-color;
+      }
     }
+  }
+  
+  // 导航菜单
+  // .nav-menu {
+  //   margin-bottom: 20px;
+    
+  //   .menu-item {
+  //     display: flex;
+  //     align-items: center;
+  //     padding: 12px 20px;
+  //     cursor: pointer;
+  //     transition: all 0.3s ease;
+      
+  //     i {
+  //       font-size: 18px;
+  //       margin-right: 10px;
+  //     }
+      
+  //     span {
+  //       font-size: 14px;
+  //       white-space: nowrap;
+  //     }
+      
+  //     &:hover {
+  //       background-color: $background-color-hover;
+  //     }
+      
+  //     &.active {
+  //       color: $primary-color;
+  //       // background-color: rgba($primary-color, 0.1);
+  //       font-weight: 500;
+  //     }
+  //   }
+  // }
+  
+  // 分割线
+  // .divider {
+  //   height: 1px;
+  //   background-color: $border-color;
+  //   margin: 10px 0;
+  // }
+  
+  // 最近播放区域
+  .recent-section {
+    padding: 0 5px;
   }
 }
 </style>

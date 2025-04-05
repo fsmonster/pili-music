@@ -22,6 +22,8 @@
       <UserVideos 
         v-if="activeTab === 'videos' && userInfo" 
         :mid="userInfo.mid" 
+        :name="userInfo.name"
+        :cover="userInfo.face"
         v-model:loadMore="loadMore"
       />
 

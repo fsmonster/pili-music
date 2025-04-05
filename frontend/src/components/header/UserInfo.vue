@@ -1,5 +1,5 @@
 <template>
-  <div class="user-info">
+  <div class="user-info" @click="goToUserPage">
     <el-dropdown v-if="userStore.isLoggedIn">
       <div class="user-avatar">
         <img :src="avatar + '@70w'" :alt="userStore.username" />
@@ -8,7 +8,7 @@
 
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item @click="handleLogout">
+          <el-dropdown-item @click.stop="handleLogout">
             <i class="ri-logout-box-line"></i>
             退出登录
           </el-dropdown-item>
@@ -28,7 +28,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user/user';
-import defaultAvatar from '@/assets/image/default_avatar.png';
+import defaultAvatar from '@/assets/image/default_avatar.avif';
 
 // 路由
 const router = useRouter();
@@ -37,11 +37,19 @@ const router = useRouter();
 const userStore = useUserStore();
 
 // 计算用户头像
-const avatar = computed(() => userStore.avatar || 'https://i0.hdslb.com/bfs/face/member/noface.jpg');
+const avatar = computed(() => userStore.avatar || defaultAvatar);
 
 // 处理登录
 const handleLogin = () => {
   router.push('/login');
+};
+
+// 跳转到用户页面
+const goToUserPage = () => {
+  router.push({
+    name: 'user',
+    params: { mid: userStore.mid }
+  });
 };
 
 // 处理登出

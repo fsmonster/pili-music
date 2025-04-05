@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, onUnmounted, onMounted, watch } from 'vue';
+import { ref, onUnmounted, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { Loading } from '@element-plus/icons-vue';
@@ -57,9 +57,10 @@ import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import MediaList from '../components/songList/MediaList.vue';
-import {useSeriesStore,useSeriesContentStore, usePlayerStore, useQueueStore } from '../stores';
+import {useSeriesStore,useSeriesContentStore, usePlayerStore, useQueueStore, useRecentlyStore } from '../stores';
+import { CollectionType } from '../types';
 import type { MediaItem, SeriesMeta } from '@/types';
-import { getSeriesCover, getSeriesMeta } from '@/api';
+import { getSeriesMeta } from '@/api';
 
 // 路由参数
 const route = useRoute();
@@ -71,6 +72,7 @@ const seriesStore = useSeriesStore();
 const seriesContentStore = useSeriesContentStore();
 const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
+const recentlyStore = useRecentlyStore();
 
 // 状态
 const loading = ref(false);
@@ -119,23 +121,42 @@ const loadContent = async () => {
   }
 };
 
+/**
+ * @desc 播放媒体列表
+ * @param queue 媒体列表
+ * @param total 总数
+ * @param currentTrack 当前播放项
+ */
+function playMedia(queue: MediaItem[], total: number, currentTrack?: MediaItem) {
+  queueStore.setQueue(queue);
+  queueStore.total = total;
+
+  if (currentTrack) {
+    queueStore.setCurrentTrack(currentTrack);
+  } else {
+    queueStore.setCurrentIndex(0);
+  }
+
+  playerStore.replay();
+
+  recentlyStore.addRecentCollection({
+    type: CollectionType.Series,
+    id: seriesMeta.value?.id ?? 0,
+    name: seriesMeta.value?.name ?? '',
+    cover: medias.value[0].cover ?? ''
+  });
+}
+
 // 播放全部
 const handlePlayAll = () => {
   if (medias.value.length === 0) return;
   
-  // 设置播放队列
-  queueStore.setQueue(medias.value);
-  queueStore.total = seriesMeta.value?.total ?? 0;
-  playerStore.replay();
+  playMedia(medias.value, seriesMeta.value?.total ?? 0);
 };
 
 // 播放单曲
 const handlePlay = (item: MediaItem) => {
-  // 设置播放队列
-  queueStore.setQueue(medias.value);
-  queueStore.total = seriesMeta.value?.total ?? 0;
-  queueStore.setCurrentTrack(item);
-  playerStore.replay();
+  playMedia([item], seriesMeta.value?.total ?? 0, item);
 };
 
 // 排序处理

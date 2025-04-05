@@ -1,5 +1,5 @@
 <template>
-  <div class="logo" @click="handleClick">
+  <div class="logo" @click="$emit('goToHome')">
     <i class="ri-bilibili-fill"></i>
     <span>哔哩音乐 (｡･∀･)ﾉﾞ</span>
   </div>
@@ -7,9 +7,7 @@
 
 <script setup lang="ts">
 // Logo 组件，显示应用程序的标志
-const handleClick = () => {
-  window.location.href = '/';
-};
+defineEmits<{ (e: 'goToHome'): void }>();
 </script>
 
 <style lang="scss" scoped>

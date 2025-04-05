@@ -151,6 +151,7 @@ const goToUserPage = (mid: number) => {
         color: #fff;
         font-size: 12px;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        gap: 10px;
         
         span {
           display: flex;

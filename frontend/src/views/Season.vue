@@ -57,11 +57,12 @@
 import { useRoute } from 'vue-router';
 import { ref, onMounted, onUnmounted, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useSeasonStore, useSeasonContentStore, usePlayerStore, useQueueStore } from '../stores';
+import { useSeasonStore, useSeasonContentStore, usePlayerStore, useQueueStore, useRecentlyStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
+import { CollectionType } from '@/types';
 import type { MediaItem } from '../types';
 import MediaList from '../components/songList/MediaList.vue';
 import { getSeasonCover } from '@/api/season';
@@ -71,6 +72,7 @@ const playerStore = usePlayerStore();
 const queueStore = useQueueStore();
 const seasonStore = useSeasonStore();
 const seasonContentStore = useSeasonContentStore();
+const recentlyStore = useRecentlyStore();
 
 const { id } = route.params;
 
@@ -86,13 +88,37 @@ async function loadContent() {
 }
 
 /**
+ * @desc 播放媒体列表
+ * @param queue 媒体列表
+ * @param total 总数
+ * @param currentTrack 当前播放项
+ */
+ function playMedia(queue: MediaItem[], total: number, currentTrack?: MediaItem) {
+  queueStore.setQueue(queue);
+  queueStore.total = total;
+
+  if (currentTrack) {
+    queueStore.setCurrentTrack(currentTrack);
+  } else {
+    queueStore.setCurrentIndex(0);
+  }
+
+  playerStore.replay();
+
+  recentlyStore.addRecentCollection({
+    type: CollectionType.Season,
+    id: info.value?.id ?? 0,
+    name: info.value?.title ?? '',
+    cover: medias.value[0]?.cover ?? ''
+  });
+}
+
+/**
  * @desc 播放全部
  */
 function handlePlayAll() {
   if (medias.value.length > 0) {
-    queueStore.setQueue(medias.value);
-    queueStore.total = info.value?.media_count ?? 0;
-    playerStore.replay();
+    playMedia(medias.value, info.value?.media_count ?? 0);
   }
 }
 
@@ -100,10 +126,7 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  queueStore.setQueue(medias.value);
-  queueStore.total = info.value?.media_count ?? 0;
-  queueStore.setCurrentTrack(item);
-  playerStore.replay();
+  playMedia([item], info.value?.media_count ?? 0, item);
 }
 
 /**
