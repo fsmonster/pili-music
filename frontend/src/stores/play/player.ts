@@ -1,13 +1,21 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import { useQueueStore, useMultiPageQueueStore, useCurrentTrackStore } from './index';
-import type { MediaItem } from '../../types';
+import { 
+  useQueueStore, 
+  useMultiPageQueueStore, 
+  useCurrentTrackStore, 
+  useLazyLoadStore,
+  useRecentlyStore
+} from '../index';
+import type { PlayMediaOptions } from '../../types';
 
 export const usePlayerStore = defineStore('player', () => {
   // 获取播放列表存储
   const queueStore = useQueueStore();
   const multiPageQueueStore = useMultiPageQueueStore();
   const currentTrackStore = useCurrentTrackStore();
+  const lazyLoadStore = useLazyLoadStore();
+  const recentlyStore = useRecentlyStore();
   
   const activeAudioUrl = computed(() => {
     return multiPageQueueStore.isSetMultiPageList ? multiPageQueueStore.audioUrl : currentTrackStore.audioUrl;
@@ -153,39 +161,32 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   /**
-   * 播放单个媒体项
-   * @param item 要播放的媒体项
-   */
-  function playMedia(item: MediaItem) {
-    // 重置队列
-    queueStore.setQueue([item]);
-    queueStore.total = 1;
-    queueStore.currentIndex = 0;
-    // 设置当前播放项
-    currentTrackStore.currentTrack = item;
-    // 播放
-    replay();
-  }
+ * @desc 播放媒体列表
+ * @param options 播放选项
+ */
+function playMedia(options: PlayMediaOptions) {
+  const { queue, total, currentTrack, collection, lazyParams } = options;
 
-  /**
-   * 播放媒体列表
-   * @param items 要播放的媒体列表
-   * @param startIndex 开始播放的索引，默认为0
-   */
-  function playMediaList(items: MediaItem[], startIndex: number = 0) {
-    if (!items || items.length === 0) return;
-    
-    // 设置播放队列
-    queueStore.setQueue(items);
-    queueStore.total = items.length;
-    // 设置当前索引
-    queueStore.setCurrentIndex(startIndex);
-    // 设置当前播放项
-    currentTrackStore.currentTrack = items[startIndex];
-    // 播放
+  queueStore.setQueue(queue);
+    queueStore.total = total;
+  
+    if (currentTrack) {
+      queueStore.setCurrentTrack(currentTrack);
+    } else {
+      queueStore.setCurrentIndex(0);
+    }
+  
     replay();
+  
+    if (collection) {
+      recentlyStore.addRecentCollection(collection);
+    }
+  
+    if (lazyParams) {
+      lazyLoadStore.set(lazyParams);
+    }
   }
-
+  
   // 监听 activeAudioUrl 变化，当它有值时播放
   watch(() => activeAudioUrl.value, (newUrl) => {
     if (newUrl) {
@@ -217,7 +218,6 @@ export const usePlayerStore = defineStore('player', () => {
     setVolume,
     switchToPage,
     playMedia,
-    playMediaList,
   };
 }, { 
   persist: true

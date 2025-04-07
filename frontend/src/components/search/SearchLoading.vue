@@ -10,6 +10,6 @@
 
 <style lang="scss" scoped>
 .loading-container {
-  width: 100%;
+  padding: 20px;
 }
 </style>

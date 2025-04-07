@@ -6,7 +6,12 @@
   >
     <div class="queue-header">
       <div class="queue-tabs">
-        <div 
+        <TabsWithUnderline 
+          :tabs="tabs" 
+          font-size="14px"
+          v-model:activeTab="activeTab"
+        />
+        <!-- <div 
           class="tab-item" 
           :class="{ 'active': activeTab === 'queue' }"
           @click="activeTab = 'queue'"
@@ -20,7 +25,7 @@
           @click="activeTab = 'multiPage'"
         >
           分P列表 ({{ multiPageQueueStore.total }})
-        </div>
+        </div> -->
       </div>
       <div class="queue-actions">
         <i class="ri-close-line" @click="queueStore.togglePopup()"></i>
@@ -40,14 +45,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
 import { useQueueStore, useMultiPageQueueStore } from '@/stores';
 import QueueList from './QueueList.vue';
 import MultiPageList from './MultiPageList.vue';
+import { TabsWithUnderline } from '../common';
 
 // 获取状态管理
 const queueStore = useQueueStore();
 const multiPageQueueStore = useMultiPageQueueStore();
+
+// 
+const tabs = computed(() => {
+  if (multiPageQueueStore.isSetMultiPageList) {
+    return [
+      { label: `播放队列 (${queueStore.total})`, value: 'queue' },
+      { label: `分P列表 (${multiPageQueueStore.total})`, value: 'multiPage' }
+    ];
+  }
+  return [
+    { label: `播放队列 (${queueStore.total})`, value: 'queue' }
+  ];
+});
 
 // 当前激活的标签页
 const activeTab = ref('queue');
@@ -117,25 +136,6 @@ onUnmounted(() => {
   .queue-tabs {
     display: flex;
     gap: 16px;
-    
-    .tab-item {
-      font-size: 15px;
-      cursor: pointer;
-      color: var(--el-text-color-secondary);
-      padding-bottom: 4px;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-      
-      &:hover {
-        color: var(--el-text-color-primary);
-      }
-      
-      &.active {
-        color: var(--el-color-primary);
-        border-bottom-color: var(--el-color-primary);
-        font-weight: 500;
-      }
-    }
   }
   
   .queue-actions {

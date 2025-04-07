@@ -7,12 +7,16 @@
       </div>
       <!-- 折叠/展开按钮 -->
       <div class="collapse-btn" @click="toggleCollapse">
-        <i :class="isCollapsed ? 'ri-menu-unfold-line is-collapsed' : 'ri-menu-fold-line'"></i>
+        <i 
+          class="ri-arrow-left-circle-line"
+          :class="isCollapsed ? 'is-collapsed' : ''"
+        ></i>
       </div>
     </div>
 
     <div class="filter-container" v-if="!isCollapsed">
-      <SidebarFilter @filter-change="handleFilterChange" />
+      <SidebarFilter 
+        v-model="activeFilter" />
     </div>
 
     <div class="collections-list" v-if="filteredCollections.length > 0">
@@ -30,34 +34,30 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRecentlyStore } from '@/stores';
-import { CollectionType } from '@/types';
+import { CollectionType, Filter } from '@/types';
 import SidebarFilter from './SidebarFilter.vue';
 import CollectionItem from './CollectionItem.vue';
+import { storeToRefs } from 'pinia';
 
 // 获取最近播放记录
 const recentlyStore = useRecentlyStore();
 
 // 是否折叠
-const isCollapsed = defineModel('is-collapsed', { type: Boolean, default: false });
+const isCollapsed = defineModel('is-collapsed', { type: Boolean });
 
 // 当前筛选类型
-const currentFilter = ref('all');
+const { activeFilter } = storeToRefs(recentlyStore);
 
 // 切换折叠状态
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
 };
 
-// 处理筛选变更
-const handleFilterChange = (filter: string) => {
-  currentFilter.value = filter;
-};
-
 // 根据筛选条件过滤收藏夹
 const filteredCollections = computed(() => {
-  if (currentFilter.value === 'all') {
+  if (activeFilter.value === Filter.All) {
     return recentlyStore.recent;
-  } else if (currentFilter.value === 'up') {
+  } else if (activeFilter.value === Filter.Up) {
     return recentlyStore.recent.filter(item => item.type === CollectionType.UP);
   } else {
     // 筛选歌单类型（非UP主）
@@ -82,15 +82,13 @@ const filteredCollections = computed(() => {
 
     .title {
       display: flex;
-      align-items: center;
       gap: 5px;
       width: 100%;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 500;
-      transition: all 0.3s ease;
 
       i {
-        font-size: 16px;
+        font-size: 18px;
         color: $primary-color;
       }
 
@@ -109,12 +107,13 @@ const filteredCollections = computed(() => {
       cursor: pointer;
 
       i {
-        font-size: 18px;
+        font-size: 20px;
         color: $text-color-secondary;
-        transition: all 0.3s ease;
+        transition: all 0.5s ease;
 
         &.is-collapsed {
-          font-size: 23px;
+          font-size: 26px;
+          transform: rotate(180deg);
         }
 
         &:hover {

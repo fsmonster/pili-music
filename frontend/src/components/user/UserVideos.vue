@@ -65,8 +65,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { ElSkeleton, ElEmpty, ElMessage } from 'element-plus';
 import { searchVideoByKeywords } from '@/api/user';
 import { CollectionType } from '@/types';
-import type { Archive, MediaItem } from '@/types';
-import { useQueueStore, usePlayerStore, useLazyLoadStore, useRecentlyStore } from '@/stores';
+import type { Archive, MediaItem, UPInfo } from '@/types';
+import { usePlayerStore, useLazyLoadStore } from '@/stores';
 import { processResourceUrl, 
     formatDuration, 
     formatCount, 
@@ -76,11 +76,17 @@ import { processResourceUrl,
 
 // 定义组件属性
 const props = defineProps<{
-    mid: number;
-    name: string;
-    cover: string;
+    userInfo: UPInfo;
     loadMore: boolean;
 }>();
+
+const upInfo = computed(() => {
+    return {
+        mid: Number(props.userInfo.mid),
+        name: props.userInfo.name,
+        face: props.userInfo.face
+    };
+});
 
 const emit = defineEmits<{
     (e: 'update:loadMore', value: boolean): void;
@@ -92,10 +98,8 @@ const enum Order {
     View = 'view'
 }
 
-const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
 const lazyLoadStore = useLazyLoadStore();
-const recentlyStore = useRecentlyStore();
 
 // 视频列表数据
 const archives = ref<Archive[]>([]);
@@ -129,7 +133,7 @@ const fetchUserVideos = async (isLoadMore = false) => {
         
         // 调用 API 获取数据
         const response = await searchVideoByKeywords({
-            mid: props.mid,
+            mid: upInfo.value.mid,
             keywords: '',
             order: order.value,
             pn: pn.value,
@@ -165,46 +169,46 @@ const loadMore = async () => {
     await fetchUserVideos(true);
 };
 
-// 设置懒加载参数
-const setLazyParams = () => {
-    lazyLoadStore.set({ type: 'home', id: props.mid});
-};
-
 /**
- * @desc 播放媒体列表
- * @param queue 媒体列表
- * @param total 总数
- * @param currentTrack 当前播放项
+ * @desc 构建播放选项
  */
-function playMedia(queue: MediaItem[], total: number, currentTrack?: MediaItem) {
-  queueStore.setQueue(queue);
-  queueStore.total = total;
+function buildPlayOptionsPartial() {
+  const id = upInfo.value.mid;
+  const title = upInfo.value.name;
+  const cover = upInfo.value.face;
 
-  if (currentTrack) {
-    queueStore.setCurrentTrack(currentTrack);
-  } else {
-    queueStore.setCurrentIndex(0);
-  }
-
-  playerStore.replay();
-
-  recentlyStore.addRecentCollection({
-    type: CollectionType.UP,
-    id: props.mid,
-    name: props.name,
-    cover: props.cover
-  });
-
-  setLazyParams();
+  return {
+    collection: {
+      type: CollectionType.UP,
+      id,
+      name: title,
+      cover
+    },
+    lazyParams: {
+      type: CollectionType.UP,
+      id,
+      pn: 1
+    }
+  };
 }
 
 // 播放全部
 const playAllVideos = () => {
-    playMedia(medias.value, total.value);
+    playerStore.playMedia({
+      queue: medias.value,
+      total: total.value,
+      ...buildPlayOptionsPartial()
+    });
 };
 
+// 播放单曲
 const playVideo = (item: MediaItem) => {
-    playMedia(medias.value, total.value, item);
+    playerStore.playMedia({
+      queue: medias.value,
+      total: total.value,
+      currentTrack: item,
+      ...buildPlayOptionsPartial()
+    });
 };
 
 const sortVideos = (newOrder: Order) => {
@@ -223,15 +227,22 @@ watch(() => props.loadMore, () => {
     }
 });
 
+// 监听UP主ID变化
+watch(() => upInfo.value, () => {
+    if (upInfo.value) {
+        fetchUserVideos();
+    }
+});
+
 // 组件挂载时获取视频
 onMounted(() => {
-    if (props.mid) {
+    if (upInfo.value.mid) {
         fetchUserVideos();
     }
 });
 
 onUnmounted(() => {
-   setLazyParams();
+   lazyLoadStore.set({ type: CollectionType.UP, id: upInfo.value.mid});
 });
 </script>
 

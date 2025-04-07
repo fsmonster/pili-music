@@ -55,7 +55,11 @@ const handleItemClick = (item: SearchVideoResult) => {
     };
     
     // 使用 playMediaList 方法播放单个视频
-    playerStore.playMedia(mediaItem);
+    playerStore.playMedia({
+      queue: [mediaItem],
+      total: 1,
+      currentTrack: mediaItem,
+    });
   }
 };
 </script>

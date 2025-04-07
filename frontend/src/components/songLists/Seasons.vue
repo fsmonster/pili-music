@@ -69,28 +69,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { storeToRefs } from 'pinia';
 import ContentSection from './ContentSection.vue';
-import { useUserStore, useSeasonStore, useSeasonContentStore, useQueueStore, usePlayerStore, useLazyLoadStore } from '@/stores';
+import { useUserStore, useSeasonStore, useSeasonContentStore, usePlayerStore, useLazyLoadStore } from '@/stores';
 import { processResourceUrl } from '@/utils';
-import type { SeasonList } from '@/types';
-import { getSeasonCover } from '@/api';
 
 const router = useRouter();
 const seasonStore = useSeasonStore();
 const seasonContentStore = useSeasonContentStore();
 const userStore = useUserStore();
-const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
 const lazyLoad = useLazyLoadStore();
 
 // 对话框显示状态
 const showManageDialog = ref(false);
 // 选中的合集ID列表
-const checkedSeasons = ref<number[]>([]);
+const checkedSeasons = ref<number[]>([4730322,295263]);
 
 // 选中的订阅合集内容
 const { medias } = storeToRefs(seasonContentStore);
@@ -108,10 +105,11 @@ const playSeason = async (id: number) => {
     // 完整加载订阅合集内容
     await seasonContentStore.fetchAllSeasonContent(Number(id));
     if (medias.value.length > 0) {
-      queueStore.setQueue(medias.value);
-      queueStore.total = seasonContentStore.medias.length;
-      queueStore.setCurrentIndex(0);
-      playerStore.replay();
+      playerStore.playMedia({
+        queue: medias.value,
+        total: medias.value.length,
+        currentTrack: medias.value[0],
+      });
     }
   } catch (error) {
     console.error('播放订阅合集失败:', error);

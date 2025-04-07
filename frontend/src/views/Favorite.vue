@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import Layout from '../layout/Layout.vue';
 import MediaList from '../components/songList/MediaList.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
@@ -60,19 +60,13 @@ import { storeToRefs } from 'pinia';
 import { 
   useFavoriteContentStore, 
   usePlayerStore, 
-  useQueueStore, 
-  useLazyLoadStore,
-  useRecentlyStore
+  useLazyLoadStore
 } from '../stores';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
-const queueStore = useQueueStore();
 const favoriteContentStore = useFavoriteContentStore();
 const lazyLoad = useLazyLoadStore();
-const recentlyStore = useRecentlyStore();
-
-const { id } = route.params;
 
 // 当前收藏夹信息
 const currentInfo = ref<FavoriteInfo | null>(null);
@@ -95,13 +89,16 @@ const scrollLock = ref(false);
 // 防抖定时器
 let scrollTimer: number | null = null;
 
+// 计算属性
+const id = computed(() => route.params.id);
+
 // 加载收藏夹信息
 const loadInfo = async () => {
-  if (!id) return;
+  if (!id.value) return;
   
   // 获取收藏夹信息
   try {
-    const favoriteInfo: FavoriteInfo = await favoriteApi.getFavoriteInfo(Number(id));
+    const favoriteInfo: FavoriteInfo = await favoriteApi.getFavoriteInfo(Number(id.value));
     currentInfo.value = favoriteInfo;
   } catch (error) {
     console.error('获取收藏夹信息失败:', error);
@@ -110,9 +107,9 @@ const loadInfo = async () => {
 
 // 加载内容
 async function loadContent() {  
-  if (!id) return;
+  if (!id.value) return;
   // 加载收藏夹内容
-  const firstPageData = await favoriteContentStore.fetchFavoriteContent(Number(id));
+  const firstPageData = await favoriteContentStore.fetchFavoriteContent(Number(id.value));
   initialData.value = firstPageData || [];
 }
 
@@ -126,7 +123,7 @@ const loadMore = async () => {
   const scrollPosition = playlistScroll.value ? playlistScroll.value.scrollTop : 0;
   
   const currentLength = medias.value.length;
-  const newData = await favoriteContentStore.fetchFavoriteContent(Number(id));
+  const newData = await favoriteContentStore.fetchFavoriteContent(Number(id.value));
   
   // 如果有新数据并且 MediaList 组件已挂载，使用 updateData 方法更新
   if (mediaListRef.value && newData && newData.length > 0) {
@@ -172,31 +169,25 @@ function debouncedScroll() {
 }
 
 /**
- * @desc 播放媒体列表
- * @param queue 媒体列表
- * @param total 总数
- * @param currentTrack 当前播放项
+ * @desc 构建播放选项
  */
-function playMedia(queue: MediaItem[], total: number, currentTrack?: MediaItem) {
-  queueStore.setQueue(queue);
-  queueStore.total = total;
+function buildPlayOptionsPartial() {
+  const id = currentInfo.value?.id ?? 0;
+  const title = currentInfo.value?.title ?? '';
+  const cover = currentInfo.value?.cover ?? '';
 
-  if (currentTrack) {
-    queueStore.setCurrentTrack(currentTrack);
-  } else {
-    queueStore.setCurrentIndex(0);
-  }
-
-  playerStore.replay();
-
-  recentlyStore.addRecentCollection({
-    type: CollectionType.Favorite,
-    id: currentInfo.value?.id ?? 0,
-    name: currentInfo.value?.title ?? '',
-    cover: currentInfo.value?.cover ?? ''
-  });
-
-  setLazyParams();
+  return {
+    collection: {
+      type: CollectionType.Favorite,
+      id,
+      name: title,
+      cover
+    },
+    lazyParams: {
+      type: CollectionType.Favorite,
+      id,
+    }
+  };
 }
 
 /**
@@ -204,7 +195,11 @@ function playMedia(queue: MediaItem[], total: number, currentTrack?: MediaItem) 
  */
 function handlePlayAll() {
   if (medias.value.length > 0) {
-    playMedia(medias.value, currentInfo.value?.media_count ?? 0);
+    playerStore.playMedia({
+      queue: medias.value,
+      total: currentInfo.value?.media_count ?? 0,
+      ...buildPlayOptionsPartial()
+    });
   }
 }
 
@@ -212,21 +207,28 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  playMedia(medias.value, currentInfo.value?.media_count ?? 0, item);
+  playerStore.playMedia({
+    queue: medias.value,
+    total: currentInfo.value?.media_count ?? 0,
+    currentTrack: item,
+    ...buildPlayOptionsPartial()
+  });
 }
 
 /**
- * @desc 设置懒加载参数
+ * @desc 移除内容
  */
-function setLazyParams() {
-  lazyLoad.set({ type: 'favorite', id: currentInfo.value?.id ?? 0 });
-  lazyLoad.pn = favoriteContentStore.page;
+function removeContent() {
+  favoriteContentStore.reset();
 }
 
-onMounted(() => {
+watch(() => id.value, () => {
+  removeContent();
   loadInfo();
   loadContent();
-  
+}, { immediate: true });
+
+onMounted(() => {
   // 添加滚动事件监听
   if (playlistScroll.value) {
     playlistScroll.value.addEventListener('scroll', debouncedScroll);

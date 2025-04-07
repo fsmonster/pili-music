@@ -39,7 +39,8 @@
           @click.stop="handleVideoClick(video)"
         >
           <div class="video-cover">
-            <img :src="processResourceUrl('https:' + video.pic) + '@160w_100h'" :alt="video.title" loading="lazy">
+            <img :src="processResourceUrl('https:' + video.pic) + '@100h'" 
+            :alt="video.title" loading="lazy">
             <span class="video-duration">{{ formatDuration(video.duration) }}</span>
           </div>
           <div class="video-name" :title="removeHtmlTags(video.title)" v-html="video.title"></div>

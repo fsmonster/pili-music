@@ -1,20 +1,21 @@
 <template>
   <div class="search-header">
     <!-- 主筛选栏：视频、用户 -->
-    <div class="filter-row primary-filter">
-      <div v-for="type in searchTypes" :key="type.value"
-        :class="['filter-item', { active: currentType === type.value }]" @click="handleTypeChange(type.value)">
-        {{ type.label }}
-      </div>
+    <div class="primary-filter">
+      <TabsWithUnderline 
+        :tabs="searchTypes" 
+        v-model:activeTab="currentType" 
+      />
     </div>
 
     <!-- 分割线 -->
     <div class="divider"></div>
 
     <!-- 次筛选栏：根据所选类型显示不同的排序选项 -->
-    <div class="filter-row secondary-filter">
+    <div class="secondary-filter">
       <div v-for="order in currentOrderOptions" :key="order.value"
-        :class="['filter-item', { active: currentOrder === order.value }]" @click="handleOrderChange(order.value)">
+        :class="['filter-item', { active: currentOrder === order.value }]" 
+        @click="handleOrderChange(order.value)">
         {{ order.label }}
       </div>
     </div>
@@ -22,31 +23,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { VideoSearchOrder, UserSearchOrder } from '@/types';
-
-// 定义属性
-defineProps<{
-  keyword: string;
-  totalResults: number;
-}>();
+import { ref, computed, watch } from 'vue';
+import { TabsWithUnderline } from '../common';
+import { VideoSearchOrder, UserSearchOrder, SearchType } from '@/types';
 
 // 定义事件
 const emit = defineEmits<{
-  (e: 'filter-change', type: string, order: string): void;
+  (e: 'filter-change', type: SearchType, order: VideoSearchOrder | UserSearchOrder): void;
 }>();
 
 // 搜索类型选项
 const searchTypes = [
-  { label: '视频', value: 'video' },
-  { label: '用户', value: 'user' }
+  { label: '视频', value: SearchType.Video },
+  { label: '用户', value: SearchType.User }
 ];
 
 // 当前选中的搜索类型
-const currentType = ref<string>('video');
+const currentType = defineModel<SearchType>('searchType', { default: SearchType.Video });
+
+const videoOrder = ref<VideoSearchOrder>(VideoSearchOrder.TotalRank);
+const userOrder = ref<UserSearchOrder>(UserSearchOrder.Default);
 
 // 当前选中的排序方式
-const currentOrder = ref<string>(VideoSearchOrder.TotalRank);
+const currentOrder = computed(() => {
+  return currentType.value === SearchType.Video ? videoOrder.value : userOrder.value;
+});
 
 // 视频排序选项
 const videoOrderOptions = [
@@ -71,21 +72,29 @@ const currentOrderOptions = computed(() => {
 });
 
 // 处理搜索类型变更
-const handleTypeChange = (type: string) => {
+const handleTypeChange = (type: SearchType) => {
   currentType.value = type;
   // 切换类型时，重置为该类型的默认排序方式
-  if (type === 'video') {
-    currentOrder.value = VideoSearchOrder.TotalRank;
+  if (type === SearchType.Video) {
+    videoOrder.value = VideoSearchOrder.TotalRank;
   } else {
-    currentOrder.value = UserSearchOrder.Default;
+    userOrder.value = UserSearchOrder.Default;
   }
   // 触发筛选变更事件
   emit('filter-change', currentType.value, currentOrder.value);
 };
 
+watch(currentType, () => {
+  handleTypeChange(currentType.value);
+});
+
 // 处理排序方式变更
-const handleOrderChange = (order: string) => {
-  currentOrder.value = order;
+const handleOrderChange = (order: VideoSearchOrder | UserSearchOrder) => {
+  if (currentType.value === SearchType.Video) {
+    videoOrder.value = order as VideoSearchOrder;
+  } else {
+    userOrder.value = order as UserSearchOrder;
+  }
   // 触发筛选变更事件
   emit('filter-change', currentType.value, currentOrder.value);
 };
@@ -107,55 +116,39 @@ const handleOrderChange = (order: string) => {
     font-size: 14px;
   }
 
-  .filter-row {
+  .primary-filter {
     display: flex;
     padding: 0 4%;
     margin-bottom: 2px;
+  }
 
-    &.primary-filter {
-      .filter-item {
-        padding: 8px 16px;
-        margin-right: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        border-radius: 4px 4px 0 0;
-        transition: all 0.2s ease;
+  .secondary-filter {
+    display: flex;
+    padding: 0 4%;
+    margin-bottom: 2px;
+    margin-top: 8px;
 
-        &:hover {
-          color: $primary-color;
-        }
+    .filter-item {
+      padding: 5px 14px;
+      margin-right: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      border-radius: 16px;
+      background-color: $background-color;
+      transition: all 0.2s ease;
 
-        &.active {
-          color: $primary-color;
-          border-bottom: 4px solid $primary-color;
-          font-weight: 500;
-        }
+      &:hover {
+        background-color: $background-color-hover;
       }
-    }
 
-    &.secondary-filter {
-      margin-top: 8px;
-      .filter-item {
-        padding: 5px 14px;
-        margin-right: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        border-radius: 16px;
-        background-color: $background-color;
-        transition: all 0.2s ease;
-
-        &:hover {
-          background-color: $background-color-hover;
-        }
-
-        &.active {
-          color: #fff;
-          background-color: $primary-secondary-color;
-          font-weight: 500;
-        }
+      &.active {
+        color: #fff;
+        background-color: $primary-secondary-color;
+        font-weight: 500;
       }
     }
   }
+
 
   .divider {
     border: 1px solid $border-secondary-color;

@@ -8,6 +8,43 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface UPInfo {
+  mid: number;
+  name: string;
+  face: string;
+}
+
+// 媒体类型
+export enum CollectionType {
+  Favorite = 'favorite',
+  Season = 'season',
+  Series = 'series',
+  UP = 'up'
+}
+
+// 懒加载参数
+export interface LazyParams {
+  type: CollectionType;
+  id: number;
+  pn?: number;
+}
+
+export interface Collection {
+  type: CollectionType;
+  id: number;
+  name: string;
+  cover: string;
+}
+
+// 播放媒体列表选项
+export interface PlayMediaOptions {
+  queue: MediaItem[];
+  total: number;
+  currentTrack?: MediaItem
+  collection?: Collection;
+  lazyParams?: LazyParams;
+}
+
 export interface MediaItem {
   /**
  * 内容id，视频稿件：视频稿件avid

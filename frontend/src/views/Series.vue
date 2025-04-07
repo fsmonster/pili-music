@@ -8,7 +8,7 @@
             v-if="seriesMeta"
             :mid="seriesMeta.mid"
             :title="seriesMeta.name"
-            :cover="medias[0].cover"
+            :cover="medias[0]?.cover || ''"
             :count="seriesMeta.total"
           />
 
@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, onUnmounted, onMounted } from 'vue';
+import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { Loading } from '@element-plus/icons-vue';
@@ -57,22 +57,20 @@ import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import MediaList from '../components/songList/MediaList.vue';
-import {useSeriesStore,useSeriesContentStore, usePlayerStore, useQueueStore, useRecentlyStore } from '../stores';
+import {useSeriesStore,useSeriesContentStore, usePlayerStore } from '../stores';
 import { CollectionType } from '../types';
 import type { MediaItem, SeriesMeta } from '@/types';
 import { getSeriesMeta } from '@/api';
 
 // 路由参数
 const route = useRoute();
-// const seriesId = computed(() => Number(route.params.id));
-const { id } = route.params;
+
+const id = computed(() => route.params.id);
 
 // Store
 const seriesStore = useSeriesStore();
 const seriesContentStore = useSeriesContentStore();
 const playerStore = usePlayerStore();
-const queueStore = useQueueStore();
-const recentlyStore = useRecentlyStore();
 
 // 状态
 const loading = ref(false);
@@ -83,14 +81,14 @@ const { medias } = storeToRefs(seriesContentStore);
 
 // 加载信息
 const loadInfo = async () => {
-  if (!id) return;
+  if (!id.value) return;
   try {
-    const existingInfo = seriesStore.series.find(s => s.series_id === Number(id));
+    const existingInfo = seriesStore.series.find(s => s.series_id === Number(id.value));
     if (existingInfo) {
       seriesMeta.value = existingInfo;
     } else {
       // 获取系列信息
-      const seriesInfo = await getSeriesMeta(Number(id));
+      const seriesInfo = await getSeriesMeta(Number(id.value));
       seriesMeta.value = seriesInfo;
     }
   } catch (error) {
@@ -101,7 +99,7 @@ const loadInfo = async () => {
 
 // 加载内容
 const loadContent = async () => {
-  if (!id) return;
+  if (!id.value) return;
   
   try {
     loading.value = true;
@@ -109,7 +107,7 @@ const loadContent = async () => {
     // 获取系列内容
     const mid = seriesMeta.value?.mid;
     if (mid) {
-      await seriesContentStore.fetchSeriesArchives(Number(id), mid);
+      await seriesContentStore.fetchSeriesArchives(Number(id.value), mid);
     } else {
       ElMessage.error('获取系列内容失败');
     }
@@ -122,41 +120,42 @@ const loadContent = async () => {
 };
 
 /**
- * @desc 播放媒体列表
- * @param queue 媒体列表
- * @param total 总数
- * @param currentTrack 当前播放项
+ * @desc 构建播放选项
  */
-function playMedia(queue: MediaItem[], total: number, currentTrack?: MediaItem) {
-  queueStore.setQueue(queue);
-  queueStore.total = total;
+function buildPlayOptionsPartial() {
+  const id = seriesMeta.value?.series_id ?? 0;
+  const title = seriesMeta.value?.name ?? '';
+  const cover = medias.value[0].cover ?? '';
 
-  if (currentTrack) {
-    queueStore.setCurrentTrack(currentTrack);
-  } else {
-    queueStore.setCurrentIndex(0);
-  }
-
-  playerStore.replay();
-
-  recentlyStore.addRecentCollection({
-    type: CollectionType.Series,
-    id: seriesMeta.value?.id ?? 0,
-    name: seriesMeta.value?.name ?? '',
-    cover: medias.value[0].cover ?? ''
-  });
+  return {
+    collection: {
+      type: CollectionType.Series,
+      id,
+      name: title,
+      cover
+    }
+  };
 }
 
 // 播放全部
 const handlePlayAll = () => {
-  if (medias.value.length === 0) return;
-  
-  playMedia(medias.value, seriesMeta.value?.total ?? 0);
+  if (medias.value.length > 0) {
+    playerStore.playMedia({
+      queue: medias.value,
+      total: seriesMeta.value?.total ?? 0,
+      ...buildPlayOptionsPartial()
+    });
+  }
 };
 
 // 播放单曲
 const handlePlay = (item: MediaItem) => {
-  playMedia([item], seriesMeta.value?.total ?? 0, item);
+  playerStore.playMedia({
+    queue: medias.value,
+    total: seriesMeta.value?.total ?? 0,
+    currentTrack: item,
+    ...buildPlayOptionsPartial()
+  });
 };
 
 // 排序处理
@@ -172,10 +171,16 @@ function removeContent() {
   seriesContentStore.reset();
 }
 
-onMounted(async () => {
+watch(() => id.value, async () => {
+  removeContent();
   await loadInfo();
   await loadContent();
-});
+}, { immediate: true });
+
+// onMounted(async () => {
+//   await loadInfo();
+//   await loadContent();
+// });
 
 onUnmounted(() => {
   removeContent();

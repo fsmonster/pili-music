@@ -1,13 +1,13 @@
-import express, { Request, Response } from 'express';
+import express, { Response } from 'express';
 import axios from 'axios';
-import authMiddleware from '../middleware/auth.js';
+import { optionalAuthMiddleware } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
 import { getHeaders } from '../utils/getHeader.js';
 
 const router = express.Router();
   
 // 应用认证中间件到需要认证的路由
-router.use(authMiddleware);
+router.use(optionalAuthMiddleware);
 
 /**
  * @desc 获取音频流URL
@@ -15,20 +15,13 @@ router.use(authMiddleware);
  * @param {number} avid - 视频avid
  * @param {number} cid - 视频cid
  * @returns {Object} 音频流信息
- * @access Private - 需要JWT认证
+ * @access Optional - 可选鉴权
  */
 router.get('/audio/url', async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.auth) {
-      return res.status(401).json({ 
-        code: 401, 
-        message: '未授权访问' 
-      });
-    }
-    
-    const { sessdata } = req.auth;
-    
+    const sessdata = req.auth?.sessdata;
     const { avid, cid } = req.query;
+
     if (!avid || !cid) {
       return res.status(400).json({ 
         code: 400, 
@@ -36,13 +29,19 @@ router.get('/audio/url', async (req: AuthRequest, res: Response) => {
       });
     }
 
+    const params = {
+      avid,
+      cid,
+      fnval: 16 // 获取DASH格式
+    };
+
+    if (!sessdata) {
+      params['gaia_source'] = 'pre-load'; // 非登录状态
+    }
+
     // 调用B站API获取音频流信息
     const response = await axios.get('https://api.bilibili.com/x/player/playurl', {
-      params: {
-        avid,
-        cid,
-        fnval: 16, // 获取DASH格式
-      },
+      params,
       headers: getHeaders(sessdata)
     });
     

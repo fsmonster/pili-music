@@ -24,9 +24,6 @@
               alt="合集封面" 
               loading="lazy" 
             />
-            <div class="play-button" @click.stop="playSeason(item.meta.season_id)">
-              <i class="ri-play-fill"></i>
-            </div>
           </div>
           <div class="season-info">
             <div class="season-title" :title="item.meta.name">{{ item.meta.name }}</div>
@@ -89,12 +86,6 @@ const goToSeason = (id: number) => {
   router.push(`/season/${id}`);
 };
 
-// 播放合集内容
-const playSeason = (id: number) => {
-  // 实际项目中应该调用播放器播放合集内容
-  console.log('播放合集:', id);
-};
-
 // 组件挂载时获取合集
 onMounted(() => {
   if (props.mid) {
@@ -147,31 +138,6 @@ onMounted(() => {
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-  
-  .play-button {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 48px;
-    height: 48px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s;
-    
-    i {
-      color: white;
-      font-size: 24px;
-    }
-  }
-  
-  &:hover .play-button {
-    opacity: 1;
   }
 }
 

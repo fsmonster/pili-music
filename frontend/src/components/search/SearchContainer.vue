@@ -2,8 +2,7 @@
   <div class="search-container">
     <!-- 搜索头部 -->
     <SearchHeader 
-      :keyword="keyword" 
-      :totalResults="totalResults" 
+      :searchType="searchType"
       @filter-change="handleFilterChange"
     />
 
@@ -27,7 +26,7 @@
         />
         <!-- 用户搜索结果 -->
         <SearchUserResults 
-          v-else-if="searchType === SearchType.User"
+          v-if="searchType === SearchType.User"
           :results="results" 
           v-model:currentPage="currentPage"
           :pageSize="pageSize"
@@ -40,12 +39,10 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { ref, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
-import { search } from '@/api/search';
+import { useSearchStore } from '@/stores';
 import { SearchType, VideoSearchOrder, UserSearchOrder } from '@/types';
-import type { SearchResult } from '@/types';
 
 // 导入子组件
 import SearchHeader from './SearchHeader.vue';
@@ -54,123 +51,45 @@ import SearchUserResults from './SearchUserResults.vue';
 import SearchEmpty from './SearchEmpty.vue';
 import SearchLoading from './SearchLoading.vue';
 
-const route = useRoute();
-const router = useRouter();
+// 搜索 store
+const searchStore = useSearchStore();
 
-// 搜索状态
-const loading = ref(false);
-const keyword = ref('');
-const currentPage = ref(1);
-const pageSize = ref(20);
-const totalResults = ref(0);
-const totalPages = ref(0);
-const results = ref<SearchResult[]>([]);
-const searchType = ref(SearchType.Video);
-const searchOrder = ref<string>(VideoSearchOrder.TotalRank);
+const { keyword, currentPage, pageSize, totalResults, totalPages, results, loading, searchOrder, searchType, searchLock } = storeToRefs(searchStore);
 
-// 从路由参数获取关键词
-const getKeywordFromRoute = () => {
-  const routeKeyword = route.query.keyword as string;
-  if (routeKeyword) {
-    keyword.value = routeKeyword;
-    currentPage.value = Number(route.query.page || 1);
-    // 获取搜索类型和排序方式（如果存在）
-    if (route.query.type) {
-      searchType.value = route.query.type as SearchType;
-    }
-    if (route.query.order) {
-      searchOrder.value = route.query.order as string;
-    }
-    fetchSearchResults();
-  } else {
-    ElMessage.warning('请输入搜索关键词');
-    router.push('/');
-  }
-};
-
-// 获取搜索结果
-const fetchSearchResults = async () => {
-  if (!keyword.value) return;
-
-  loading.value = true;
-  try {
-    const result = await search({
-      keyword: keyword.value,
-      search_type: searchType.value,
-      page: currentPage.value,
-      page_size: pageSize.value,
-      order: searchOrder.value as VideoSearchOrder | UserSearchOrder
-    });
-
-    results.value = result.result;
-    totalResults.value = result.numResults;
-    totalPages.value = result.numPages;
-
-    // 如果没有结果，显示提示
-    if (result.result.length === 0) {
-      ElMessage.info('没有找到相关音乐');
-    }
-  } catch (error) {
-    console.error('搜索失败:', error);
-    ElMessage.error('搜索失败，请稍后再试');
-  } finally {
-    loading.value = false;
-  }
-};
 
 // 处理筛选条件变更
-const handleFilterChange = (type: string, order: string) => {
+const handleFilterChange = (type: SearchType, order: VideoSearchOrder | UserSearchOrder) => {
   // 更新搜索类型和排序方式
-  searchType.value = type === 'video' ? SearchType.Video : SearchType.User;
+  searchType.value = type;
   searchOrder.value = order;
   
   // 重置页码
   currentPage.value = 1;
   
-  // 更新路由参数
-  router.push({
-    query: {
-      ...route.query,
-      type: type,
-      order: order,
-      page: '1'
-    }
-  });
-  
-  // 重新获取搜索结果
-  fetchSearchResults();
-};
-
-// 监听当前页变化
-watch(() => currentPage.value, (newPage) => {
-  // 更新路由参数
-  router.push({
-    query: {
-      ...route.query,
-      page: newPage.toString()
-    }
-  });
   // 滚动到顶部
   window.scrollTo(0, 0);
-  // 重新获取搜索结果
-  fetchSearchResults();
+  searchStore.getSearchResults();
+};
+
+// 处理搜索关键词变化
+watch(() => searchLock.value, () => {
+  currentPage.value = 1;
+  
+  // 滚动到顶部
+  window.scrollTo(0, 0);
+  searchStore.getSearchResults();
+  searchLock.value = true;
 });
 
-// 监听路由变化
-watch(
-  () => route.query.keyword,
-  (newKeyword) => {
-    if (newKeyword && newKeyword !== keyword.value) {
-      keyword.value = newKeyword as string;
-      currentPage.value = 1;
-      fetchSearchResults();
-    }
-  }
-);
+// 监听当前页变化
+watch(() => currentPage.value, () => {
+  // 滚动到顶部
+  window.scrollTo(0, 0);
+  searchStore.getSearchResults();
+});
 
-// 组件挂载时获取搜索结果
 onMounted(() => {
-  getKeywordFromRoute();
+  searchStore.getSearchResults();
 });
 </script>
 

@@ -5,22 +5,23 @@ import {
   searchVideoByKeywords,
 } from '@/api';
 import { convertArchiveToMediaItem } from '@/utils/common';
+import type { CollectionType, LazyParams } from '@/types';
 
 /**
  * @desc 懒加载状态管理
  */
 export const useLazyLoadStore = defineStore('lazyLoad', () => {
   // 状态
-  const type = ref<'favorite' | 'home' | null>(null);
+  const type = ref<CollectionType | null>(null);
   const id = ref(0);
   const pn = ref(1);
   const ps = 40;
 
   // 设置状态
-  const set = (state: { type: 'favorite' | 'home'; id: number }) => {
-    type.value = state.type;
-    id.value = state.id;
-    pn.value = 1;
+  const set = (lazyParams: LazyParams) => {
+    type.value = lazyParams.type;
+    id.value = lazyParams.id;
+    pn.value = lazyParams.pn ?? 1;
   };
 
   // 获取数据

@@ -8,7 +8,7 @@
       :class="{ 'is-up': isUpType }"
     >
       <img 
-        :src="processResourceUrl(item.cover)" 
+        :src="processResourceUrl(item.cover) + '@100h'" 
         :alt="item.name" 
         loading="lazy"
         class="cover-image"
@@ -28,14 +28,14 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { processResourceUrl } from '@/utils';
 import { CollectionType } from '@/types';
-import type { recentlyCollections } from '@/types';
+import type { Collection } from '@/types';
 
 // 定义属性
 const props = defineProps<{
-  item: recentlyCollections;
+  item: Collection;
 }>();
 
-const isCollapsed = defineModel('is-collapsed', { type: Boolean, default: false });
+const isCollapsed = defineModel('is-collapsed', { type: Boolean });
 
 // 路由
 const router = useRouter();
@@ -83,7 +83,6 @@ const handleClick = () => {
 <style lang="scss" scoped>
 .collection-item {
   display: flex;
-  align-items: center;
   gap: 10px;
   cursor: pointer;
   margin-bottom: 10px;
@@ -119,6 +118,9 @@ const handleClick = () => {
   .info {
     display: flex;
     flex-direction: column;
+    min-width: 100px;
+    max-width: 200px;
+    flex: 1;
     gap: 4px;
     
     .type {
@@ -132,9 +134,13 @@ const handleClick = () => {
     .name {
       font-size: 12px;
       color: $text-color;
-      white-space: nowrap;
+      white-space: normal;
       overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
       text-overflow: ellipsis;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
   }
   

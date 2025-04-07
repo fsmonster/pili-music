@@ -29,9 +29,9 @@
             <div v-else class="no-cover">
               <i class="ri-list-check-2"></i>
             </div>
-            <div class="play-button" @click.stop="playSeries(item.meta.series_id)">
+            <!-- <div class="play-button" @click.stop="playSeries(item.meta.series_id)">
               <i class="ri-play-fill"></i>
-            </div>
+            </div> -->
           </div>
           <div class="series-info">
             <div class="series-title" :title="item.meta.name">{{ item.meta.name }}</div>
@@ -92,12 +92,6 @@ const fetchUserSeries = async () => {
 const goToSeries = (id: number) => {
   // 实际项目中应该跳转到系列详情页
   router.push(`/series/${id}`);
-};
-
-// 播放系列内容
-const playSeries = (id: number) => {
-  // 实际项目中应该调用播放器播放系列内容
-  console.log('播放系列:', id);
 };
 
 // 组件挂载时获取系列
@@ -168,30 +162,30 @@ onMounted(() => {
     }
   }
   
-  .play-button {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 48px;
-    height: 48px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s;
+  // .play-button {
+  //   position: absolute;
+  //   top: 50%;
+  //   left: 50%;
+  //   transform: translate(-50%, -50%);
+  //   width: 48px;
+  //   height: 48px;
+  //   background-color: rgba(0, 0, 0, 0.5);
+  //   border-radius: 50%;
+  //   display: flex;
+  //   align-items: center;
+  //   justify-content: center;
+  //   opacity: 0;
+  //   transition: opacity 0.2s;
     
-    i {
-      color: white;
-      font-size: 24px;
-    }
-  }
+  //   i {
+  //     color: white;
+  //     font-size: 24px;
+  //   }
+  // }
   
-  &:hover .play-button {
-    opacity: 1;
-  }
+  // &:hover .play-button {
+  //   opacity: 1;
+  // }
 }
 
 .series-info {

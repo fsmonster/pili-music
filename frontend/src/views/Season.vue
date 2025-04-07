@@ -55,9 +55,9 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, onMounted, onUnmounted, watchEffect } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watchEffect, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useSeasonStore, useSeasonContentStore, usePlayerStore, useQueueStore, useRecentlyStore } from '../stores';
+import { useSeasonStore, useSeasonContentStore, usePlayerStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
@@ -69,48 +69,38 @@ import { getSeasonCover } from '@/api/season';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
-const queueStore = useQueueStore();
 const seasonStore = useSeasonStore();
 const seasonContentStore = useSeasonContentStore();
-const recentlyStore = useRecentlyStore();
-
-const { id } = route.params;
 
 const { info, medias } = storeToRefs(seasonContentStore);
 const coverUrl = ref(""); // 存储最终封面 URL
+
+const id = computed(() => route.params.id);
 
 /**
  * @desc 加载内容
  */
 async function loadContent() {  
-  if (!id) return;
-  await seasonContentStore.fetchAllSeasonContent(Number(id));
+  if (!id.value) return;
+  await seasonContentStore.fetchAllSeasonContent(Number(id.value));
 }
 
 /**
- * @desc 播放媒体列表
- * @param queue 媒体列表
- * @param total 总数
- * @param currentTrack 当前播放项
+ * @desc 构建播放选项
  */
- function playMedia(queue: MediaItem[], total: number, currentTrack?: MediaItem) {
-  queueStore.setQueue(queue);
-  queueStore.total = total;
+function buildPlayOptionsPartial() {
+  const id = info.value?.id ?? 0;
+  const title = info.value?.title ?? '';
+  const cover = medias.value[0]?.cover ?? '';
 
-  if (currentTrack) {
-    queueStore.setCurrentTrack(currentTrack);
-  } else {
-    queueStore.setCurrentIndex(0);
-  }
-
-  playerStore.replay();
-
-  recentlyStore.addRecentCollection({
-    type: CollectionType.Season,
-    id: info.value?.id ?? 0,
-    name: info.value?.title ?? '',
-    cover: medias.value[0]?.cover ?? ''
-  });
+  return {
+    collection: {
+      type: CollectionType.Season,
+      id,
+      name: title,
+      cover
+    }
+  };
 }
 
 /**
@@ -118,7 +108,11 @@ async function loadContent() {
  */
 function handlePlayAll() {
   if (medias.value.length > 0) {
-    playMedia(medias.value, info.value?.media_count ?? 0);
+    playerStore.playMedia({
+      queue: medias.value,
+      total: info.value?.media_count ?? 0,
+      ...buildPlayOptionsPartial()
+    });
   }
 }
 
@@ -126,7 +120,12 @@ function handlePlayAll() {
  * @desc 播放单曲
  */
 function handlePlay(item: MediaItem) {
-  playMedia([item], info.value?.media_count ?? 0, item);
+  playerStore.playMedia({
+    queue: medias.value,
+    total: info.value?.media_count ?? 0,
+    currentTrack: item,
+    ...buildPlayOptionsPartial()
+  });
 }
 
 /**
@@ -145,6 +144,11 @@ function removeContent() {
   seasonContentStore.reset();
 }
 
+watch(() => id.value, () => {
+  removeContent();
+  loadContent();
+}, { immediate: true });
+
 watchEffect(async () => {
   if (!info.value) return; // 避免 info 未初始化时报错
 
@@ -160,9 +164,9 @@ watchEffect(async () => {
   }
 });
 
-onMounted(() => {
-  loadContent();
-});
+// onMounted(() => {
+//   loadContent();
+// });
 
 onUnmounted(() => {
   removeContent();

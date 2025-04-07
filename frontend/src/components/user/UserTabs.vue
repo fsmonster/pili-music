@@ -1,41 +1,34 @@
 <template>
   <div class="content-tabs">
-    <div 
-      v-for="tab in tabs" 
-      :key="tab.id"
-      class="tab-item"
-      :class="{ active: modelValue === tab.id }"
-      @click="$emit('update:modelValue', tab.id)"
-    >
-      <i :class="tab.icon"></i> {{ tab.name }}
-    </div>
+    <TabsWithUnderline
+      :tabs="tabs"
+      v-model:activeTab="activeTab"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { TabsWithUnderline } from '@/components/common';
+
 // 定义标签类型
 interface Tab {
-  id: string;
-  name: string;
-  icon: string;
+  label: string;
+  value: string;
+  icon?: string;
 }
 
 // 定义组件属性
 defineProps<{
-  modelValue: string; // 当前选中的标签ID
   tabs: Tab[]; // 标签列表
 }>();
 
-// 定义事件
-defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-}>();
+const activeTab = defineModel('activeTab', { type: String, required: true });
 </script>
 
 <style lang="scss" scoped>
 .content-tabs {
+  width: 100%;
   display: flex;
-  margin-bottom: 24px;
   border-bottom: 1px solid var(--el-border-color-light);
   
   .tab-item {

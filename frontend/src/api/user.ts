@@ -24,7 +24,7 @@ export async function getUserInfo(mid: number): Promise<MediaUpper> {
     }
     const card = response.data.data.card;
     return {
-      mid: card.mid,
+      mid: Number(card.mid),
       name: card.name,
       face: card.face
     };

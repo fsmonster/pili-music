@@ -5,7 +5,7 @@
       :key="index" 
       class="filter-item" 
       :class="{ active: activeFilter === filter.value }"
-      @click="handleFilterChange(filter.value)"
+      @click="activeFilter = filter.value"
     >
       {{ filter.label }}
     </div>
@@ -13,28 +13,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { defineModel } from 'vue';
+import { Filter } from '@/types';
 
 // 筛选类型
 const filters = [
-  { label: '全部', value: 'all' },
-  { label: '歌单', value: 'collection' },
-  { label: 'UP主', value: 'up' }
+  { label: '全部', value: Filter.All },
+  { label: '歌单', value: Filter.Collection },
+  { label: 'UP主', value: Filter.Up }
 ];
 
 // 当前激活的筛选
-const activeFilter = ref('all');
-
-// 定义事件
-const emit = defineEmits<{
-  (e: 'filter-change', value: string): void;
-}>();
-
-// 处理筛选变更
-const handleFilterChange = (value: string) => {
-  activeFilter.value = value;
-  emit('filter-change', value);
-};
+const activeFilter = defineModel<'all' | 'collection' | 'up'>();
 </script>
 
 <style lang="scss" scoped>

@@ -50,7 +50,34 @@ const isCollapsed = ref(false);
   transition: width 0.3s ease;
   overflow-y: auto;
   overflow-x: hidden;
-  
+
+  // IE 10+
+  -ms-overflow-style: none;
+
+  // Chrome & Safari
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 4px;
+  }
+
+  // Hover 状态：显示滚动条颜色
+  &:hover {
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+  }
+
   // 折叠状态
   &.collapsed {
     width: 100px;

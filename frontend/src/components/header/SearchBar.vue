@@ -4,8 +4,7 @@
       <input 
         type="text" 
         placeholder="搜索音乐" 
-        v-model="searchKeyword" 
-        @input="handleInput"
+        v-model="keyword"
         @focus="isFocused = true"
         @blur="handleBlur"
         @keyup.enter="handleSearch"
@@ -38,6 +37,8 @@
 </template>
 
 <script setup lang="ts">
+import { throttle } from 'lodash';
+import { storeToRefs } from 'pinia';
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
@@ -45,13 +46,17 @@ import { searchSuggestion } from '@/api/search';
 import { getBuvidFromCookie } from '@/utils/buvid';
 import { authApi } from '@/api/auth';
 import type { Tag } from '@/types';
+import { useSearchStore } from '@/stores';
+
+// 搜索 store
+const searchStore = useSearchStore();
 
 // 路由
-const router = useRouter();
 const route = useRoute();
+const router = useRouter();
 
 // 搜索关键词
-const searchKeyword = ref('');
+const { keyword, searchLock } = storeToRefs(searchStore);
 const searchInputRef = ref<HTMLInputElement | null>(null);
 
 // 搜索提示相关状态
@@ -59,7 +64,6 @@ const suggestions = ref<Tag[]>([]);
 const isFocused = ref(false);
 const isLoading = ref(false);
 const currentIndex = ref(-1);
-const debounceTimer = ref<number | null>(null);
 const searchBarRect = ref<DOMRect | null>(null);
 
 // 计算搜索提示框的位置样式
@@ -79,25 +83,12 @@ const suggestionStyle = computed(() => {
 
 // 是否显示搜索提示
 const showSuggestions = computed(() => {
-  return isFocused.value && searchKeyword.value.trim().length > 0 && !isLoading.value;
+  return isFocused.value && keyword.value.trim().length > 0 && !isLoading.value;
 });
-
-// 处理输入事件，带防抖
-const handleInput = () => {
-  // 清除之前的定时器
-  if (debounceTimer.value) {
-    clearTimeout(debounceTimer.value);
-  }
-  
-  // 设置新的定时器，300ms 后执行搜索
-  debounceTimer.value = window.setTimeout(() => {
-    fetchSuggestions();
-  }, 300);
-};
 
 // 获取搜索建议
 const fetchSuggestions = async () => {
-  const term = searchKeyword.value.trim();
+  const term = keyword.value.trim();
   if (!term) {
     suggestions.value = [];
     return;
@@ -122,18 +113,16 @@ const fetchSuggestions = async () => {
 
 // 高亮关键词
 const highlightKeyword = (text: string) => {
-  if (!searchKeyword.value.trim()) return text;
-  
-  const keyword = searchKeyword.value.trim();
-  const regex = new RegExp(`(${keyword})`, 'gi');
+  if (!keyword.value.trim()) return text;
+  const regex = new RegExp(`(${keyword.value.trim()})`, 'gi');
   return text.replace(regex, '<span class="highlight">$1</span>');
 };
 
-// 选择搜索建议
-const selectSuggestion = (text: string) => {
-  searchKeyword.value = text;
+// 选择搜索建议 - 带节流
+const selectSuggestion = throttle((text: string) => {
+  keyword.value = text;
   handleSearch();
-};
+}, 300);
 
 // 键盘导航搜索建议
 const navigateSuggestion = (direction: number) => {
@@ -145,7 +134,7 @@ const navigateSuggestion = (direction: number) => {
     
     // 如果选中了某个建议，更新搜索框的值
     if (currentIndex.value > -1) {
-      searchKeyword.value = suggestions.value[currentIndex.value].value;
+      keyword.value = suggestions.value[currentIndex.value].value;
     }
   }
 };
@@ -176,7 +165,7 @@ const updateSearchBarRect = () => {
 
 // 处理搜索
 const handleSearch = async () => {
-  if (!searchKeyword.value.trim()) {
+  if (!keyword.value.trim()) {
     ElMessage.warning('请输入搜索关键词');
     return;
   }
@@ -195,23 +184,22 @@ const handleSearch = async () => {
   }
 
   // 跳转到搜索结果页面
-  router.push({
-    name: 'search',
-    query: {
-      keyword: searchKeyword.value.trim()
-    }
-  });
+  router.push(`/search/${keyword.value}`);
   
+  // 设置搜索锁
+  searchLock.value = false;
+
   // 清空搜索提示
   suggestions.value = [];
   isFocused.value = false;
 };
 
 // 监听搜索关键词变化
-watch(() => searchKeyword.value, (newValue) => {
+watch(() => keyword.value, (newValue) => {
   if (!newValue.trim()) {
     suggestions.value = [];
   }
+  fetchSuggestions();
 });
 
 // 监听窗口大小变化
@@ -236,28 +224,14 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   window.addEventListener('resize', handleResize);
   updateSearchBarRect();
-  
-  // 从当前路由中获取搜索关键词（如果有）
-  if (route.name === 'search' && route.query.keyword) {
-    searchKeyword.value = route.query.keyword as string;
-  }
+  keyword.value = route.params.keyword as string;
+  searchLock.value = true;
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   window.removeEventListener('resize', handleResize);
-  
-  // 清除定时器
-  if (debounceTimer.value) {
-    clearTimeout(debounceTimer.value);
-  }
 });
-
-// 暴露给父组件的方法
-// defineExpose({
-//   handleSearch,
-//   searchKeyword
-// });
 </script>
 
 <style lang="scss" scoped>

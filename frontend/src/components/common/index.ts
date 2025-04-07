@@ -1,0 +1,1 @@
+export { default as TabsWithUnderline } from './TabsWithUnderline.vue';

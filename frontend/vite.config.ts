@@ -60,6 +60,17 @@ export default defineConfig({
         }
       },
 
+      // 代理B站图片请求 - default.hdslb.com
+      '^/biliimg/default/.*': {
+        target: 'https://static.hdslb.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/biliimg\/default/, ''),
+        headers: {
+          'Referer': 'https://www.bilibili.com'
+        }
+      },
+
       // 代理B站图片请求 - i0.hdslb.com
       '^/biliimg/i0/.*': {
         target: 'https://i0.hdslb.com',

@@ -42,6 +42,17 @@ function processBiliImageUrlOthers(url: string): string {
     return `/biliimg/${match[1]}/${match[2]}`;
 }
 
+// static.hdslb.com/images/member/noface.gif
+function processBiliImageDefault(url: string): string {
+try {
+    const u = new URL(url);
+    return `/biliimg/default${u.pathname}`;
+    } catch (e) {
+    // 如果不是合法 URL，就直接返回原始字符串，避免报错
+    return url;
+    }
+}
+
 /**
  * 处理B站音频流URL，将原始URL转换为后端代理URL
  * @param url B站音频流的原始URL
@@ -50,13 +61,7 @@ function processBiliImageUrlOthers(url: string): string {
 function processBiliAudioUrl(url: string): string {
     // 检查URL是否有效
     if (!url) return '';
-    
-    // 获取JWT令牌
-    // const token = getToken();
-    
-    // 将完整的原始URL作为参数传递给后端代理接口
-    // 如果有令牌，则添加到URL中
-    // return `/api/play/url?url=${encodeURIComponent(url)}&token=${token}`;
+
     return `/api/play/url?url=${encodeURIComponent(url)}`;
 }
 
@@ -69,6 +74,11 @@ export function processResourceUrl(url?: string): string {
     if (!url) return '';
     // 已经是代理URL则直接返回
     if (url.startsWith('/biliimg/') || url.startsWith('/api/audio/')) return url;
+
+    // 处理默认头像
+    if (url === 'https://static.hdslb.com/images/member/noface.gif') {
+        return processBiliImageDefault(url);
+    }
 
     // 根据不同类型的URL分开处理
     if (url.startsWith('https://i') && url.includes('.hdslb.com')) {

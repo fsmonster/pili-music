@@ -12,7 +12,7 @@
 
     <!-- 内容切换标签 -->
     <UserTabs 
-      v-model="activeTab"
+      v-model:activeTab="activeTab"
       :tabs="tabs"
     />
 
@@ -21,9 +21,7 @@
       <!-- 投稿视频 -->
       <UserVideos 
         v-if="activeTab === 'videos' && userInfo" 
-        :mid="userInfo.mid" 
-        :name="userInfo.name"
-        :cover="userInfo.face"
+        :user-info="userInfo" 
         v-model:loadMore="loadMore"
       />
 
@@ -55,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import UserHeader from './UserHeader.vue';
 import UserTabs from './UserTabs.vue';
 import UserVideos from './UserVideos.vue';
@@ -72,16 +70,15 @@ import type { Privacy, MediaUpper } from '@/types';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const getedMid = parseInt(route.params.mid as string);
+const routerMid = computed(() => Number(route.params.mid));
 
 // 标签定义
 const tabs = ref(
   [
-  { id: 'videos', name: '投稿视频', icon: 'ri-video-line' },
-  // { id: 'favorites', name: '收藏夹', icon: 'ri-star-line' },
-  { id: 'seasons', name: '合集', icon: 'ri-stack-line' },
-  { id: 'series', name: '系列', icon: 'ri-list-check-2' },
-  { id: 'settings', name: '设置', icon: 'ri-settings-line' }
+  { label: '投稿视频', value: 'videos', icon: 'ri-video-line' },
+  { label: '合集', value: 'seasons', icon: 'ri-stack-line' },
+  { label: '系列', value: 'series', icon: 'ri-list-check-2' },
+  { label: '设置', value: 'settings', icon: 'ri-settings-line' }
 ]
 );
 
@@ -105,11 +102,11 @@ let scrollTimer: number | null = null;
 // 获取用户信息
 const fetchUserInfo = async () => {
   try {
-    if (!getedMid) {
+    if (!routerMid.value) {
       return;
     }
     // 获取用户基本信息
-    userInfo.value = await getUserInfo(getedMid);
+    userInfo.value = await getUserInfo(routerMid.value);
   } catch (error) {
     console.error('获取用户信息失败:', error);
     ElMessage.error('获取用户信息失败，请稍后重试');
@@ -119,13 +116,13 @@ const fetchUserInfo = async () => {
 // 获取用户设置信息
 const fetchUserSettings = async () => {
   try {
-    if (!getedMid) {
+    if (!routerMid.value) {
       return;
     }
-    const settings = await getUserSettings(getedMid);
+    const settings = await getUserSettings(routerMid.value);
     privacy.value = settings.data.privacy;
     if(privacy.value?.fav_video) {
-      tabs.value.splice(1, 0, { id: 'favorites', name: '收藏夹', icon: 'ri-star-line' });
+      tabs.value.splice(1, 0, { label: '收藏夹', value: 'favorites', icon: 'ri-star-line' });
     }
   } catch (error) {
     console.error('获取用户设置失败:', error);
@@ -164,11 +161,16 @@ const handleScroll = (e: Event) => {
   }, 200);
 };
 
-// 组件挂载时获取用户信息
-onMounted(() => {
+watch(() => routerMid.value, () => {
   fetchUserInfo();
   fetchUserSettings();
-});
+}, { immediate: true });
+
+// 组件挂载时获取用户信息
+// onMounted(() => {
+//   fetchUserInfo();
+//   fetchUserSettings();
+// });
 </script>
 
 <style lang="scss" scoped>

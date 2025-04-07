@@ -75,7 +75,7 @@ export interface UpInfoCard extends Upper {
 }
 
 export interface Upper {
-  mid: number;
+  mid: string;
   name: string;
   face: string;
 }

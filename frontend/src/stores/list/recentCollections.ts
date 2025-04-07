@@ -1,12 +1,16 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { recentlyCollections } from '@/types';
+import type { Collection } from '@/types';
+import { Filter } from '@/types';
 
 export const useRecentlyStore = defineStore('recentCollections', () => {
-  const recent = ref<recentlyCollections[]>([]);
+  // 最近播放列表
+  const recent = ref<Collection[]>([]);
+  // filter
+  const activeFilter = ref<Filter>(Filter.All);
   
   // 添加最近播放
-  const addRecentCollection = (collection: recentlyCollections) => {
+  const addRecentCollection = (collection: Collection) => {
     if (recent.value.length >= 23) {
       recent.value.pop();
     }
@@ -21,6 +25,7 @@ export const useRecentlyStore = defineStore('recentCollections', () => {
   
   return {
     recent,
+    activeFilter,
     addRecentCollection,
     clearRecentCollections
   };
