@@ -1,51 +1,40 @@
 <template>
-  <div class="search-bar-container">
-    <div class="search-bar" @click="handleFocus" @keydown.down.prevent="navigateSuggestion(1)" @keydown.up.prevent="navigateSuggestion(-1)">
+  <div class="search-bar-container" ref="searchContainerRef">
+    <div class="search-bar" @click="handleFocus" @keydown.down.prevent="handleKeyDown('down')" @keydown.up.prevent="handleKeyDown('up')">
       <input 
         type="text" 
         placeholder="搜索音乐" 
         v-model="keyword"
         @focus="isFocused = true"
         @blur="handleBlur"
-        @keyup.enter="handleSearch"
+        @keyup.enter="handleEnterKey"
+        @input="handleUserInput"
         ref="searchInputRef"
       />
       <i class="ri-search-line" @click="handleSearch"></i>
     </div>
     
-    <!-- 搜索提示框 -->
-    <teleport to="body">
-      <div 
-        v-if="showSuggestions && suggestions.length > 0" 
-        class="search-suggestions"
-        :style="suggestionStyle"
-      >
-        <ul>
-          <li 
-            v-for="(item, index) in suggestions" 
-            :key="index"
-            :class="{ active: currentIndex === index }"
-            @mouseenter="currentIndex = index"
-            @mousedown.prevent="selectSuggestion(item.value)"
-          >
-            <span v-html="highlightKeyword(item.value)"></span>
-          </li>
-        </ul>
-      </div>
-    </teleport>
+    <!-- 使用封装的搜索建议组件 -->
+    <SearchSuggestions 
+      ref="suggestionsRef"
+      :keyword="keyword" 
+      :is-focused="isFocused" 
+      :target-element="searchContainerRef" 
+      :manual-input="manualInputFlag"
+      @select="handleSuggestionSelect"
+      @update="handleSuggestionUpdate"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { throttle } from 'lodash';
 import { storeToRefs } from 'pinia';
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { searchSuggestion } from '@/api/search';
+import SearchSuggestions from './SearchSuggestions.vue';
 import { getBuvidFromCookie } from '@/utils/buvid';
 import { authApi } from '@/api/auth';
-import type { Tag } from '@/types';
 import { useSearchStore } from '@/stores';
 
 // 搜索 store
@@ -59,90 +48,62 @@ const router = useRouter();
 const { keyword, searchLock } = storeToRefs(searchStore);
 const searchInputRef = ref<HTMLInputElement | null>(null);
 
-// 搜索提示相关状态
-const suggestions = ref<Tag[]>([]);
+// 组件状态
 const isFocused = ref(false);
-const isLoading = ref(false);
-const currentIndex = ref(-1);
-const searchBarRect = ref<DOMRect | null>(null);
+const searchContainerRef = ref<HTMLElement | null>(null);
+const suggestionsRef = ref<any>(null); // 引用搜索建议组件
+const manualInputFlag = ref(false); // 标记是否为选择建议项导致的关键词变化
 
-// 计算搜索提示框的位置样式
-const suggestionStyle = computed(() => {
-  if (!searchBarRect.value) return {};
-  
-  const rect = searchBarRect.value;
-  return {
-    position: 'fixed' as const,
-    top: `${rect.bottom + window.scrollY + 4}px`,
-    left: `${rect.left + window.scrollX}px`,
-    width: `${rect.width}px`,
-    maxHeight: '300px',
-    zIndex: 2000
-  };
-});
-
-// 是否显示搜索提示
-const showSuggestions = computed(() => {
-  return isFocused.value && keyword.value.trim().length > 0 && !isLoading.value;
-});
-
-// 获取搜索建议
-const fetchSuggestions = async () => {
-  const term = keyword.value.trim();
-  if (!term) {
-    suggestions.value = [];
-    return;
-  }
-  
-  try {
-    isLoading.value = true;
-    const result = await searchSuggestion(term);
-    if (result && result.result && result.result.tag) {
-      suggestions.value = result.result.tag;
-      currentIndex.value = -1; // 重置选中索引
-    } else {
-      suggestions.value = [];
-    }
-  } catch (error) {
-    console.error('获取搜索建议失败:', error);
-    suggestions.value = [];
-  } finally {
-    isLoading.value = false;
-  }
+// 处理搜索建议更新（只更新关键词，不触发搜索）
+const handleSuggestionUpdate = (text: string) => {
+  // 设置标记为true，表示这次更新是通过选择建议项
+  manualInputFlag.value = true;
+  keyword.value = text;
 };
 
-// 高亮关键词
-const highlightKeyword = (text: string) => {
-  if (!keyword.value.trim()) return text;
-  const regex = new RegExp(`(${keyword.value.trim()})`, 'gi');
-  return text.replace(regex, '<span class="highlight">$1</span>');
+// 处理用户手动输入
+const handleUserInput = () => {
+  // 设置标记为false，表示这次更新不是通过选择建议项
+  manualInputFlag.value = false;
 };
 
-// 选择搜索建议 - 带节流
-const selectSuggestion = throttle((text: string) => {
+// 处理搜索建议选择（更新关键词并触发搜索）
+const handleSuggestionSelect = (text: string) => {
   keyword.value = text;
   handleSearch();
-}, 300);
+};
 
-// 键盘导航搜索建议
-const navigateSuggestion = (direction: number) => {
-  if (!suggestions.value.length) return;
-  
-  const newIndex = currentIndex.value + direction;
-  if (newIndex >= -1 && newIndex < suggestions.value.length) {
-    currentIndex.value = newIndex;
+// 处理键盘上下键
+const handleKeyDown = (direction: 'up' | 'down') => {
+  // 如果子组件存在，调用其键盘导航方法
+  if (suggestionsRef.value?.keyNavigate) {
+    // 将方向转换为数字
+    const value = direction === 'down' ? 1 : -1;
+    // 调用子组件的键盘导航方法
+    suggestionsRef.value.keyNavigate(value);
+  }
+};
+
+// 处理回车键
+const handleEnterKey = () => {
+  // 如果子组件存在并且有确认选择方法
+  if (suggestionsRef.value?.confirmCurrentSelection) {
+    // 调用子组件的确认选择方法，并检查返回值
+    const hasSelection = suggestionsRef.value.confirmCurrentSelection();
     
-    // 如果选中了某个建议，更新搜索框的值
-    if (currentIndex.value > -1) {
-      keyword.value = suggestions.value[currentIndex.value].value;
+    // 如果没有选中的建议项，则直接搜索
+    if (!hasSelection) {
+      handleSearch();
     }
+  } else {
+    // 如果子组件不存在，则直接搜索
+    handleSearch();
   }
 };
 
 // 处理搜索框获得焦点
 const handleFocus = () => {
   searchInputRef.value?.focus();
-  updateSearchBarRect();
 };
 
 // 处理搜索框失去焦点
@@ -153,15 +114,7 @@ const handleBlur = () => {
   }, 200);
 };
 
-// 更新搜索框位置信息
-const updateSearchBarRect = () => {
-  if (searchInputRef.value) {
-    const parentEl = searchInputRef.value.closest('.search-bar-container');
-    if (parentEl) {
-      searchBarRect.value = parentEl.getBoundingClientRect();
-    }
-  }
-};
+
 
 // 处理搜索
 const handleSearch = async () => {
@@ -190,22 +143,9 @@ const handleSearch = async () => {
   searchLock.value = false;
 
   // 清空搜索提示
-  suggestions.value = [];
   isFocused.value = false;
 };
 
-// 监听搜索关键词变化
-watch(() => keyword.value, (newValue) => {
-  if (!newValue.trim()) {
-    suggestions.value = [];
-  }
-  fetchSuggestions();
-});
-
-// 监听窗口大小变化
-const handleResize = () => {
-  updateSearchBarRect();
-};
 
 // 点击外部关闭搜索提示
 const handleClickOutside = (event: MouseEvent) => {
@@ -222,15 +162,12 @@ const handleClickOutside = (event: MouseEvent) => {
 // 组件挂载和卸载时的事件监听
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
-  window.addEventListener('resize', handleResize);
-  updateSearchBarRect();
   keyword.value = route.params.keyword as string;
   searchLock.value = true;
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
-  window.removeEventListener('resize', handleResize);
 });
 </script>
 
@@ -280,34 +217,5 @@ onUnmounted(() => {
   }
 }
 
-.search-suggestions {
-  background-color: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    
-    li {
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      
-      &:hover, &.active {
-        background-color: var(--el-fill-color-light);
-      }
-      
-      :deep(.highlight) {
-        color: $secondary-color;
-      }
-    }
-  }
-}
+
 </style>

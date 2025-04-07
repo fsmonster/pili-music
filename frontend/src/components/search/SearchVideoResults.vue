@@ -1,12 +1,13 @@
 <template>
   <div class="search-results-container">
     <div class="result-list">
-      <SearchVideoResultItem 
-        v-for="item in results" 
-        :key="item.id" 
-        :item="item"
-        @click="handleItemClick"
-      />
+      <template v-for="item in results" :key="item.id">
+        <SearchVideoResultItem 
+          v-if="item.type != 'ketang'"
+          :item="item"
+          @click="handleItemClick"
+        />
+      </template>
     </div>
     <SearchPagination 
       v-if="totalPages > 1"

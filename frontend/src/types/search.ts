@@ -597,6 +597,11 @@ export interface SearchVideoResult {
    * 视频标题
    */
   title: string;
+  /**
+   * 视频类型
+   * ketang: 课程 - 屏蔽掉
+   * video: 视频
+   */
   type: string;
   /**
    * 视频分类 ID
