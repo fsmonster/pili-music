@@ -4,13 +4,14 @@
             <h3>投稿视频</h3>
             <div class="content-header-actions">
                 <div class="sort-container">
-                    <div class="sort-item active" :class="{ active: order === Order.Pubdate }" @click="sortVideos(Order.Pubdate)">
-                        <i class="ri-calendar-line"></i>
-                        最新发布
-                    </div>
-                    <div class="sort-item" :class="{ active: order === Order.View }" @click="sortVideos(Order.View)">
-                        <i class="ri-eye-line"></i>
-                        最多播放
+                    <div v-for="tag in tags" 
+                        :key="tag.value" 
+                        class="sort-item" 
+                        :class="{ active: order === tag.value }" 
+                        @click="sortVideos(tag.value)"
+                    >
+                        <i :class="tag.icon"></i>
+                        {{ tag.label }}
                     </div>
                 </div>
                 <div class="play-all" @click="playAllVideos">
@@ -95,8 +96,13 @@ const emit = defineEmits<{
 // 排序方式
 const enum Order {
     Pubdate = 'pubdate',
-    View = 'view'
+    View = 'views'
 }
+
+const tags = [
+    { label: '最新发布', value: Order.Pubdate, icon: 'ri-calendar-line' },
+    { label: '最多播放', value: Order.View, icon: 'ri-eye-line' }
+]
 
 const playerStore = usePlayerStore();
 const lazyLoadStore = useLazyLoadStore();
@@ -135,7 +141,7 @@ const fetchUserVideos = async (isLoadMore = false) => {
         const response = await searchVideoByKeywords({
             mid: upInfo.value.mid,
             keywords: '',
-            order: order.value,
+            orderby: order.value,
             pn: pn.value,
             ps: ps.value
         });

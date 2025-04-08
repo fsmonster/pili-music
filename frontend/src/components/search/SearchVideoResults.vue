@@ -52,7 +52,12 @@ const handleItemClick = (item: SearchVideoResult) => {
       bvid: item.bvid,
       // 添加必要的字段
       bv_id: item.bvid,
-      pubtime: item.pubdate || 0
+      pubtime: item.pubdate || 0,
+      upper: {
+        mid: item.mid,
+        name: item.author,
+        face: ''
+      }
     };
     
     // 使用 playMediaList 方法播放单个视频

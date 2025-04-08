@@ -1,12 +1,15 @@
 <template>
   <Layout>
     <template #main>
-      <div class="home-content">
-        <CategoryTabs @change="handleCategoryChange"/>
-        <SectionList :categories="selectedCategories" />
-        <Favorites v-if="selectedCategories.includes('favorite') || isAllSelected"/>
-        <Seasons v-if="selectedCategories.includes('season') || isAllSelected"/>
-        <Series v-if="selectedCategories.includes('series') || isAllSelected"/>
+      <div class="home-container">
+        <!-- 轮播图 -->
+        <!-- <RecommendBanner /> -->
+        
+        <!-- 推荐内容 -->
+        <RecommendSection />
+        
+        <!-- 分类推荐 -->
+        <!-- <CategoryRecommend /> -->
       </div>
     </template>
   </Layout>
@@ -14,27 +17,15 @@
 
 <script setup lang="ts">
 import Layout from '../layout/Layout.vue';
-import CategoryTabs from '../components/songLists/CategoryTabs.vue';
-import Favorites from '../components/songLists/Favorites.vue';
-import Seasons from '../components/songLists/Seasons.vue';
-import Series from '../components/songLists/Series.vue';
-import SectionList from '../components/songLists/SectionList.vue';
-
-import { ref, computed } from 'vue';
-
-const selectedCategories = ref<string[]>([]);
-
-const isAllSelected = computed(() => selectedCategories.value.length === 0);
-
-const handleCategoryChange = (categories: string[]) => {
-  selectedCategories.value = categories;
-};
+import RecommendBanner from '../components/recommend/RecommendBanner.vue';
+import RecommendSection from '../components/recommend/RecommendSection.vue';
+import CategoryRecommend from '../components/recommend/CategoryRecommend.vue';
 </script>
 
-<style lang="scss" scoped>
-.home-content {
-  padding: 24px;
-  height: 100%;
-  overflow-y: auto;
+<style scoped lang="scss">
+.home-container {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 </style>

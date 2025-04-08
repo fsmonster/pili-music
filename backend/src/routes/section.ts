@@ -255,17 +255,17 @@ router.post('/content/collocation', async (req: AuthRequest, res: Response) => {
     }
 
     const { mid } = req.auth;
-    const { sectionId, collocationId, type } = req.body;
+    const { sectionId, resources } = req.body;
     
-    if (!collocationId || !type) {
+    if (!resources) {
       return res.status(400).json({ 
         code: 400, 
-        message: '资源ID和类型不能为空' 
+        message: '资源不能为空' 
       });
     }
     
     // 添加资源到分区
-    const updatedSection = await sectionController.addCollocationToSection({ mid, sectionId, type, collocationId });
+    const updatedSection = await sectionController.addCollocationToSection({ mid, sectionId, resources });
     
     res.json({
       code: 0,
@@ -298,17 +298,17 @@ router.delete('/content/collocation', async (req: AuthRequest, res: Response) =>
     }
 
     const { mid } = req.auth;
-    const { sectionId, collocationId, type } = req.body;
+    const { sectionId, resources } = req.body;
     
-    if (!collocationId || !type) {
+    if (!resources) {
       return res.status(400).json({ 
         code: 400, 
-        message: '资源ID和类型不能为空' 
+        message: '资源不能为空' 
       });
     }
     
     // 从分区移除资源
-    const updatedSection = await sectionController.removeCollocationFromSection({ mid, sectionId, collocationId, type });
+    const updatedSection = await sectionController.removeCollocationFromSection({ mid, sectionId, resources });
     
     res.json({
       code: 0,

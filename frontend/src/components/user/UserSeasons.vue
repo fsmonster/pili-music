@@ -36,10 +36,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watchEffect } from 'vue';
 import { ElSkeleton, ElEmpty, ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
-import { getUserSeasonsAndSeries } from '@/api';
+import { getUserSeasonsAndSeries, getSeasonCover } from '@/api';
 import type { UserSeasonList } from '@/types';
 import { processResourceUrl } from '@/utils';
 
@@ -85,6 +85,27 @@ const goToSeason = (id: number) => {
   // 实际项目中应该跳转到合集详情页
   router.push(`/season/${id}`);
 };
+
+watchEffect(async () => {
+  if (!seasons.value) return; // 避免 seasons 未初始化时报错
+  
+  const promises = seasons.value.map(async (season) => {
+    if (season.meta.cover.includes("viedeo_material_default.png")) {
+      try {
+        return await getSeasonCover(season.meta.season_id); // 等待 Promise 解析
+      } catch (error) {
+        console.error("获取封面失败", error);
+        return season.meta.cover; // 获取失败时使用原封面
+      }
+    }
+    return season.meta.cover;
+  });
+
+  const covers = await Promise.all(promises);
+  seasons.value.forEach((season, index) => {
+    season.meta.cover = covers[index];
+  });
+});
 
 // 组件挂载时获取合集
 onMounted(() => {

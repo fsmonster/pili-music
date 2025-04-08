@@ -46,7 +46,7 @@ export const useSearchStore = defineStore('search', () => {
 
             addSearchHistory(keyword.value);
 
-            results.value = result.result;
+            results.value = result.result ?? [];
             totalResults.value = result.numResults;
             totalPages.value = result.numPages;
 
@@ -97,6 +97,7 @@ export const useSearchStore = defineStore('search', () => {
         searchOrder,
         searchType,
         searchLock,
+        searchHistory,
         getSearchResults,
         addSearchHistory,
         getSearchHistory,

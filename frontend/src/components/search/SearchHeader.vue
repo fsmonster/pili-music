@@ -16,6 +16,7 @@
       <div v-for="order in currentOrderOptions" :key="order.value"
         :class="['filter-item', { active: currentOrder === order.value }]" 
         @click="handleOrderChange(order.value)">
+        <i :class="`${order.icon}`"></i>
         {{ order.label }}
       </div>
     </div>
@@ -51,24 +52,24 @@ const currentOrder = computed(() => {
 
 // 视频排序选项
 const videoOrderOptions = [
-  { label: '综合排序', value: VideoSearchOrder.TotalRank },
-  { label: '最多点击', value: VideoSearchOrder.Click },
-  { label: '最新发布', value: VideoSearchOrder.PubDate },
-  { label: '最多弹幕', value: VideoSearchOrder.Danmaku },
-  { label: '最多收藏', value: VideoSearchOrder.Favorite },
-  { label: '最多评论', value: VideoSearchOrder.Comment }
+  { label: '综合排序', value: VideoSearchOrder.TotalRank, icon: 'ri-vip-crown-2-line' },
+  { label: '最多点击', value: VideoSearchOrder.Click, icon: 'ri-eye-line' },
+  { label: '最新发布', value: VideoSearchOrder.PubDate, icon: 'ri-calendar-line' },
+  // { label: '最多弹幕', value: VideoSearchOrder.Danmaku, icon: 'ri-chat-3-line' },
+  // { label: '最多收藏', value: VideoSearchOrder.Favorite, icon: 'ri-bookmark-line' },
+  // { label: '最多评论', value: VideoSearchOrder.Comment, icon: 'ri-message-line' }
 ];
 
 // 用户排序选项
 const userOrderOptions = [
-  { label: '默认排序', value: UserSearchOrder.Default },
-  { label: '粉丝数', value: UserSearchOrder.Fans },
-  { label: '用户等级', value: UserSearchOrder.Level }
+  { label: '默认排序', value: UserSearchOrder.Default, icon: '' },
+  { label: '粉丝数', value: UserSearchOrder.Fans, icon: '' },
+  { label: '用户等级', value: UserSearchOrder.Level, icon: '' }
 ];
 
 // 根据当前选中的搜索类型，动态计算排序选项
 const currentOrderOptions = computed(() => {
-  return currentType.value === 'video' ? videoOrderOptions : userOrderOptions;
+  return currentType.value === SearchType.Video ? videoOrderOptions : userOrderOptions;
 });
 
 // 处理搜索类型变更
@@ -129,7 +130,7 @@ const handleOrderChange = (order: VideoSearchOrder | UserSearchOrder) => {
     margin-top: 8px;
 
     .filter-item {
-      padding: 5px 14px;
+      padding: 6px 14px;
       margin-right: 8px;
       cursor: pointer;
       font-size: 13px;

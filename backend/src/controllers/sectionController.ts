@@ -191,7 +191,7 @@ export const getSectionsByTypeAndId = async (mid: number, type: CollocationType,
  */
 export const addCollocationToSection = async (params: CollocationParams) => {
   try {
-    const { mid, sectionId, type, collocationId } = params;
+    const { mid, sectionId, resources } = params;
     // 检查分区是否存在
     const section = await SectionModel.findOne({ _id: sectionId, mid });
     if (!section) {
@@ -201,7 +201,7 @@ export const addCollocationToSection = async (params: CollocationParams) => {
     // 添加资源ID，确保不重复
     const updatedSection = await SectionModel.findOneAndUpdate(
       { _id: sectionId, mid },
-      { $addToSet: { collocationIds: { type, id: collocationId } } },
+      { $addToSet: { collocationIds: { $each: resources } } },
       { new: true }
     );
     
@@ -219,7 +219,7 @@ export const addCollocationToSection = async (params: CollocationParams) => {
  */
 export const removeCollocationFromSection = async (params: CollocationParams) => {
   try {
-    const { mid, sectionId, type, collocationId } = params;
+    const { mid, sectionId, resources } = params;
     // 检查分区是否存在
     const section = await SectionModel.findOne({ _id: sectionId, mid });
     if (!section) {
@@ -227,12 +227,15 @@ export const removeCollocationFromSection = async (params: CollocationParams) =>
     }
     
     // 移除指定的资源ID
-    const updatedSection = await SectionModel.findOneAndUpdate(
-      { _id: sectionId, mid },
-      { $pull: { collocationIds: { type, id: collocationId } } },
-      { new: true }
-    );
-    
+      // 安全写法：循环删除
+    for (const item of resources) {
+      await SectionModel.updateOne(
+        { _id: sectionId, mid },
+        { $pull: { collocationIds: item } }
+      );
+    }
+
+    const updatedSection = await SectionModel.findOne({ _id: sectionId, mid });
     return updatedSection?.collocationIds;
   } catch (error) {
     console.error('从分区移除资源失败:', error);

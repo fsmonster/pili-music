@@ -179,6 +179,7 @@ const goToUserPage = (mid: number) => {
       color: #18191c;
       display: -webkit-box;
       -webkit-line-clamp: 2;
+      line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
       text-overflow: ellipsis;

@@ -1,6 +1,8 @@
 <template>
   <div class="search-bar-container" ref="searchContainerRef">
-    <div class="search-bar" @click="handleFocus" @keydown.down.prevent="handleKeyDown('down')" @keydown.up.prevent="handleKeyDown('up')">
+    <div class="search-bar" @click="handleFocus" 
+      @keydown.down.prevent="handleKeyDown('down')" 
+      @keydown.up.prevent="handleKeyDown('up')">
       <input 
         type="text" 
         placeholder="搜索音乐" 

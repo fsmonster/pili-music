@@ -30,7 +30,8 @@ export const usePlayerStore = defineStore('player', () => {
   const duration = ref(0);
   const loading = ref(false);
   const volume = ref(1);
-  const audioLoaded = ref(false); // 标记音频是否已加载
+  // 缓存状态
+  const bufferProgress = ref(0); // 缓存进度（百分比）
 
   // 初始化事件监听
   function initAudioEvents() {
@@ -47,7 +48,6 @@ export const usePlayerStore = defineStore('player', () => {
     audio.addEventListener('loadedmetadata', () => {
       duration.value = audio.duration;
       loading.value = false;
-      audioLoaded.value = true;
     });
 
     // 播放结束
@@ -58,9 +58,25 @@ export const usePlayerStore = defineStore('player', () => {
     // 错误处理
     audio.addEventListener('error', () => {
       loading.value = false;
-      audioLoaded.value = false;
       console.error('播放出错');
     });
+    
+    // 缓冲进度更新
+    audio.addEventListener('progress', updateBufferProgress);
+  }
+  
+  // 更新缓冲进度
+  function updateBufferProgress() {
+    if (!audio || !duration.value) return;
+    
+    const buffered = audio.buffered;
+    
+    // 获取最后一个缓冲区的结束位置（通常是当前缓冲的最大范围）
+    if (buffered.length > 0) {
+      const end = buffered.end(buffered.length - 1);
+      // 计算缓冲百分比
+      bufferProgress.value = (end / duration.value) * 100;
+    }
   }
 
   // 播放
@@ -157,7 +173,6 @@ export const usePlayerStore = defineStore('player', () => {
     if (!multiPageQueueStore.isMultiPage) return;
     
     multiPageQueueStore.setCurrentPage(pageNumber);
-    audioLoaded.value = false; // 重置加载状态
   }
 
   /**
@@ -206,7 +221,7 @@ function playMedia(options: PlayMediaOptions) {
     duration,
     loading,
     volume,
-    audioLoaded,    
+    bufferProgress, // 缓存进度
     // 方法
     replay,
     play,
@@ -218,6 +233,7 @@ function playMedia(options: PlayMediaOptions) {
     setVolume,
     switchToPage,
     playMedia,
+    updateBufferProgress, // 手动更新缓存进度的方法
   };
 }, { 
   persist: true

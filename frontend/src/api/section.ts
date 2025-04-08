@@ -1,6 +1,6 @@
 import { request } from '../utils/request';
 import type { ApiResponse } from '../types';
-import type { Section, SectionParams, CollocationType, CollocationId } from '../types';
+import type { Section, SectionParams, CollocationId, CollocationParams } from '../types';
 
 /**
  * 分区相关API
@@ -97,17 +97,9 @@ export async function deleteSection(sectionId: string): Promise<boolean> {
   }
 }
 
-interface CollocationParams {
-  sectionId: string;
-  type: CollocationType;
-  collocationId: number;
-}
-
 /**
  * 添加资源到分区
- * @param sectionId 分区ID
- * @param type 资源类型
- * @param collocationId 资源ID
+ * @param params 添加资源到分区的参数
  * @returns 更新后的分区内容
  */
 export async function addCollocationToSection(params: CollocationParams): Promise<CollocationId[]> {
@@ -125,7 +117,7 @@ export async function addCollocationToSection(params: CollocationParams): Promis
 
 /**
  * 从分区移除资源
- * @param params 移除参数
+ * @param params 移除资源的参数
  * @returns 更新后的分区内容
  */
 export async function removeCollocationFromSection(params: CollocationParams): Promise<CollocationId[]> {

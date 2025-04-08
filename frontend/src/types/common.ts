@@ -249,15 +249,15 @@ export interface Archive {
   /**
    * 是否启用“互动视频”功能
    */
-  enable_vt: boolean;
+  enable_vt?: boolean;
   /**
    * 是否为互动视频
    */
-  interactive_video: boolean;
+  interactive_video?: boolean;
   /**
    * 是否为课程视频
    */
-  is_lesson_video: number;
+  is_lesson_video?: number;
   /**
    * 视频封面 URL
    */

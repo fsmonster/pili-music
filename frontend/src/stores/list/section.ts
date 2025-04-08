@@ -5,7 +5,7 @@ import * as sectionApi from '../../api/section';
 import * as favoriteApi from '../../api/favorite';
 import * as seasonApi from '../../api/season';
 import * as seriesApi from '../../api/series';
-import type { Section, CollocationType, CollocationItem } from '../../types';
+import type { Section, CollocationItem, CollocationParams } from '../../types';
 import { getCollocationId } from '../../utils';
 
 /**
@@ -212,18 +212,16 @@ export const useSectionStore = defineStore('section', () => {
   
   /**
    * @desc 添加资源到 📦 自定义分区
-   * @param sectionId 分区ID
-   * @param type 资源类型
-   * @param collocationId 资源ID
+   * @param params 添加资源到分区的参数
    * @returns 更新后的分区
    */
-  const addCollocationToSection = async (sectionId: string, type: CollocationType, collocationId: number) => {
+  const addCollocationToSection = async (params: CollocationParams) => {
     try {
       // 添加资源到分区
-      const updatedCollocationIds = await sectionApi.addCollocationToSection({sectionId, type, collocationId});
+      const updatedCollocationIds = await sectionApi.addCollocationToSection(params);
       
       // 更新列表中的分区
-      const index = currentIndex(sectionId);
+      const index = currentIndex(params.sectionId);
       if (index !== -1) {
         // 更新 collocationIds
         sections.value[index].collocationIds = updatedCollocationIds;
@@ -233,17 +231,21 @@ export const useSectionStore = defineStore('section', () => {
         const existingCollocationList = sections.value[index].collocationList || [];
         const existingIdsSet = new Set(existingCollocationList.map(c => `${c.type}-${getCollocationId(c)}`));
         
-        // 如果资源不存在，则获取并添加到 collocationList
-        if (!existingIdsSet.has(`${type}-${collocationId}`)) {
-          // 获取资源项信息
-          const collocationItem = await fetchCollocationItem(type, collocationId);
-          
-          // 如果获取成功，添加到列表
-          if (collocationItem) {
-            if (!sections.value[index].collocationList) {
-              sections.value[index].collocationList = [];
+        // 遍历所有新添加的资源，获取其详细信息并添加到 collocationList
+        for (const resource of params.resources) {
+          // 检查是否已存在
+          const resourceKey = `${resource.type}-${resource.id}`;
+          if (!existingIdsSet.has(resourceKey)) {
+            // 获取资源项信息
+            const collocationItem = await fetchCollocationItem(resource.type, resource.id);
+            
+            // 如果获取成功，添加到列表
+            if (collocationItem) {
+              if (!sections.value[index].collocationList) {
+                sections.value[index].collocationList = [];
+              }
+              sections.value[index].collocationList.push(collocationItem);
             }
-            sections.value[index].collocationList.push(collocationItem);
           }
         }
       }
@@ -255,18 +257,16 @@ export const useSectionStore = defineStore('section', () => {
   
   /**
    * @desc 从 📦 自定义分区移除
-   * @param sectionId 分区ID
-   * @param type 资源类型
-   * @param collocationId 资源ID
+   * @param params 移除资源的参数
    * @returns 更新后的分区
    */
-  const removeCollocationFromSection = async (sectionId: string, type: CollocationType, collocationId: number) => {
+  const removeCollocationFromSection = async (params: CollocationParams) => {
     try {
       // 从分区移除资源
-      const updatedCollocationIds = await sectionApi.removeCollocationFromSection({sectionId, type,collocationId});
+      const updatedCollocationIds = await sectionApi.removeCollocationFromSection(params);
       
       // 更新列表中的分区
-      const index = currentIndex(sectionId);
+      const index = currentIndex(params.sectionId);
       if (index !== -1) {
         // 更新 collocationIds
         sections.value[index].collocationIds = updatedCollocationIds;
@@ -274,13 +274,16 @@ export const useSectionStore = defineStore('section', () => {
         
         // 同时更新 collocationList，移除对应的项
         if (sections.value[index].collocationList) {
+          // 创建一个集合，包含所有要移除的资源ID
+          const resourcesSet = new Set();
+          for (const resource of params.resources) {
+            resourcesSet.add(`${resource.type}-${resource.id}`);
+          }
+          
+          // 过滤掉被移除的资源
           sections.value[index].collocationList = sections.value[index].collocationList.filter(item => {
-            // 如果类型不同，保留
-            if (item.type !== type) return true;
-            
-            // 如果类型相同，检查 ID 是否匹配
-            const itemId = getCollocationId(item);
-            return itemId !== collocationId;
+            const itemKey = `${item.type}-${getCollocationId(item)}`;
+            return !resourcesSet.has(itemKey);
           });
         }
       }

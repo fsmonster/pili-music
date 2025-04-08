@@ -45,3 +45,11 @@ export interface SectionParams {
   name?: string;
   description?: string;
 }
+
+/**
+ * 添加/移除资源到分区的参数
+ */
+export interface CollocationParams {
+  sectionId: string;
+  resources: CollocationId[];
+}

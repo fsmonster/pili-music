@@ -93,7 +93,9 @@ function handleMouseLeave() {
 function handleGlobalMouseMove(e: MouseEvent) {
   if (isDragging.value) {
     updateValueFromEvent(e);
+    // 在拖动过程中就触发音量变化事件
     emit('input', value.value);
+    emit('change', value.value);
   }
 }
 

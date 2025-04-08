@@ -49,6 +49,5 @@ export interface UpdateSectionParams {
 export interface CollocationParams {
     mid: number;
     sectionId: string;
-    type: CollocationType;
-    collocationId: number;
+    resources: CollocationId[];
 }

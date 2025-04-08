@@ -9,9 +9,9 @@ export const useRecentlyStore = defineStore('recentCollections', () => {
   // filter
   const activeFilter = ref<Filter>(Filter.All);
   
-  // 添加最近播放
+  // 添加最近播放 - 上限暂定为50吧
   const addRecentCollection = (collection: Collection) => {
-    if (recent.value.length >= 23) {
+    if (recent.value.length >= 50) {
       recent.value.pop();
     }
     recent.value = recent.value.filter(item => !(item.id === collection.id && item.type === collection.type));

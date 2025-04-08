@@ -9,8 +9,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: () => import('../views/Home.vue')
+      name: 'my-music',
+      component: () => import('../views/MyMusic.vue')
     },
     {
       path: '/login',

@@ -164,10 +164,6 @@ watchEffect(async () => {
   }
 });
 
-// onMounted(() => {
-//   loadContent();
-// });
-
 onUnmounted(() => {
   removeContent();
 });

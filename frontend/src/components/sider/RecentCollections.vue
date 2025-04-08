@@ -1,27 +1,26 @@
 <template>
   <div class="recent-collections">
     <div class="header">
-      <div class="title" v-if="!isCollapsed">
+      <div class="title">
         <i class="ri-history-line"></i>
         <span>最近播放</span>
       </div>
       <!-- 折叠/展开按钮 -->
-      <div class="collapse-btn" @click="toggleCollapse">
+      <!-- <div class="collapse-btn" @click="toggleCollapse">
         <i 
           class="ri-arrow-left-circle-line"
           :class="isCollapsed ? 'is-collapsed' : ''"
         ></i>
-      </div>
+      </div> -->
     </div>
 
-    <div class="filter-container" v-if="!isCollapsed">
-      <SidebarFilter 
+    <div class="filter-container">
+      <RecentFilter 
         v-model="activeFilter" />
     </div>
 
     <div class="collections-list" v-if="filteredCollections.length > 0">
-      <CollectionItem v-for="item in filteredCollections" :key="`${item.type}-${item.id}`" :item="item"
-        v-model:is-collapsed="isCollapsed" />
+      <CollectionItem v-for="item in filteredCollections" :key="`${item.type}-${item.id}`" :item="item" />
     </div>
 
     <div class="empty-state" v-else>
@@ -35,7 +34,7 @@
 import { ref, computed } from 'vue';
 import { useRecentlyStore } from '@/stores';
 import { CollectionType, Filter } from '@/types';
-import SidebarFilter from './SidebarFilter.vue';
+import RecentFilter from './RecentFilter.vue';
 import CollectionItem from './CollectionItem.vue';
 import { storeToRefs } from 'pinia';
 
@@ -43,15 +42,15 @@ import { storeToRefs } from 'pinia';
 const recentlyStore = useRecentlyStore();
 
 // 是否折叠
-const isCollapsed = defineModel('is-collapsed', { type: Boolean });
+// const isCollapsed = defineModel('is-collapsed', { type: Boolean });
 
 // 当前筛选类型
 const { activeFilter } = storeToRefs(recentlyStore);
 
 // 切换折叠状态
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value;
-};
+// const toggleCollapse = () => {
+//   isCollapsed.value = !isCollapsed.value;
+// };
 
 // 根据筛选条件过滤收藏夹
 const filteredCollections = computed(() => {

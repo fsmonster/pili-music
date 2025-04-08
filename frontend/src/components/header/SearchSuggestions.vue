@@ -9,14 +9,14 @@
       <div v-if="showTags" class="search-tags">
         <div class="search-tags-header">
           <h4>搜索记录</h4>
-          <el-button 
+          <el-link 
             type="text" 
             size="small" 
             @click="clearAllSearchHistory"
             class="clear-history-btn"
           >
             清空记录
-          </el-button>
+          </el-link>
         </div>
         <div class="tags-container">
           <el-tag

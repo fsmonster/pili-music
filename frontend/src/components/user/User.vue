@@ -42,25 +42,18 @@
         v-if="activeTab === 'series' && userInfo" 
         :mid="userInfo.mid" 
       />
-
-      <!-- 设置 -->
-      <UserSettings 
-        v-if="activeTab === 'settings' && userInfo" 
-        :mid="userInfo.mid" 
-      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import UserHeader from './UserHeader.vue';
 import UserTabs from './UserTabs.vue';
 import UserVideos from './UserVideos.vue';
 import UserFavorites from './UserFavorites.vue';
 import UserSeasons from './UserSeasons.vue';
 import UserSeries from './UserSeries.vue';
-import UserSettings from './UserSettings.vue';
 import { ElMessage } from 'element-plus';
 import { 
   getUserInfo, 
@@ -78,7 +71,6 @@ const tabs = ref(
   { label: '投稿视频', value: 'videos', icon: 'ri-video-line' },
   { label: '合集', value: 'seasons', icon: 'ri-stack-line' },
   { label: '系列', value: 'series', icon: 'ri-list-check-2' },
-  { label: '设置', value: 'settings', icon: 'ri-settings-line' }
 ]
 );
 
@@ -165,12 +157,6 @@ watch(() => routerMid.value, () => {
   fetchUserInfo();
   fetchUserSettings();
 }, { immediate: true });
-
-// 组件挂载时获取用户信息
-// onMounted(() => {
-//   fetchUserInfo();
-//   fetchUserSettings();
-// });
 </script>
 
 <style lang="scss" scoped>

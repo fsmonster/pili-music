@@ -100,7 +100,7 @@ export interface SearchVideoByKeywordsParams {
    * 最多播放：click
    * 最多收藏：stow
    */
-  order?: string;
+  orderby?: string;
   /**
    * 页码
    */
