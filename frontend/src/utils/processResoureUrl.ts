@@ -1,101 +1,46 @@
 /**
- * 处理B站 i0~i2 域名的图片URL，将原始URL转换为本地代理URL
- * @param url B站 i0~i2 域名的原始图片URL
- * @returns 处理后的本地代理URL
- */
-function processBiliImageUrlI2(url: string): string {
-    const match = url.match(/^https?:\/\/i[0-2]\.hdslb\.com\/(.*)/);
-    if (!match) return url;
-    return `/biliimg/i2/${match[1]}`;
-}
-
-/**
- * 处理B站 archive 域名的图片URL，将原始URL转换为本地代理URL
- * @param url B站 archive 域名的原始图片URL
- * @returns 处理后的本地代理URL
- */
-function processBiliImageUrlArchive(url: string): string {
-    const match = url.match(/^https?:\/\/archive\.biliimg\.com\/(.*)/);
-    if (!match) return url;
-    return `/biliimg/archive/${match[1]}`;
-}
-
-/**
- * 处理B站 s1.hdslb.com 域名的图片URL，将原始URL转换为本地代理URL
- * @param url B站 s1.hdslb.com 域名的原始图片URL
- * @returns 处理后的本地代理URL
- */
-function processBiliImageUrlS1(url: string): string {
-    const match = url.match(/^https?:\/\/s1\.hdslb\.com\/(.*)/);
-    if (!match) return url;
-    return `/biliimg/s1/${match[1]}`;
-}
-
-/**
- * 处理B站其它域名的图片URL，将原始URL转换为本地代理URL
- * @param url B站其它域名的原始图片URL
- * @returns 处理后的本地代理URL
- */
-function processBiliImageUrlOthers(url: string): string {
-    const match = url.match(/^https?:\/\/(.*)\.hdslb\.com\/(.*)/);
-    if (!match) return url;
-    return `/biliimg/${match[1]}/${match[2]}`;
-}
-
-// static.hdslb.com/images/member/noface.gif
-function processBiliImageDefault(url: string): string {
-try {
-    const u = new URL(url);
-    return `/biliimg/default${u.pathname}`;
-    } catch (e) {
-    // 如果不是合法 URL，就直接返回原始字符串，避免报错
-    return url;
-    }
-}
-
-/**
- * 处理B站音频流URL，将原始URL转换为后端代理URL
- * @param url B站音频流的原始URL
- * @returns 处理后的后端代理URL
- */
-function processBiliAudioUrl(url: string): string {
-    // 检查URL是否有效
-    if (!url) return '';
-
-    return `/api/play/url?url=${encodeURIComponent(url)}`;
-}
-
-/**
- * 处理B站图片URL，将原始URL转换为本地代理URL
- * @param url B站原始图片URL
- * @returns 处理后的本地代理URL
+ * 处理B站资源URL，统一转换成本地代理路径
+ * @param url B站原始资源URL
+ * @returns 处理后的本地代理路径
  */
 export function processResourceUrl(url?: string): string {
     if (!url) return '';
+
     // 已经是代理URL则直接返回
     if (url.startsWith('/biliimg/') || url.startsWith('/api/audio/')) return url;
 
     // 处理默认头像
     if (url === 'https://static.hdslb.com/images/member/noface.gif') {
-        return processBiliImageDefault(url);
+        return '/biliimg/default/noface.gif';
     }
 
-    // 根据不同类型的URL分开处理
-    if (url.startsWith('https://i') && url.includes('.hdslb.com')) {
-        return processBiliImageUrlI2(url);
+    // 匹配 i0~i2.hdslb.com
+    if (/^https?:\/\/i[0-2]\.hdslb\.com\//.test(url)) {
+        return url.replace(/^https?:\/\/i[0-2]\.hdslb\.com\//, '/biliimg/i2/');
     }
+
+    // 匹配 archive.biliimg.com
     if (url.startsWith('https://archive.biliimg.com')) {
-        return processBiliImageUrlArchive(url);
+        return url.replace('https://archive.biliimg.com', '/biliimg/archive');
     }
-    // https://s1.hdslb.com/bfs/templar/york-static/viedeo_material_default.png
-    if (url.startsWith('https://s1.hdslb.com/bfs/templar')) {
-        return processBiliImageUrlS1(url);
+
+    // 匹配 s1.hdslb.com
+    if (url.startsWith('https://s1.hdslb.com')) {
+        return url.replace('https://s1.hdslb.com', '/biliimg/s1');
     }
-    // 处理所有 bilivideo.cn 域名的音频URL
+
+    // 匹配其它 hdslb.com 域名
+    if (/^https?:\/\/(.*)\.hdslb\.com\//.test(url)) {
+        return url.replace(/^https?:\/\/(.*)\.hdslb\.com\//, '/biliimg/$1/');
+    }
+
+    // 处理音频URL，转换成后端代理的格式
     if (url.includes('.bilivideo.cn') || url.includes('.bilivideo.com')) {
-        return processBiliAudioUrl(url);
+        return `/api/play/url?url=${encodeURIComponent(url)}`;
     }
-    return processBiliImageUrlOthers(url);
+
+    // 若没有匹配任何规则，返回原始 URL
+    return url;
 }
 
 export default processResourceUrl;

@@ -54,11 +54,6 @@ import QueueContainer from '@/components/queue/QueueContainer.vue';
   flex-direction: column;
   overflow: hidden;
   background-color: var(--el-bg-color);
-
-  :deep(> *) {
-    height: fit-content;
-    overflow: hidden;
-  }
 }
 
 .player {

@@ -21,7 +21,7 @@
           <div class="series-cover">
             <template v-if="item.meta.cover">
               <img 
-                :src="processResourceUrl(item.meta.cover)" 
+                :src="processResourceUrl(item.meta.cover) + '@200h'" 
                 alt="系列封面" 
                 loading="lazy" 
               />

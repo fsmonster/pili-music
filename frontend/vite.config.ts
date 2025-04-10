@@ -40,10 +40,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/bilisearch/, ''), // 直接去掉 `/bilisearch`
-        // headers: {
-        //   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        //   'Referer': 'https://www.bilibili.com',
-        // },
       },
       
       // 本地 API 代理

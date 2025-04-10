@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 
 // 加载环境变量
 dotenv.config();
@@ -24,6 +25,7 @@ import seriesRoutes from './routes/series.js'; // 系列路由
 import infoRoutes from './routes/audioInfo.js'; // 音频信息路由
 import playRoutes from './routes/play.js'; // 音频代理路由
 import userRoutes from './routes/user.js'; // 用户路由
+import searchRoutes from './routes/search.js'; // 搜索路由
 
 const app = express();
 const PORT: number = server.port;
@@ -46,7 +48,7 @@ app.use(helmet({
 // 根据环境配置日志
 app.use(morgan(env.isDevelopment ? 'dev' : 'combined'));
 app.use(express.json());
-// app.use(cookieParser());
+app.use(cookieParser());
 
 // 速率限制 - 根据环境设置不同的限制
 const limiter = rateLimit({
@@ -66,6 +68,7 @@ app.use('/api/series', seriesRoutes); // 注册系列路由
 app.use('/api/audioInfo', infoRoutes); // 注册音频信息路由
 app.use('/api/play', playRoutes); // 注册音频代理路由
 app.use('/api/user', userRoutes); // 注册用户路由
+app.use('/api/search', searchRoutes); // 注册搜索路由
 
 // 健康检查端点 - 用于监控
 app.get('/health', (_req: Request, res: Response) => {

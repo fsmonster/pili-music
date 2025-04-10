@@ -1,14 +1,15 @@
-import express, { Request, Response } from 'express';
+import express, { Response } from 'express';
 import axios from 'axios';
+import qs from 'qs';
 import {authMiddleware, optionalAuthMiddleware} from '../middleware/auth.js';
-import { AuthRequest } from '../types/index.js';
+import { AuthRequest, FavoriteActionParams } from '../types/index.js';
 import * as favoriteController from '../controllers/favoriteController.js';
 import { getHeaders } from '../utils/getHeader.js';
 
 const router = express.Router();
 
 // 可选鉴权中间件
-router.use('/list', optionalAuthMiddleware);
+router.use(['/list', '/resource/list'], optionalAuthMiddleware);
 
 /**
  * @route   GET /api/favorite/list
@@ -45,9 +46,6 @@ router.get('/list', async (req: AuthRequest, res: Response) => {
     });
   }
 });
-
-// 可选鉴权中间件
-router.use('/resource/list', optionalAuthMiddleware);
 
 /**
  * @route   GET /api/favorite/resource/list
@@ -157,6 +155,54 @@ router.put('/display', async (req: AuthRequest, res: Response) => {
     res.status(500).json({ 
       code: 500, 
       message: '更新显示收藏夹失败' 
+    });
+  }
+});
+
+/**
+ * @route   POST /api/favorite/add
+ * @desc    更新收藏夹内容
+ * @param { FavoriteAddParams } body - 收藏夹更新参数
+ * @access  Private - 需要登录
+ */
+router.post('/add', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.auth) {
+      return res.status(401).json({ 
+        code: 401, 
+        message: '未授权访问' 
+      });
+    }
+    
+    const csrf = req.auth.biliJct;
+    const { add_media_ids, del_media_ids, rid, type }: FavoriteActionParams = req.body;
+
+    const data = qs.stringify({
+      add_media_ids: Array.isArray(add_media_ids) ? add_media_ids.join(',') : add_media_ids,
+      del_media_ids: Array.isArray(del_media_ids) ? del_media_ids.join(',') : del_media_ids,
+      rid,
+      type,
+      csrf
+    });
+    
+    // 请求参数格式：application/x-www-form-urlencoded
+    const response = await axios.post('https://api.bilibili.com/x/v3/fav/resource/deal', data, {
+      headers: {
+        ...getHeaders(req.auth?.sessdata, req.auth?.biliJct),
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+    
+    res.json({
+      code: 0,
+      message: '更新收藏夹成功',
+      data: response.data
+    });
+  } catch (error) {
+    console.error('更新收藏夹失败:', error);
+    res.status(500).json({ 
+      code: 500, 
+      message: '更新收藏夹失败' 
     });
   }
 });

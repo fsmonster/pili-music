@@ -7,6 +7,7 @@ import type { ApiResponse,
   FavoriteListResponse, FavoriteList,
   FavoriteInfoResponse,
   FavoriteContentResponse,  
+  FavoriteActionParams
 } from '../types';
 
 /**
@@ -102,6 +103,22 @@ export async function updateDisplayFavorites(displayIds: number[]): Promise<numb
     return res.data.data;
   } catch (error) {
     console.error('更新显示收藏夹失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * @desc 更新收藏夹内容
+ * @param params 参数
+ * @returns 更新后的收藏夹内容
+ * @access  Private - 需要登录
+ */
+export async function updateFavoriteContent(params: FavoriteActionParams): Promise<any> {
+  try {
+    const res = await request.post<ApiResponse<any>>('/favorite/add', params);
+    return res.data.data;
+  } catch (error) {
+    console.error('更新收藏夹失败:', error);
     throw error;
   }
 }

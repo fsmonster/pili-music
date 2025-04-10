@@ -102,7 +102,7 @@
               link
               size="small"
               @click.stop="handleAdd(item)"
-              title="添加到播放队列"
+              title="添加到收藏夹"
             >
               <i class="ri-add-circle-line"></i>
             </el-button>
@@ -124,6 +124,7 @@ import { ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { usePlayerStore, useCurrentTrackStore } from '../../stores';
 import { processResourceUrl, formatDuration, formatDate } from '../../utils';
+import { useOverlayStore } from '../../stores/overlay';
 import type { MediaItem } from '../../types';
 import router from '@/router';
 
@@ -138,7 +139,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'play', item: MediaItem): void
-  (e: 'add', item: MediaItem): void
   (e: 'play-all'): void
 }>();
 
@@ -150,6 +150,7 @@ defineExpose({
 // 获取播放器存储
 const playerStore = usePlayerStore();
 const currentTrackStore = useCurrentTrackStore();
+const overlayStore = useOverlayStore();
 const { currentTrack } = storeToRefs(currentTrackStore);
 
 // 内部数据，与 props.data 分离
@@ -194,9 +195,10 @@ function handlePlay(item: MediaItem): void {
   emit('play', item);
 }
 
-// 处理添加到队列事件
+// 处理添加到收藏夹
 function handleAdd(item: MediaItem): void {
-  emit('add', item);
+  // 调用收藏夹弹窗
+  overlayStore.showFavoriteModal(item.id, 2); // 2表示视频稿件
 }
 
 // 

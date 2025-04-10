@@ -8,7 +8,8 @@ export * from './list'
 // 播放
 export * from './play'
 
-
 // 搜索
 export * from './search/search'
 
+// 覆盖层
+export * from './overlay'

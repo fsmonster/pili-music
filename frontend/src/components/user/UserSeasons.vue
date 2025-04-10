@@ -20,7 +20,7 @@
         >
           <div class="season-cover">
             <img 
-              :src="processResourceUrl(item.meta.cover)" 
+              :src="processResourceUrl(item.meta.cover) + '@200h'" 
               alt="合集封面" 
               loading="lazy" 
             />
