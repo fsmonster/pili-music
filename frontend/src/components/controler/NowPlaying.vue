@@ -35,7 +35,12 @@ const { playing } = storeToRefs(playStore);
 
 // 跳转到视频页面
 const goToVideoPage = () => {
-  window.open(`https://www.bilibili.com/video/${currentTrack.value?.bvid}`);
+  if (currentTrack.value?.bvid){
+    window.open(`https://www.bilibili.com/video/${currentTrack.value?.bvid}`);
+  }
+  else{
+    window.open(`https://www.bilibili.com/video/BV1uT4y1P7CX`);
+  }
 };
 
 // 跳转到用户页面
