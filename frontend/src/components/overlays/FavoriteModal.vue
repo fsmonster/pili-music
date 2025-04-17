@@ -65,7 +65,6 @@
 import { ref, computed, watch } from 'vue';
 import { useFavoriteStore, useUserStore } from '../../stores';
 import { useFavoriteAction } from '../../composables/useFavoriteAction';
-import { useOverlayStore } from '../../stores/overlay';
 import { ElMessage } from 'element-plus';
 
 const props = defineProps<{
@@ -82,7 +81,6 @@ const emit = defineEmits<{
 // 状态
 const userStore = useUserStore();
 const favoriteStore = useFavoriteStore();
-const overlayStore = useOverlayStore();
 const { checkFavorites, updateFavorites } = useFavoriteAction();
 
 const visible = ref(props.modelValue);

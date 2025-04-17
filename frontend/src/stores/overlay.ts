@@ -40,6 +40,9 @@ export const useOverlayStore = defineStore('overlay', () => {
   const hideSectionModal = () => {
     showingSectionModal.value = false;
   };
+
+  // 删除历史记录弹窗
+  const showingDeleteHistoryModal = ref(false);
   
   return {
     // 状态
@@ -49,6 +52,7 @@ export const useOverlayStore = defineStore('overlay', () => {
     currentSectionId,
     currentType,
     collectionId,
+    showingDeleteHistoryModal,
     // 方法
     showFavoriteModal,
     hideFavoriteModal,

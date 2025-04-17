@@ -29,6 +29,7 @@ export const useSearchStore = defineStore('search', () => {
 
     // 搜索历史
     const searchHistory = ref<string[]>([]);
+    const MAX_SEARCH_HISTORY = 20;
 
     // 获取搜索结果
     const getSearchResults = async () => {
@@ -68,6 +69,9 @@ export const useSearchStore = defineStore('search', () => {
     const addSearchHistory = (keyword: string) => {
         if (!keyword) return;
         // 去重
+        if(searchHistory.value.length >= MAX_SEARCH_HISTORY) {
+            searchHistory.value.pop();
+        }
         searchHistory.value = Array.from(new Set([keyword, ...searchHistory.value]));
     };
 

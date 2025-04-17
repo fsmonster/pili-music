@@ -13,6 +13,11 @@
       :type="overlayStore.currentType"
       :media-id="overlayStore.collectionId"
     />
+
+    <!-- 删除历史记录弹窗 -->
+    <DeleteHistoryModal 
+      v-model="overlayStore.showingDeleteHistoryModal"
+    />
   </div>
 </template>
 
@@ -20,6 +25,7 @@
 import { useOverlayStore } from '../../stores/overlay';
 import FavoriteModal from './FavoriteModal.vue';
 import SectionModal from './SectionModal.vue';
+import DeleteHistoryModal from './DeleteHistoryModal.vue';
 
 // 状态
 const overlayStore = useOverlayStore();

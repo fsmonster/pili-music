@@ -9,11 +9,12 @@ const JWT_SECRET: string = config.jwt.secret;
 /**
  * 生成 JWT token
  * @param {JwtPayload} payload - 要包含在 token 中的数据
- * @param {string} expiresIn - token 过期时间
+ * @param {string} expiresIn - token 过期时间 - 暂时不设置过期时间
  * @returns {string} JWT token
  */
 export const generateToken = (payload: JwtPayload, expiresIn: string = config.jwt.expiresIn): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn });
+  // return jwt.sign(payload, JWT_SECRET, { expiresIn });
+  return jwt.sign(payload, JWT_SECRET);
 };
 
 /**

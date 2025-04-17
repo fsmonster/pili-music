@@ -44,7 +44,7 @@ const config = {
   // JWT配置
   jwt: {
     secret: process.env.JWT_SECRET || 'default_jwt_secret_key',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    expiresIn: process.env.JWT_EXPIRES_IN || '15d',
   },
   
   // 速率限制配置
