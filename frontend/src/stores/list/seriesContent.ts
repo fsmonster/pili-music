@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import * as seriesApi from '../../api/series';
+import { SeriesSortType } from '../../types';
 import type { Archive } from '../../types';
 import { convertArchiveToMediaItem } from '../../utils';
 
@@ -20,7 +21,7 @@ export const useSeriesContentStore = defineStore('seriesContent', () => {
     /**
      * 获取系列所有媒体列表
      */
-    const fetchSeriesArchives = async (seriesId: number, mid?: number) => {     
+    const fetchSeriesArchives = async (seriesId: number, mid?: number, sort?: SeriesSortType) => {     
         if (!mid){
             mid = (await seriesApi.getSeriesMeta(seriesId)).mid;
         }
@@ -31,7 +32,8 @@ export const useSeriesContentStore = defineStore('seriesContent', () => {
                 mid,
                 series_id: seriesId,
                 pn: 1,
-                ps: 1000
+                ps: 1000,
+                sort
             });
         } catch (err) {
             console.error("获取系列内容失败:", err);

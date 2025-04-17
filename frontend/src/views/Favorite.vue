@@ -17,7 +17,11 @@
             <!-- 控制栏 -->
             <ListControls
               :disabled="!medias.length"
+              :type="CollectionType.Favorite"
+              :sort="sort"
+              :sortOptions="favoriteSortOptions "
               @play-all="handlePlayAll"
+              @sort="handleSort"
             />
 
             <!-- 表格 -->
@@ -53,8 +57,8 @@ import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import { Loading } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
-import { CollectionType } from '../types';
-import type { FavoriteInfo, MediaItem } from '../types';
+import { FavoriteSortType, SeriesSortType, CollectionType } from '../types';
+import type { SortType, FavoriteInfo, MediaItem } from '../types';
 import * as favoriteApi from '../api/favorite';
 import { storeToRefs } from 'pinia';
 import { 
@@ -92,6 +96,19 @@ let scrollTimer: number | null = null;
 // 计算属性
 const id = computed(() => route.params.id);
 
+// 排序类型
+const sort = ref<SortType | null>({
+  type: CollectionType.Favorite,
+  order: FavoriteSortType.MTIME,
+});
+
+// 收藏夹排序选项
+const favoriteSortOptions = [
+  { label: '收藏时间', value: FavoriteSortType.MTIME },
+  { label: '播放量', value: FavoriteSortType.VIEW },
+  { label: '投稿时间', value: FavoriteSortType.PUBTIME }
+];
+
 // 加载收藏夹信息
 const loadInfo = async () => {
   if (!id.value) return;
@@ -109,7 +126,10 @@ const loadInfo = async () => {
 async function loadContent() {  
   if (!id.value) return;
   // 加载收藏夹内容
-  const firstPageData = await favoriteContentStore.fetchFavoriteContent(Number(id.value));
+  const firstPageData = await favoriteContentStore.fetchFavoriteContent(
+    Number(id.value), 
+    sort.value?.order as FavoriteSortType 
+      ?? FavoriteSortType.MTIME);
   initialData.value = firstPageData || [];
 }
 
@@ -122,7 +142,7 @@ const loadMore = async () => {
   // 记录当前滚动位置
   const scrollPosition = playlistScroll.value ? playlistScroll.value.scrollTop : 0;
   
-  const currentLength = medias.value.length;
+  // const currentLength = medias.value.length;
   const newData = await favoriteContentStore.fetchFavoriteContent(Number(id.value));
   
   // 如果有新数据并且 MediaList 组件已挂载，使用 updateData 方法更新
@@ -222,11 +242,23 @@ function removeContent() {
   favoriteContentStore.reset();
 }
 
+/**
+ * @desc 排序
+ */
+function handleSort(order: FavoriteSortType | SeriesSortType) {
+  sort.value = { type: CollectionType.Favorite, order };
+}
+
 watch(() => id.value, () => {
   removeContent();
   loadInfo();
   loadContent();
 }, { immediate: true });
+
+watch(() => sort.value, () => {
+  removeContent();
+  loadContent();
+});
 
 onMounted(() => {
   // 添加滚动事件监听
@@ -252,7 +284,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import './style/playlist.scss';
+@use './style/playlist.scss';
 
 .playlist-scroll {
   height: calc(100vh - 200px);

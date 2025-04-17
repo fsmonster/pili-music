@@ -2,9 +2,10 @@
   <ContentSection 
     :title="section?.name || ''" 
     :show-manage="true" 
-    :show-refresh="false" 
+    :show-refresh="true" 
     :isEmpty="!collocations.length && !loading"
     @manage="showManageDialog = true"
+    @refresh="refreshSection"
   >
     <!-- 图标插槽 -->
     <template #icon>
@@ -134,7 +135,7 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from '../songLists/ContentSection.vue';
-import type { Section, CollocationType,CollocationItem } from '../../types';
+import type { Section, CollectionType,CollocationItem } from '../../types';
 import { useSectionStore, 
   useFavoriteContentStore, 
   useSeasonContentStore,
@@ -180,7 +181,7 @@ const showConfirmDialog = ref(false);
 const activeTab = ref('add');
 
 // 要移除的收藏夹类型和ID
-const typeToRemove = ref<CollocationType | null>(null);
+const typeToRemove = ref<CollectionType | null>(null);
 const idToRemove = ref<number | null>(null);
 
 // 计算属性：资源列表
@@ -189,7 +190,7 @@ const collocations = computed<CollocationItem[]>(() => {
 });
 
 // 跳转到资源详情
-const goToCollocation = async (type: CollocationType, id: number) => {
+const goToCollocation = async (type: CollectionType, id: number) => {
   switch (type) {
     case 'favorite':
       router.push(`/favorite/${id}`);
@@ -209,7 +210,7 @@ const goToCollocation = async (type: CollocationType, id: number) => {
 };
 
 // 播放资源内容
-const playCollocation = async (type: CollocationType, id: number) => {
+const playCollocation = async (type: CollectionType, id: number) => {
   try {
     if(type === lazyLoad.type && id === lazyLoad.id) {
       queueStore.setCurrentIndex(0);
@@ -279,6 +280,28 @@ const loadSectionData = async () => {
   }
 };
 
+// 刷新分区内容
+const refreshSection = async () => {
+  if (!props.sectionId) return;
+  
+  try {
+    loading.value = true;
+    
+    // 调用刷新函数，完全重新加载分区内容
+    await sectionStore.refreshSectionContent(props.sectionId);
+    
+    ElMessage.success({
+      message: '刷新分区内容成功',
+      duration: 1000
+    });
+  } catch (error) {
+    console.error('刷新分区内容失败:', error);
+    ElMessage.error('刷新分区内容失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
 // 添加资源到分区
 const addCollocation = async () => {
   if (!props.sectionId || !collocationUrl.value) {
@@ -301,7 +324,10 @@ const addCollocation = async () => {
       return;
     }
     // 添加资源到分区
-    await sectionStore.addCollocationToSection(props.sectionId, type, id);
+    await sectionStore.addCollocationToSection({
+      sectionId: props.sectionId,
+      resources: [{ type: type as CollectionType, id }]
+    });
     
     // 清空输入框
     collocationUrl.value = '';
@@ -316,7 +342,7 @@ const addCollocation = async () => {
 };
 
 // 确认移除收藏夹
-const confirmRemoveCollocation = (type: CollocationType, id: number) => {
+const confirmRemoveCollocation = (type: CollectionType, id: number) => {
   typeToRemove.value = type;
   idToRemove.value = id;
   showConfirmDialog.value = true;
@@ -328,7 +354,10 @@ const removeCollocation = async () => {
   
   try {
     // 从分区移除收藏夹
-    await sectionStore.removeCollocationFromSection(props.sectionId, typeToRemove.value, idToRemove.value);
+    await sectionStore.removeCollocationFromSection({
+      sectionId: props.sectionId,
+      resources: [{ type: typeToRemove.value, id: idToRemove.value }]
+    });
     
     ElMessage.success('移除资源成功');
     showConfirmDialog.value = false;

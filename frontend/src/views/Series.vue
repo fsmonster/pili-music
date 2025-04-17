@@ -17,7 +17,9 @@
             <!-- 控制栏 -->
             <ListControls
               :disabled="!medias.length"
-              @update:sort="handleSort"
+              :type="CollectionType.Series"
+              :sort="sort"
+              :sortOptions="seriesSortOptions"
               @play-all="handlePlayAll"
               @sort="handleSort"
             />
@@ -49,7 +51,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
+import { ref, computed, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { Loading } from '@element-plus/icons-vue';
@@ -58,8 +60,8 @@ import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import MediaList from '../components/songList/MediaList.vue';
 import {useSeriesStore,useSeriesContentStore, usePlayerStore } from '../stores';
-import { CollectionType } from '../types';
-import type { MediaItem, SeriesMeta } from '@/types';
+import { CollectionType, type SortType } from '../types';
+import { SeriesSortType, FavoriteSortType, type MediaItem, type SeriesMeta } from '@/types';
 import { getSeriesMeta } from '@/api';
 
 // 路由参数
@@ -74,6 +76,18 @@ const playerStore = usePlayerStore();
 
 // 状态
 const loading = ref(false);
+
+// 排序
+const sort = ref<SortType | null>({
+  type: CollectionType.Series,
+  order: SeriesSortType.DESC,
+});
+
+// 排序选项
+const seriesSortOptions = [
+  { label: '升序', value: SeriesSortType.DESC },
+  { label: '降序', value: SeriesSortType.ASC }
+];
 
 // 计算属性
 const seriesMeta = ref<SeriesMeta | null>(null);
@@ -107,7 +121,11 @@ const loadContent = async () => {
     // 获取系列内容
     const mid = seriesMeta.value?.mid;
     if (mid) {
-      await seriesContentStore.fetchSeriesArchives(Number(id.value), mid);
+      await seriesContentStore.fetchSeriesArchives(
+        Number(id.value), 
+        mid, 
+        sort.value?.order as SeriesSortType
+          ?? SeriesSortType.DESC);
     } else {
       ElMessage.error('获取系列内容失败');
     }
@@ -159,9 +177,8 @@ const handlePlay = (item: MediaItem) => {
 };
 
 // 排序处理
-const handleSort = (value: 'desc' | 'asc') => {
-  // 这里可以实现排序逻辑
-  console.log('排序方式:', value);
+const handleSort = (order: SeriesSortType | FavoriteSortType) => {
+  sort.value = { type: CollectionType.Series, order };
 };
 
 /**
@@ -177,10 +194,10 @@ watch(() => id.value, async () => {
   await loadContent();
 }, { immediate: true });
 
-// onMounted(async () => {
-//   await loadInfo();
-//   await loadContent();
-// });
+watch(() => sort.value, () => {
+  removeContent();
+  loadContent();
+});
 
 onUnmounted(() => {
   removeContent();
@@ -188,5 +205,5 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import './style/playlist.scss';
+@use './style/playlist.scss';
 </style>

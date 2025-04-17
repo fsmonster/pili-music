@@ -1,3 +1,4 @@
+import { SeriesSortType } from './common';
 import type { Archive } from './index'
 
 export interface Page {
@@ -147,7 +148,7 @@ export interface SeriesArchivesParams {
      * desc: 默认排序
      * asc: 升序排序
      */
-    sort?: string;
+    sort?: SeriesSortType;
     [property: string]: any;
 }
 

@@ -223,7 +223,7 @@ watch(() => props.data, (newData) => {
   border-radius: 8px;
   overflow: visible;
   background-color: var(--el-bg-color);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  // box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 // 列表头部样式
@@ -232,7 +232,7 @@ watch(() => props.data, (newData) => {
   grid-template-columns: 60px 1fr auto auto auto;
   padding: 12px 16px;
   border-bottom: 1px solid var(--el-border-color-lighter);
-  background-color: var(--el-fill-color-light);
+  background-color: #fefefe;
   color: var(--el-text-color-secondary);
   border-radius: 8px 8px 0 0;
   font-size: 14px;
@@ -275,6 +275,7 @@ watch(() => props.data, (newData) => {
 // 列表内容样式
 .media-list-body {
   width: 100%;
+  margin-top: 8px;
 }
 
 // 列表项样式
@@ -282,7 +283,8 @@ watch(() => props.data, (newData) => {
   display: grid;
   grid-template-columns: 60px 1fr auto auto auto;
   padding: 10px 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  // border-bottom: 1px solid var(--el-border-color-lighter);
+  border-radius: 4px;
   transition: background-color 0.2s;
   
   &.favorite {

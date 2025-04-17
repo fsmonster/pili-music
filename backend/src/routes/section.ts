@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import authMiddleware from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/auth.js';
 import { AuthRequest, CollocationType } from '../types/index.js';
 import * as sectionController from '../controllers/sectionController.js';
 

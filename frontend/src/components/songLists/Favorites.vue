@@ -81,7 +81,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElDialog, ElMessage, ElCheckbox, ElCheckboxGroup, ElButton } from 'element-plus';
+import { ElDialog, ElMessage } from 'element-plus';
+import { CollectionType } from '@/types';
 import ContentSection from './ContentSection.vue';
 import { useUserStore, useFavoriteStore,useFavoriteContentStore, useQueueStore, usePlayerStore, useLazyLoadStore } from '@/stores';
 import { processResourceUrl } from '@/utils';
@@ -117,12 +118,12 @@ const isPrivate = (item: any) => {
 // 播放收藏夹内容
 const playFavorite = async (id: number) => {
   try {
-    if (lazyLoad.type === 'favorite' && lazyLoad.id === id) {
+    if (lazyLoad.type === CollectionType.Favorite && lazyLoad.id === id) {
       queueStore.setCurrentIndex(0);
       playerStore.replay();
       return;
     } else {
-      lazyLoad.set({ type: 'favorite', id });
+      lazyLoad.set({ type: CollectionType.Favorite, id });
     }
     // 完整加载收藏夹内容
     await favoriteContentStore.fetchFavoriteContent(Number(id));

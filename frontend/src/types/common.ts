@@ -14,6 +14,25 @@ export interface UPInfo {
   face: string;
 }
 
+// 排序类型
+export interface SortType {
+  type: CollectionType;
+  order: FavoriteSortType | SeriesSortType;
+}
+
+// 收藏夹排序类型
+export enum FavoriteSortType {
+  MTIME = 'mtime',
+  VIEW = 'view',
+  PUBTIME = 'pubtime',
+}
+
+// 系列排序类型
+export enum SeriesSortType {
+  DESC = 'desc',
+  ASC = 'asc'
+}
+
 // 媒体类型
 export enum CollectionType {
   Favorite = 'favorite',

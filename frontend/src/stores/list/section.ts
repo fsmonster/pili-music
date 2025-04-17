@@ -5,6 +5,7 @@ import * as sectionApi from '../../api/section';
 import * as favoriteApi from '../../api/favorite';
 import * as seasonApi from '../../api/season';
 import * as seriesApi from '../../api/series';
+import { CollectionType } from '../../types';
 import type { Section, CollocationItem, CollocationParams } from '../../types';
 import { getCollocationId } from '../../utils';
 
@@ -139,24 +140,24 @@ export const useSectionStore = defineStore('section', () => {
   const fetchCollocationItem = async (type: string, id: number): Promise<CollocationItem | null> => {
     let collocationItem: CollocationItem | null = null;
 
-    if (type === 'favorite') {
+    if (type === CollectionType.Favorite) {
       const favoriteInfo = await favoriteApi.getFavoriteInfo(id);
       if (favoriteInfo) {
-        collocationItem = { type: 'favorite', favoriteInfo };
+        collocationItem = { type: CollectionType.Favorite, favoriteInfo };
       }
-    } else if (type === 'season') {
+    } else if (type === CollectionType.Season) {
       const seasonInfo = await seasonApi.getSeasonMeta(id);
       // 如果是默认封面，获取合集第一个视频的cover - page_num: 1, page_size: 1
       // https://s1.hdslb.com/bfs/templar/york-static/viedeo_material_default.png
       seasonInfo.cover = seasonInfo.cover.includes('viedeo_material_default.png') ? (await seasonApi.getSeasonCover(id)) : seasonInfo.cover;
       if (seasonInfo) {
-        collocationItem = { type: 'season', seasonInfo };
+        collocationItem = { type: CollectionType.Season, seasonInfo };
       }
-    } else if (type === 'series') {
+    } else if (type === CollectionType.Series) {
       const seriesInfo = await seriesApi.getSeriesMeta(id);
       if (seriesInfo) {
         seriesInfo.cover = seriesInfo.cover ?? (await seriesApi.getSeriesCover(id, seriesInfo.mid));
-        collocationItem = { type: 'series', seriesInfo };
+        collocationItem = { type: CollectionType.Series, seriesInfo };
       }
     }
 
@@ -206,6 +207,48 @@ export const useSectionStore = defineStore('section', () => {
     }
   } catch (error) {
     console.error('获取分区内容失败:', error);
+    throw error;
+  }
+};
+
+/**
+ * @desc 刷新 📦 自定义分区内容
+ * @param sectionId 分区 ID
+ * @returns 刷新后的资源项列表
+ */
+const refreshSectionContent = async (sectionId: string) => {
+  if (!isLoggedIn.value) return [];
+
+  try {
+    // 获取分区基本信息
+    const section = await sectionApi.getSectionById(sectionId);
+    
+    // 创建一个新的空数组，不保留任何已有数据
+    const collocationList: CollocationItem[] = [];
+    
+    // 使用 Promise.all 并行加载所有资源
+    const collocationPromises = section.collocationIds.map(async (collocationId) => {
+      try {
+        return await fetchCollocationItem(collocationId.type, collocationId.id);
+      } catch (error) {
+        console.error(`刷新资源项 ${collocationId.id} 信息失败:`, error);
+        return null;
+      }
+    });
+    
+    // 等待所有请求完成并过滤掉 null 值
+    const newCollocationItems = (await Promise.all(collocationPromises)).filter(item => item !== null) as CollocationItem[];
+    collocationList.push(...newCollocationItems);
+    
+    // 更新 sections 数据
+    const index = currentIndex(sectionId);
+    if (index !== -1) {
+      sections.value[index].collocationList = collocationList;
+    }
+    
+    return collocationList;
+  } catch (error) {
+    console.error('刷新分区内容失败:', error);
     throw error;
   }
 };
@@ -349,6 +392,7 @@ export const useSectionStore = defineStore('section', () => {
     currentSection,
     fetchSections,
     fetchSectionContent,
+    refreshSectionContent,
     createSection,
     updateSection,
     deleteSection,

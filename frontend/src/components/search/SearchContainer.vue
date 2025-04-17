@@ -95,10 +95,11 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .search-container {
+  box-sizing: border-box;
   padding: 20px 0;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px); // 减去顶部导航栏的高度
+  height: 100%;
 }
 
 .search-content {

@@ -1,27 +1,30 @@
 import type { FavoriteInfo } from './favorite';
 import type { SeasonMeta } from './season';
 import type { SeriesMeta } from './series';
+import type { CollectionType, MediaUpper } from './common';
 
 /**
  * 资源类型
  */
-export type CollocationType = 'favorite' | 'season' | 'series';
+// export type CollocationType = 'favorite' | 'season' | 'series';
 
 /**
  * 资源id
  */
 export interface CollocationId {
-  type: CollocationType;
+  type: CollectionType;
   id: number;
 }
 
 /**
  * 资源项
+ * up - 暂时不加
  */
 export type CollocationItem = 
-  | { type: 'favorite'; favoriteInfo: FavoriteInfo }  
-  | { type: 'season'; seasonInfo: SeasonMeta }  
-  | { type: 'series'; seriesInfo: SeriesMeta };
+  | { type: CollectionType.Favorite; favoriteInfo: FavoriteInfo }  
+  | { type: CollectionType.Season; seasonInfo: SeasonMeta }  
+  | { type: CollectionType.Series; seriesInfo: SeriesMeta }  
+  | { type: CollectionType.UP; upperInfo: MediaUpper };
 
 /**
  * 自定义分区基本信息

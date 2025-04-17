@@ -17,9 +17,8 @@
             <!-- 控制栏 -->
             <ListControls
               :disabled="!medias.length"
-              @update:sort="handleSort"
+              :type="CollectionType.Season"
               @play-all="handlePlayAll"
-              @sort="handleSort"
             />
 
             <!-- 表格 -->
@@ -126,15 +125,6 @@ function handlePlay(item: MediaItem) {
     currentTrack: item,
     ...buildPlayOptionsPartial()
   });
-}
-
-/**
- * @desc 排序处理
- */
-function handleSort(value: 'desc' | 'asc') {
-  console.log(value);  
-  // 重新加载数据
-  loadContent();
 }
 
 /**
