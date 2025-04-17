@@ -174,8 +174,16 @@ export const getSectionContent = async (mid: number, sectionId: string) => {
  */
 export const getSectionsByTypeAndId = async (mid: number, type: CollocationType, id: number): Promise<Section[]> => {
   try {
-    // 获取包含特定 ID 的所有分区
-    const sections = await getSectionsByTypeAndId(mid, type, id);
+    // 查询包含特定资源的分区
+    const sections = await SectionModel.find({
+      mid,
+      collocationIds: {
+        $elemMatch: {
+          type,
+          id
+        }
+      }
+    });
     
     return sections;
   } catch (error) {

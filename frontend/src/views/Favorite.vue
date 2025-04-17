@@ -19,9 +19,10 @@
               :disabled="!medias.length"
               :type="CollectionType.Favorite"
               :sort="sort"
-              :sortOptions="favoriteSortOptions "
+              :sortOptions="favoriteSortOptions"
               @play-all="handlePlayAll"
               @sort="handleSort"
+              @add="handleAdd"
             />
 
             <!-- 表格 -->
@@ -51,12 +52,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import Layout from '../layout/Layout.vue';
-import MediaList from '../components/songList/MediaList.vue';
-import ListHeader from '../components/songList/ListHeader.vue';
-import ListControls from '../components/songList/ListControls.vue';
-import { Loading } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
+import Layout from '../layout/Layout.vue';
+import { MediaList, ListHeader, ListControls} from '../components';
+import { Loading } from '@element-plus/icons-vue';
 import { FavoriteSortType, SeriesSortType, CollectionType } from '../types';
 import type { SortType, FavoriteInfo, MediaItem } from '../types';
 import * as favoriteApi from '../api/favorite';
@@ -64,13 +63,15 @@ import { storeToRefs } from 'pinia';
 import { 
   useFavoriteContentStore, 
   usePlayerStore, 
-  useLazyLoadStore
+  useLazyLoadStore,
+  useOverlayStore
 } from '../stores';
 
 const route = useRoute();
 const playerStore = usePlayerStore();
 const favoriteContentStore = useFavoriteContentStore();
 const lazyLoad = useLazyLoadStore();
+const overlayStore = useOverlayStore();
 
 // 当前收藏夹信息
 const currentInfo = ref<FavoriteInfo | null>(null);
@@ -247,6 +248,15 @@ function removeContent() {
  */
 function handleSort(order: FavoriteSortType | SeriesSortType) {
   sort.value = { type: CollectionType.Favorite, order };
+}
+
+/**
+ * @desc 添加到分区
+ */
+function handleAdd() {
+  overlayStore.showingSectionModal = true;
+  overlayStore.collectionId = currentInfo.value?.id ?? 0;
+  overlayStore.currentType = CollectionType.Favorite;
 }
 
 watch(() => id.value, () => {

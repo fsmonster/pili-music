@@ -1,6 +1,6 @@
 import { request } from '../utils/request';
-import type { ApiResponse } from '../types';
-import type { Section, SectionParams, CollocationId, CollocationParams } from '../types';
+import { CollectionType } from '../types';
+import type { ApiResponse, Section, SectionParams, CollocationId, CollocationParams } from '../types';
 
 /**
  * 分区相关API
@@ -93,6 +93,30 @@ export async function deleteSection(sectionId: string): Promise<boolean> {
     return res.data.data;
   } catch (error) {
     console.error('删除分区失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取包含特定 ID 的所有分区
+ * @param type 分区类型
+ * @param id ID
+ * @returns 分区列表
+ */
+export async function getSectionsByTypeAndId(type: CollectionType, id: number): Promise<Section[]> {
+  try {
+    const res = await request.get<ApiResponse<Section[]>>(`/section/with-item`, { 
+      params: { 
+        type, 
+        id 
+      } 
+    });
+    if (res.data.code !== 0) {
+      throw new Error(res.data.message || '获取包含特定 ID 的分区失败');
+    }
+    return res.data.data;
+  } catch (error) {
+    console.error('获取包含特定 ID 的分区失败:', error);
     throw error;
   }
 }

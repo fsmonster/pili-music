@@ -19,15 +19,10 @@
               :disabled="!medias.length"
               :type="CollectionType.Season"
               @play-all="handlePlayAll"
+              @add="handleAdd"
             />
 
             <!-- 表格 -->
-            <!-- <MediaTable
-              type="season"
-              :data="medias"
-              :loading="seasonStore.loading"
-              @play="handlePlay"
-            /> -->
             <MediaList
               type="season"
               :data="medias"
@@ -54,9 +49,9 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, computed, onMounted, onUnmounted, watchEffect, watch } from 'vue';
+import { ref, computed, onUnmounted, watchEffect, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useSeasonStore, useSeasonContentStore, usePlayerStore } from '../stores';
+import { useSeasonStore, useSeasonContentStore, usePlayerStore, useOverlayStore } from '../stores';
 import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
@@ -70,6 +65,7 @@ const route = useRoute();
 const playerStore = usePlayerStore();
 const seasonStore = useSeasonStore();
 const seasonContentStore = useSeasonContentStore();
+const overlayStore = useOverlayStore();
 
 const { info, medias } = storeToRefs(seasonContentStore);
 const coverUrl = ref(""); // 存储最终封面 URL
@@ -132,6 +128,15 @@ function handlePlay(item: MediaItem) {
  */
 function removeContent() {
   seasonContentStore.reset();
+}
+
+/**
+ * @desc 添加到收藏夹
+ */
+function handleAdd() {
+  overlayStore.showingSectionModal = true;
+  overlayStore.collectionId = Number(id.value);
+  overlayStore.currentType = CollectionType.Season;
 }
 
 watch(() => id.value, () => {

@@ -22,6 +22,7 @@
               :sortOptions="seriesSortOptions"
               @play-all="handlePlayAll"
               @sort="handleSort"
+              @add="handleAdd"
             />
 
             <!-- 媒体列表 -->
@@ -59,7 +60,7 @@ import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import MediaList from '../components/songList/MediaList.vue';
-import {useSeriesStore,useSeriesContentStore, usePlayerStore } from '../stores';
+import {useSeriesStore,useSeriesContentStore, usePlayerStore, useOverlayStore } from '../stores';
 import { CollectionType, type SortType } from '../types';
 import { SeriesSortType, FavoriteSortType, type MediaItem, type SeriesMeta } from '@/types';
 import { getSeriesMeta } from '@/api';
@@ -73,6 +74,7 @@ const id = computed(() => route.params.id);
 const seriesStore = useSeriesStore();
 const seriesContentStore = useSeriesContentStore();
 const playerStore = usePlayerStore();
+const overlayStore = useOverlayStore();
 
 // 状态
 const loading = ref(false);
@@ -186,6 +188,15 @@ const handleSort = (order: SeriesSortType | FavoriteSortType) => {
  */
 function removeContent() {
   seriesContentStore.reset();
+}
+
+/**
+ * @desc 添加到收藏夹
+ */
+function handleAdd() {
+  overlayStore.showingSectionModal = true;
+  overlayStore.collectionId = Number(id.value);
+  overlayStore.currentType = CollectionType.Series;
 }
 
 watch(() => id.value, async () => {

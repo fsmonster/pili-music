@@ -198,7 +198,7 @@ function handlePlay(item: MediaItem): void {
 // 处理添加到收藏夹
 function handleAdd(item: MediaItem): void {
   // 调用收藏夹弹窗
-  overlayStore.showFavoriteModal(item.id, 2); // 2表示视频稿件
+  overlayStore.showFavoriteModal(item.id);
 }
 
 // 
@@ -346,6 +346,8 @@ watch(() => props.data, (newData) => {
   align-items: center;
   gap: 12px;
   padding-left: 8px;
+  // Grid 子项默认 min-width: auto，不会被压缩
+  min-width: 0; // ✅ grid 子项一定要有这个！
   
   .media-cover-wrapper {
     position: relative;
@@ -390,8 +392,9 @@ watch(() => props.data, (newData) => {
   .title-info {
     display: flex;
     flex-direction: column;
+    min-width: 0; // ✅ 在 flex 容器内部也要加
     flex: 1;
-    min-width: 0;
+    overflow: hidden;
     
     .media-title {
       font-size: 14px;

@@ -42,11 +42,11 @@ router.get('', async (req: AuthRequest, res: Response) => {
 });
 
 /**
- * @route   GET /api/section/with-item/:type/:id
+ * @route   GET /api/section/with-item
  * @desc    获取包含特定 ID 的所有分区
  * @access  Private - 需要JWT认证
  */
-router.get('/with-item/:type/:id', async (req: AuthRequest, res: Response) => {
+router.get('/with-item', async (req: AuthRequest, res: Response) => {
   try {
     if (!req.auth) {
       return res.status(401).json({ 
@@ -56,11 +56,10 @@ router.get('/with-item/:type/:id', async (req: AuthRequest, res: Response) => {
     }
 
     const { mid } = req.auth;
-    const type = req.params.type as CollocationType;
-    const id = Number(req.params.id);
+    const { type, id } = req.query;
     
     // 获取包含特定 ID 的所有分区
-    const sections = await sectionController.getSectionsByTypeAndId(mid, type, id);
+    const sections = await sectionController.getSectionsByTypeAndId(mid, type as CollocationType, Number(id));
     
     res.json({
       code: 0,
