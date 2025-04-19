@@ -1,20 +1,10 @@
 <template>
-  <div class="user-container" 
-    ref="userContainerRef"  
-    @scroll="handleScroll">
+  <div class="user-container" ref="userContainerRef" @scroll="handleScroll">
     <!-- 用户信息头部 -->
-    <UserHeader 
-      v-if="userInfo"
-      :avatar="userInfo.face" 
-      :name="userInfo.name" 
-      :mid="userInfo.mid" 
-    />
+    <UserHeader v-if="userInfo" :avatar="userInfo.face" :name="userInfo.name" :mid="userInfo.mid" />
 
     <!-- 内容切换标签 -->
-    <UserTabs 
-      v-model:activeTab="activeTab"
-      :tabs="tabs"
-    />
+    <UserTabs v-model:activeTab="activeTab" :tabs="tabs" />
 
     <!-- 内容区域 -->
     <div class="content-area">
@@ -22,12 +12,13 @@
       <UserVideos 
         v-if="activeTab === 'videos' && userInfo" 
         :user-info="userInfo" 
-        v-model:loadMore="loadMore"
+        v-model:loadMore="loadMore" 
       />
 
       <!-- 收藏夹 -->
       <UserFavorites 
-        v-if="activeTab === 'favorites' && privacy?.fav_video && userInfo" 
+        v-if="activeTab === 'favorites'&& userInfo" 
+        :isPrivacy="privacy?.fav_video || 0"
         :mid="userInfo.mid" 
       />
 
@@ -55,8 +46,8 @@ import UserFavorites from './UserFavorites.vue';
 import UserSeasons from './UserSeasons.vue';
 import UserSeries from './UserSeries.vue';
 import { ElMessage } from 'element-plus';
-import { 
-  getUserInfo, 
+import {
+  getUserInfo,
   getUserSettings,
 } from '@/api';
 import type { Privacy, MediaUpper } from '@/types';
@@ -68,10 +59,11 @@ const routerMid = computed(() => Number(route.params.mid));
 // 标签定义
 const tabs = ref(
   [
-  { label: '投稿视频', value: 'videos', icon: 'ri-video-line' },
-  { label: '合集', value: 'seasons', icon: 'ri-stack-line' },
-  { label: '系列', value: 'series', icon: 'ri-list-check-2' },
-]
+    { label: '投稿视频', value: 'videos', icon: 'ri-video-line' },
+    { label: '收藏夹', value: 'favorites', icon: 'ri-star-line' },
+    { label: '合集', value: 'seasons', icon: 'ri-stack-line' },
+    { label: '系列', value: 'series', icon: 'ri-list-check-2' },
+  ]
 );
 
 // 当前激活的标签
@@ -113,9 +105,6 @@ const fetchUserSettings = async () => {
     }
     const settings = await getUserSettings(routerMid.value);
     privacy.value = settings.data.privacy;
-    if(privacy.value?.fav_video) {
-      tabs.value.splice(1, 0, { label: '收藏夹', value: 'favorites', icon: 'ri-star-line' });
-    }
   } catch (error) {
     console.error('获取用户设置失败:', error);
     ElMessage.error('获取用户设置失败，请稍后重试');
@@ -126,25 +115,25 @@ const fetchUserSettings = async () => {
 const handleScroll = (e: Event) => {
   // 如果正在加载中，不触发新的加载
   if (isLoading.value) return;
-  
+
   // 清除之前的定时器，实现防抖
   if (scrollTimer) {
     clearTimeout(scrollTimer);
     scrollTimer = null;
   }
-  
+
   // 设置新的定时器，延迟200ms执行
   scrollTimer = window.setTimeout(() => {
     const target = e.target as HTMLElement;
     const scrollHeight = target.scrollHeight;
     const scrollTop = target.scrollTop;
     const clientHeight = target.clientHeight;
-    
+
     // 当滚动到距离底部350px时，触发加载更多
     if (scrollHeight - scrollTop - clientHeight < 350) {
       isLoading.value = true; // 设置加载状态
       loadMore.value = true;
-      
+
       // 2秒后重置加载状态，避免频繁触发
       setTimeout(() => {
         isLoading.value = false;

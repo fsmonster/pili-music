@@ -5,7 +5,10 @@
     </div>
     <div class="favorites-list">
       <!-- 收藏夹列表 -->
-      <div v-if="loading" class="loading-container">
+      <div v-if="!props.isPrivacy" class="private-container">
+        <div class="private-text">收藏夹未公开(x_x)</div>
+      </div>
+      <div v-else-if="loading" class="loading-container">
         <el-skeleton :rows="3" animated />
       </div>
       <div v-else-if="favorites.length === 0" class="empty-container">
@@ -103,6 +106,7 @@ import { processResourceUrl, formatDate2 } from '@/utils';
 // 定义组件属性
 const props = defineProps<{
   mid: number;
+  isPrivacy: number;
 }>();
 
 // 路由器
@@ -191,7 +195,7 @@ const goToFavorite = (id: number) => {
 
 // 组件挂载时获取收藏夹
 onMounted(() => {
-  if (props.mid) {
+  if (props.mid && !!props.isPrivacy) {
     fetchUserFavorites();
   }
 });
@@ -210,6 +214,17 @@ onMounted(() => {
     font-size: 18px;
     font-weight: 600;
     color: var(--el-text-color-primary);
+  }
+}
+
+.private-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  .private-text {
+    font-size: 14px;
+    color: var(--el-text-color-secondary);
   }
 }
 
