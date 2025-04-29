@@ -103,5 +103,11 @@ const handleItemClick = (item: SearchVideoResult) => {
   gap: 16px;
   padding: 4px;
   min-height: 100%;
+  @media (min-width: 1800px) {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  @media (min-width: 2048px) {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  }
 }
 </style>

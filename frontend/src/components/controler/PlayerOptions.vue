@@ -27,7 +27,7 @@
       class="volume-slider"
     />
     <!-- 全屏按钮 -->
-    <i class="ri-expand-diagonal-2-line"></i>
+    <!-- <i class="ri-expand-diagonal-2-line"></i> -->
   </div>
 </template>
 
