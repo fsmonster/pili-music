@@ -191,8 +191,6 @@ function playMedia(options: PlayMediaOptions) {
       queueStore.setCurrentIndex(0);
     }
   
-    replay();
-  
     if (collection) {
       recentlyStore.addRecentCollection(collection);
     }

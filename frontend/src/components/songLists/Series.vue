@@ -120,12 +120,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import ContentSection from './ContentSection.vue';
 import { useSeriesStore, useSeriesContentStore, useUserStore, useQueueStore, usePlayerStore, useLazyLoadStore } from '../../stores';
 import { processResourceUrl } from '../../utils';
 import { extractMidAndSeriesId } from '../../utils/common';
+import { CollectionType } from '@/types';
 
 // 路由
 const router = useRouter();
@@ -137,6 +139,8 @@ const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
 const userStore = useUserStore();
 const lazyLoad = useLazyLoadStore();
+
+const { seriesId, seriesSort, seriesMeta, seriesMedias } = storeToRefs(seriesContentStore);
 
 // 状态
 const loading = ref(false);
@@ -154,34 +158,63 @@ const goToSeries = (id: number) => {
 };
 
 // 获取系列的mid
-const seriesMid = (seriesId: number) => {
-  return seriesStore.series.find(s => s.series_id === seriesId)?.mid;
+// const seriesMid = (seriesId: number) => {
+//   return seriesStore.series.find(s => s.series_id === seriesId)?.mid;
+// }
+
+const buildPlayOptionsPartial = () => {
+  const id = seriesId.value ?? 0;
+  const title = seriesMeta.value?.name ?? '';
+  const cover = seriesMedias.value[0].cover ?? '';
+
+  return {
+    collection: {
+      type: CollectionType.Series,
+      id,
+      name: title,
+      cover
+    }
+  };
 }
 
 // 播放系列内容
 const playSeries = async (id: number) => {
-  try {
-    // 系列不需要懒加载
-    lazyLoad.reset();
-    if (!seriesMid(id)) {
-      ElMessage.error('获取系列信息失败');
-      return;
-    }
-    // 完整加载系列内容
-    await seriesContentStore.fetchSeriesArchives(id, seriesMid(id));
-    if (seriesContentStore.medias.length > 0) {
-      queueStore.setQueue(seriesContentStore.medias);
-      queueStore.total = seriesContentStore.medias.length;
-      queueStore.setCurrentIndex(0);
-      playerStore.replay();
-    } else {
-      ElMessage.warning('该系列没有可播放的内容');
-    }
-  } catch (error) {
-    console.error('播放系列失败:', error);
-    ElMessage.error('播放系列失败');
-  }
-};
+  lazyLoad.reset();
+  seriesId.value = id;
+
+  // 获取系列元数据和媒体列表
+  await seriesContentStore.fetchSeriesMeta(id);
+  await seriesContentStore.fetchSeriesArchives();
+
+  playerStore.playMedia({
+    queue: seriesMedias.value,
+    total: seriesMeta.value?.total ?? 0,
+    ...buildPlayOptionsPartial()
+  });
+}
+// const playSeries = async (id: number) => {
+//   try {
+//     // 系列不需要懒加载
+//     lazyLoad.reset();
+//     if (!seriesMid(id)) {
+//       ElMessage.error('获取系列信息失败');
+//       return;
+//     }
+//     // 完整加载系列内容
+//     await seriesContentStore.fetchSeriesArchives(id, seriesMid(id));
+//     if (seriesContentStore.medias.length > 0) {
+//       queueStore.setQueue(seriesContentStore.medias);
+//       queueStore.total = seriesContentStore.medias.length;
+//       queueStore.setCurrentIndex(0);
+//       playerStore.play();
+//     } else {
+//       ElMessage.warning('该系列没有可播放的内容');
+//     }
+//   } catch (error) {
+//     console.error('播放系列失败:', error);
+//     ElMessage.error('播放系列失败');
+//   }
+// };
 
 // 添加系列
 const addSeries = async () => {

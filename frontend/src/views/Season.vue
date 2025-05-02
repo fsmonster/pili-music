@@ -83,7 +83,7 @@ async function loadContent() {
 /**
  * @desc 构建播放选项
  */
-function buildPlayOptionsPartial() {
+const buildPlayOptionsPartial = () => {
   const id = info.value?.id ?? 0;
   const title = info.value?.title ?? '';
   const cover = medias.value[0]?.cover ?? '';

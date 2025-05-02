@@ -162,9 +162,9 @@ const router = useRouter();
 
 // Store
 const sectionStore = useSectionStore();
-const favoriteStore = useFavoriteContentStore();
-const seasonStore = useSeasonContentStore();
-const seriesStore = useSeriesContentStore();
+const favoriteContentStore = useFavoriteContentStore();
+const seasonContentStore = useSeasonContentStore();
+const seriesContentStore = useSeriesContentStore();
 
 const queueStore = useQueueStore();
 const playerStore = usePlayerStore();
@@ -198,11 +198,12 @@ const goToCollocation = async (type: CollectionType, id: number) => {
       break;
     case 'season':
       router.push(`/season/${id}`);
-      await seasonStore.fetchAllSeasonContent(id);
+      await seasonContentStore.fetchAllSeasonContent(id);
       break;
     case 'series':
       router.push(`/series/${id}`);
-      await seriesStore.fetchSeriesArchives(id);
+      seriesContentStore.seriesId = id;
+      await seriesContentStore.fetchSeriesArchives();
       break;
     default:
       console.warn('未知的资源类型:', type);
@@ -214,38 +215,39 @@ const playCollocation = async (type: CollectionType, id: number) => {
   try {
     if(type === lazyLoad.type && id === lazyLoad.id) {
       queueStore.setCurrentIndex(0);
-      playerStore.replay();
+      playerStore.play();
       return;
     }
     else lazyLoad.reset();
     if (type === 'favorite') {
       // 完整加载收藏夹内容
-      await favoriteStore.fetchFavoriteContent(id);
-      if (favoriteStore.medias.length > 0) {
-        queueStore.setQueue(favoriteStore.medias);
-        queueStore.total = favoriteStore.totalCount;
+      await favoriteContentStore.fetchFavoriteContent(id);
+      if (favoriteContentStore.medias.length > 0) {
+        queueStore.setQueue(favoriteContentStore.medias);
+        queueStore.total = favoriteContentStore.totalCount;
         queueStore.setCurrentIndex(0);
-        playerStore.replay();
+        playerStore.play();
         lazyLoad.set({ type, id });
       }
     } else if (type === 'season') {
       // 完整加载合集内容
-      await seasonStore.fetchAllSeasonContent(id);
-      if (seasonStore.medias.length > 0) {
-        queueStore.setQueue(seasonStore.medias);
-        queueStore.total = seasonStore.medias.length;
+      await seasonContentStore.fetchAllSeasonContent(id);
+      if (seasonContentStore.medias.length > 0) {
+        queueStore.setQueue(seasonContentStore.medias);
+        queueStore.total = seasonContentStore.medias.length;
         queueStore.setCurrentIndex(0);
-        playerStore.replay();
+        playerStore.play();
       }
     } else if (type === 'series') {
       // 完整加载系列内容
       // 暂时这么处理吧
-      await seriesStore.fetchSeriesArchives(id);
-      if (seriesStore.seriesArchives.length > 0) {
-        queueStore.setQueue(seriesStore.medias);
-        queueStore.total = seriesStore.medias.length;
+      seriesContentStore.seriesId = id;
+      await seriesContentStore.fetchSeriesArchives();
+      if (seriesContentStore.seriesMedias.length > 0) {
+        queueStore.setQueue(seriesContentStore.seriesMedias);
+        queueStore.total = seriesContentStore.seriesMedias.length;
         queueStore.setCurrentIndex(0);
-        playerStore.replay();
+        playerStore.play();
       }
     }
   } catch (error) {

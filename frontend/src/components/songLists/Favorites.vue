@@ -86,6 +86,7 @@ import { CollectionType } from '@/types';
 import ContentSection from './ContentSection.vue';
 import { useUserStore, useFavoriteStore,useFavoriteContentStore, useQueueStore, usePlayerStore, useLazyLoadStore } from '@/stores';
 import { processResourceUrl } from '@/utils';
+import { storeToRefs } from 'pinia';
 
 // 路由
 const router = useRouter();
@@ -103,6 +104,9 @@ const showManageDialog = ref(false);
 // 选中的收藏夹ID列表
 const checkedFavorites = ref<number[]>([]);
 
+// 当前收藏夹信息
+const { info } = storeToRefs(favoriteContentStore);
+
 // 跳转到播放列表
 const goToPlaylist = (id: number) => {
   router.push(`/favorite/${id}`);
@@ -115,27 +119,35 @@ const isPrivate = (item: any) => {
   return item.attr === 23 || item.attr === 3;
 };
 
+const buildPlayOptionsPartial = () => {
+  const id = info.value?.id ?? 0;
+  const title = info.value?.title ?? '';
+  const cover = info.value?.cover ?? '';
+
+  return {
+    collection: {
+      type: CollectionType.Favorite,
+      id,
+      name: title,
+      cover
+    },
+    lazyParams: {
+      type: CollectionType.Favorite,
+      id,
+    }
+  };
+}
+
 // 播放收藏夹内容
 const playFavorite = async (id: number) => {
-  try {
-    if (lazyLoad.type === CollectionType.Favorite && lazyLoad.id === id) {
-      queueStore.setCurrentIndex(0);
-      playerStore.replay();
-      return;
-    } else {
-      lazyLoad.set({ type: CollectionType.Favorite, id });
-    }
-    // 完整加载收藏夹内容
-    await favoriteContentStore.fetchFavoriteContent(Number(id));
-    if (favoriteContentStore.medias.length > 0) {
-      queueStore.setQueue(favoriteContentStore.medias);
-      queueStore.total = favoriteContentStore.totalCount;
-      queueStore.setCurrentIndex(0);
-      playerStore.replay();
-    }
-  } catch (error) {
-    console.error('播放收藏夹失败:', error);
-    ElMessage.error('播放收藏夹失败');
+  lazyLoad.reset();
+  await favoriteContentStore.fetchFavoriteContent(id);
+  if (favoriteContentStore.medias.length > 0) {
+    playerStore.playMedia({
+      queue: favoriteContentStore.medias,
+      total: favoriteContentStore.totalCount,
+      ...buildPlayOptionsPartial()
+    });
   }
 };
 

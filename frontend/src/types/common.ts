@@ -52,6 +52,7 @@ export interface Collection {
   type: CollectionType;
   id: number;
   name: string;
+  // 历史记录cover
   cover: string;
 }
 
