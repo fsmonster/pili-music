@@ -17,9 +17,9 @@
 
 <script setup lang="ts">
 import Layout from '../layout/Layout.vue';
-import RecommendBanner from '../components/recommend/RecommendBanner.vue';
-import RecommendSection from '../components/recommend/RecommendSection.vue';
-import CategoryRecommend from '../components/recommend/CategoryRecommend.vue';
+// import RecommendBanner from '../components/recommend/RecommendBanner.vue';
+// import RecommendSection from '../components/recommend/RecommendSection.vue';
+// import CategoryRecommend from '../components/recommend/CategoryRecommend.vue';
 </script>
 
 <style scoped lang="scss">

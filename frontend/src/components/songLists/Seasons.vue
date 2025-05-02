@@ -76,6 +76,7 @@ import { storeToRefs } from 'pinia';
 import ContentSection from './ContentSection.vue';
 import { useUserStore, useSeasonStore, useSeasonContentStore, usePlayerStore, useLazyLoadStore } from '@/stores';
 import { processResourceUrl } from '@/utils';
+import { CollectionType } from '@/types';
 
 const router = useRouter();
 const seasonStore = useSeasonStore();
@@ -90,30 +91,42 @@ const showManageDialog = ref(false);
 const checkedSeasons = ref<number[]>([4730322,295263]);
 
 // 选中的订阅合集内容
-const { medias } = storeToRefs(seasonContentStore);
+const { info, medias } = storeToRefs(seasonContentStore);
 
 // 跳转到播放列表
 const goToPlaylist = (id: number) => {
   router.push(`/season/${id}`);
 };
 
+/**
+ * @desc 构建播放选项
+ */
+ const buildPlayOptionsPartial = () => {
+  const id = info.value?.id ?? 0;
+  const title = info.value?.title ?? '';
+  const cover = medias.value[0]?.cover ?? '';
+
+  return {
+    collection: {
+      type: CollectionType.Season,
+      id,
+      name: title,
+      cover
+    }
+  };
+}
+
 // 播放订阅合集内容
 const playSeason = async (id: number) => {
-  try {
-    // 集合不需要懒加载
-    lazyLoad.reset();
-    // 完整加载订阅合集内容
-    await seasonContentStore.fetchAllSeasonContent(Number(id));
-    if (medias.value.length > 0) {
-      playerStore.playMedia({
-        queue: medias.value,
-        total: medias.value.length,
-        currentTrack: medias.value[0],
-      });
-    }
-  } catch (error) {
-    console.error('播放订阅合集失败:', error);
-    ElMessage.error('播放订阅合集失败');
+  lazyLoad.reset();
+  await seasonContentStore.fetchAllSeasonContent(Number(id));
+  if (medias.value.length > 0) {
+    playerStore.playMedia({
+      queue: medias.value,
+      total: medias.value.length,
+      currentTrack: medias.value[0],
+      ...buildPlayOptionsPartial()
+    });
   }
 };
 

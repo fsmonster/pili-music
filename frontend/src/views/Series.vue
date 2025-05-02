@@ -8,7 +8,7 @@
             v-if="seriesMeta"
             :mid="seriesMeta.mid"
             :title="seriesMeta.name"
-            :cover="medias[0]?.cover || ''"
+            :cover="seriesMedias[0]?.cover || ''"
             :count="seriesMeta.total"
           />
 
@@ -16,7 +16,7 @@
           <div class="playlist-content">
             <!-- 控制栏 -->
             <ListControls
-              :disabled="!medias.length"
+              :disabled="!seriesMedias.length"
               :type="CollectionType.Series"
               :sort="sort"
               :sortOptions="seriesSortOptions"
@@ -28,7 +28,7 @@
             <!-- 媒体列表 -->
             <MediaList
               type="series"
-              :data="medias"
+              :data="seriesMedias"
               :loading="loading"
               @play="handlePlay"
             />
@@ -40,7 +40,7 @@
             </div>
 
             <!-- 无数据 -->
-            <div v-if="!loading && medias.length === 0" class="empty-data">
+            <div v-if="!loading && seriesMedias.length === 0" class="empty-data">
               暂无数据
             </div>
           </div>
@@ -54,16 +54,15 @@
 import { useRoute } from 'vue-router';
 import { ref, computed, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { ElMessage } from 'element-plus';
+// import { ElMessage } from 'element-plus';
 import { Loading } from '@element-plus/icons-vue';
 import Layout from '../layout/Layout.vue';
 import ListHeader from '../components/songList/ListHeader.vue';
 import ListControls from '../components/songList/ListControls.vue';
 import MediaList from '../components/songList/MediaList.vue';
-import {useSeriesStore,useSeriesContentStore, usePlayerStore, useOverlayStore } from '../stores';
-import { CollectionType, type SortType } from '../types';
-import { SeriesSortType, FavoriteSortType, type MediaItem, type SeriesMeta } from '@/types';
-import { getSeriesMeta } from '@/api';
+import { useSeriesContentStore, usePlayerStore, useOverlayStore } from '../stores';
+import type { MediaItem, SortType } from '../types';
+import { SeriesSortType, FavoriteSortType, CollectionType } from '@/types';
 
 // 路由参数
 const route = useRoute();
@@ -71,7 +70,7 @@ const route = useRoute();
 const id = computed(() => route.params.id);
 
 // Store
-const seriesStore = useSeriesStore();
+// const seriesStore = useSeriesStore();
 const seriesContentStore = useSeriesContentStore();
 const playerStore = usePlayerStore();
 const overlayStore = useOverlayStore();
@@ -92,52 +91,52 @@ const seriesSortOptions = [
 ];
 
 // 计算属性
-const seriesMeta = ref<SeriesMeta | null>(null);
-const { medias } = storeToRefs(seriesContentStore);
+// const seriesMeta = ref<SeriesMeta | null>(null);
+const { seriesId, seriesMeta, seriesMedias } = storeToRefs(seriesContentStore);
 
 // 加载信息
-const loadInfo = async () => {
-  if (!id.value) return;
-  try {
-    const existingInfo = seriesStore.series.find(s => s.series_id === Number(id.value));
-    if (existingInfo) {
-      seriesMeta.value = existingInfo;
-    } else {
-      // 获取系列信息
-      const seriesInfo = await getSeriesMeta(Number(id.value));
-      seriesMeta.value = seriesInfo;
-    }
-  } catch (error) {
-    console.error('获取系列信息失败:', error);
-    ElMessage.error('获取系列信息失败');
-  }
-};
+// const loadInfo = async () => {
+//   if (!id.value) return;
+//   try {
+//     const existingInfo = seriesStore.series.find(s => s.series_id === Number(id.value));
+//     if (existingInfo) {
+//       seriesMeta.value = existingInfo;
+//     } else {
+//       // 获取系列信息
+//       const seriesInfo = await getSeriesMeta(Number(id.value));
+//       seriesMeta.value = seriesInfo;
+//     }
+//   } catch (error) {
+//     console.error('获取系列信息失败:', error);
+//     ElMessage.error('获取系列信息失败');
+//   }
+// };
 
 // 加载内容
-const loadContent = async () => {
-  if (!id.value) return;
+// const loadContent = async () => {
+//   if (!id.value) return;
   
-  try {
-    loading.value = true;
+//   try {
+//     loading.value = true;
     
-    // 获取系列内容
-    const mid = seriesMeta.value?.mid;
-    if (mid) {
-      await seriesContentStore.fetchSeriesArchives(
-        Number(id.value), 
-        mid, 
-        sort.value?.order as SeriesSortType
-          ?? SeriesSortType.DESC);
-    } else {
-      ElMessage.error('获取系列内容失败');
-    }
-  } catch (error) {
-    console.error('加载系列内容失败:', error);
-    ElMessage.error('加载系列内容失败');
-  } finally {
-    loading.value = false;
-  }
-};
+//     // 获取系列内容
+//     const mid = seriesMeta.value?.mid;
+//     if (mid) {
+//       await seriesContentStore.fetchSeriesArchives(
+//         Number(id.value), 
+//         mid, 
+//         sort.value?.order as SeriesSortType
+//           ?? SeriesSortType.DESC);
+//     } else {
+//       ElMessage.error('获取系列内容失败');
+//     }
+//   } catch (error) {
+//     console.error('加载系列内容失败:', error);
+//     ElMessage.error('加载系列内容失败');
+//   } finally {
+//     loading.value = false;
+//   }
+// };
 
 /**
  * @desc 构建播放选项
@@ -145,7 +144,7 @@ const loadContent = async () => {
 function buildPlayOptionsPartial() {
   const id = seriesMeta.value?.series_id ?? 0;
   const title = seriesMeta.value?.name ?? '';
-  const cover = medias.value[0].cover ?? '';
+  const cover = seriesMedias.value[0].cover ?? '';
 
   return {
     collection: {
@@ -158,10 +157,10 @@ function buildPlayOptionsPartial() {
 }
 
 // 播放全部
-const handlePlayAll = () => {
-  if (medias.value.length > 0) {
+const handlePlayAll = async () => {
+  if (seriesMedias.value.length > 0) {
     playerStore.playMedia({
-      queue: medias.value,
+      queue: seriesMedias.value,
       total: seriesMeta.value?.total ?? 0,
       ...buildPlayOptionsPartial()
     });
@@ -171,7 +170,7 @@ const handlePlayAll = () => {
 // 播放单曲
 const handlePlay = (item: MediaItem) => {
   playerStore.playMedia({
-    queue: medias.value,
+    queue: seriesMedias.value,
     total: seriesMeta.value?.total ?? 0,
     currentTrack: item,
     ...buildPlayOptionsPartial()
@@ -181,14 +180,8 @@ const handlePlay = (item: MediaItem) => {
 // 排序处理
 const handleSort = (order: SeriesSortType | FavoriteSortType) => {
   sort.value = { type: CollectionType.Series, order };
+  seriesContentStore.handleSort(order as SeriesSortType);
 };
-
-/**
- * @desc 移除内容
- */
-function removeContent() {
-  seriesContentStore.reset();
-}
 
 /**
  * @desc 添加到收藏夹
@@ -200,18 +193,14 @@ function handleAdd() {
 }
 
 watch(() => id.value, async () => {
-  removeContent();
-  await loadInfo();
-  await loadContent();
+  seriesContentStore.reset();
+  seriesId.value = Number(id.value);
+  await seriesContentStore.fetchSeriesMeta(seriesId.value);
+  await seriesContentStore.fetchSeriesArchives();
 }, { immediate: true });
 
-watch(() => sort.value, () => {
-  removeContent();
-  loadContent();
-});
-
 onUnmounted(() => {
-  removeContent();
+  seriesContentStore.reset();
 });
 </script>
 

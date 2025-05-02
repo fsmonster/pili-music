@@ -27,6 +27,11 @@ export const useFavoriteContentStore = defineStore(
     // 当前收藏夹ID
     const currentFavoriteId = ref<number | null>(null);
 
+    // 计算属性：当前收藏夹信息
+    const info = computed(() => {
+      return favoriteContent.value?.info || null;
+    });
+
     // 计算属性：当前收藏夹媒体列表
     const medias = computed<MediaItem[]>(
       () => favoriteContent.value?.medias || []
@@ -103,7 +108,6 @@ export const useFavoriteContentStore = defineStore(
 
         appendFavoriteContent(response);
 
-        page.value++;
         hasMore.value = response.has_more;
         return response.medias;
       } catch (err) {
@@ -138,6 +142,7 @@ export const useFavoriteContentStore = defineStore(
 
       // 计算属性
       medias,
+      info,
 
       // 方法
       fetchFavoriteContent,
