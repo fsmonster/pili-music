@@ -22,7 +22,7 @@ export const usePlayerStore = defineStore('player', () => {
   });
 
   // 音频实例
-  const audio = new Audio();
+  let audio = new Audio();
   
   // 播放状态
   const playing = ref(false);
@@ -209,24 +209,79 @@ function playMedia(options: PlayMediaOptions) {
     }
   });
 
+  /**
+   * 获取当前播放器的音频元素
+   * @returns 当前的音频元素
+   */
+  function getAudioInstance(): HTMLAudioElement {
+    return audio;
+  }
+  
+  /**
+   * 创建新的音频元素并替换当前的元素
+   * 这在需要处理 Web Audio API 的 createMediaElementSource 的限制时非常有用
+   * @returns 新创建的音频元素
+   */
+  function createNewAudioInstance(): HTMLAudioElement {
+    // 先保存当前音频的状态
+    const currentSrc = audio.src;
+    const currentTimeValue = audio.currentTime;
+    const wasPlaying = !audio.paused;
+    const currentVolume = audio.volume;
+    
+    // 停止当前音频
+    audio.pause();
+    
+    // 创建新的音频元素
+    const newAudio = new Audio();
+    newAudio.src = currentSrc;
+    newAudio.volume = currentVolume;
+    
+    // 重新初始化事件监听
+    newAudio.addEventListener('play', () => playing.value = true);
+    newAudio.addEventListener('pause', () => playing.value = false);
+    newAudio.addEventListener('timeupdate', () => {
+      currentTime.value = newAudio.currentTime;
+    });
+    newAudio.addEventListener('loadedmetadata', () => {
+      duration.value = newAudio.duration;
+      loading.value = false;
+      
+      // 恢复播放位置
+      newAudio.currentTime = currentTimeValue;
+      
+      // 如果之前在播放，继续播放
+      if (wasPlaying) {
+        newAudio.play().catch(err => console.error('新音频元素播放失败:', err));
+      }
+    });
+    newAudio.addEventListener('ended', next);
+    newAudio.addEventListener('error', () => {
+      loading.value = false;
+      console.error('播放出错');
+    });
+    newAudio.addEventListener('progress', updateBufferProgress);
+    
+    // 替换当前的音频元素
+    audio = newAudio;
+    
+    return newAudio;
+  }
+
   // 初始化事件监听
   initAudioEvents();
 
   return {
-    // 状态
     playing,
     currentTime,
     duration,
     loading,
     volume,
-    bufferProgress, // 缓存进度
-
-    getAudioInstance: () => audio,
-
-    // 计算属性
-    activeAudioUrl,
-
-    // 方法
+    bufferProgress,
+    
+    getAudioInstance,
+    createNewAudioInstance,
+    
     replay,
     play,
     pause,
@@ -236,8 +291,7 @@ function playMedia(options: PlayMediaOptions) {
     seek,
     setVolume,
     switchToPage,
-    playMedia,
-    updateBufferProgress, // 手动更新缓存进度的方法
+    playMedia
   };
 }, { 
   persist: true

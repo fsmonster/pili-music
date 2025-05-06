@@ -121,15 +121,7 @@ class LoudnessAnalyzer extends EventEmitter {
     // 停止当前分析
     this.stopAnalysis();
     
-    // 如果已有音频元素，先释放资源
-    // if (this.audioElement) {
-    //   this.audioElement.pause();
-    //   this.audioElement.src = '';
-    //   this.audioElement.removeAttribute('src');
-    //   this.audioElement = null;
-    // }
-    
-    // 根据源类型创建或使用音频元素
+    // 根据源类型确定音频元素
     let audioElement: HTMLAudioElement;
     let sourceType: AudioSourceType;
     
@@ -137,8 +129,15 @@ class LoudnessAnalyzer extends EventEmitter {
       // 直接使用提供的音频元素
       audioElement = source;
       sourceType = AudioSourceType.ELEMENT;
+      
+      // 检查是否已经有 _sourceNode 属性
+      // 如果有，说明该元素已经被连接过
+      if ((audioElement as any)._sourceNode) {
+        console.log('使用已经连接过的音频元素');
+      }
     } else {
-      // 创建新的音频元素
+      // 如果不是直接提供的音频元素，我们则创建新的元素
+      // 这样可以避免 createMediaElementSource 的限制
       audioElement = new Audio();
       
       if (typeof source === 'string') {

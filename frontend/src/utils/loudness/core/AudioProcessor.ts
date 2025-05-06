@@ -65,8 +65,30 @@ export class AudioProcessor {
     }
     
     try {
-      // 创建音频源节点
-      this.sourceNode = context.createMediaElementSource(audioElement);
+      // 检查音频元素是否已经被连接过
+      // 如果已经被连接过，尝试使用 audioElement._sourceNode 属性
+      // 这是我们之前可能存储的引用
+      let sourceNode: MediaElementAudioSourceNode;
+      
+      try {
+        // 尝试创建新的 MediaElementAudioSourceNode
+        sourceNode = context.createMediaElementSource(audioElement);
+        // 如果成功，将其存储到音频元素上作为自定义属性
+        (audioElement as any)._sourceNode = sourceNode;
+      } catch (e) {
+        console.warn('无法创建新的 MediaElementAudioSourceNode，可能已经存在连接:', e);
+        
+        // 如果已经有缓存的源节点，尝试使用它
+        if ((audioElement as any)._sourceNode) {
+          sourceNode = (audioElement as any)._sourceNode;
+          console.log('使用现有的 MediaElementAudioSourceNode');
+        } else {
+          // 如果无法创建新的源节点且没有缓存的源节点，抛出错误
+          throw new Error('无法连接音频元素，可能已被其他上下文连接且没有缓存引用');
+        }
+      }
+      
+      this.sourceNode = sourceNode;
       this.mediaElementSourceConnected = true;
       
       // 创建分析器节点

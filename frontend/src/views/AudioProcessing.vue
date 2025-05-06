@@ -184,12 +184,12 @@ const loudnessMarks = {
 };
 
 // 初始化响度分析器
-// onMounted(() => {
-//   if (visualizerContainer.value) {
-//     // 初始化响度分析器
-//     loudnessStore.initAnalyzer(visualizerContainer.value);
-//   }
-// });
+onMounted(() => {
+  if (visualizerContainer.value) {
+    // 初始化响度分析器
+    loudnessStore.initAnalyzer(visualizerContainer.value);
+  }
+});
 
 // 在组件销毁时停止分析
 // onUnmounted(() => {

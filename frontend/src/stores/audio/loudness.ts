@@ -95,16 +95,42 @@ export const useLoudnessStore = defineStore('loudness', () => {
   function connectAudioToAnalyzer() {
     if (!analyzer.value || !isInit()) return;
 
-    const audioInstance = playerStore.getAudioInstance();
-    if (!audioInstance) return;
-  
-    analyzer.value.loadAudio(audioInstance)
-      .then(() => {
-        analyzer.value.startAnalysis();
-      })
-      .catch((error: any) => {
-        console.error('连接音频到响度分析器失败:', error);
-    });
+    try {
+      // 获取当前音频实例
+      let audioInstance = playerStore.getAudioInstance();
+      if (!audioInstance) return;
+      
+      // 检查音频元素是否已经被连接过
+      // 如果已经被连接过，则创建一个新的音频元素
+      if ((audioInstance as any)._sourceNode) {
+        console.log('音频元素已经被连接过，创建新的音频元素');
+        audioInstance = playerStore.createNewAudioInstance();
+      }
+      
+      // 加载音频到分析器
+      analyzer.value.loadAudio(audioInstance)
+        .then(() => {
+          analyzer.value.startAnalysis();
+        })
+        .catch((error: any) => {
+          console.error('连接音频到响度分析器失败:', error);
+          
+          // 如果连接失败，可能是因为音频元素已经被连接过
+          // 尝试创建新的音频元素并重新连接
+          const newAudioInstance = playerStore.createNewAudioInstance();
+          
+          // 重新尝试连接
+          analyzer.value.loadAudio(newAudioInstance)
+            .then(() => {
+              analyzer.value.startAnalysis();
+            })
+            .catch((retryError: any) => {
+              console.error('重新连接音频到响度分析器仍然失败:', retryError);
+            });
+        });
+    } catch (error) {
+      console.error('连接音频到响度分析器时发生异常:', error);
+    }
   }
   
   // 更新目标响度
@@ -166,9 +192,9 @@ export const useLoudnessStore = defineStore('loudness', () => {
   }
   
   // 监听播放器状态变化
-  watch(() => playerStore.activeAudioUrl, () => {
-    // 当播放器当前时间变化时，检查是否需要连接分析器
-    if (playerStore.playing) {
+  watch(() => playerStore.playing, (isPlaying) => {
+    // 当播放器状态变化时，检查是否需要连接分析器
+    if (isPlaying) {
       if(isInit()) connectAudioToAnalyzer();
       else {
         initAnalyzer();
