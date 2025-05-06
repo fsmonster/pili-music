@@ -13,3 +13,6 @@ export * from './search/search'
 
 // 覆盖层
 export * from './overlay'
+
+// 音频处理
+export * from './audio/loudness'

@@ -26,8 +26,8 @@
       @change="handleVolumeChange"
       class="volume-slider"
     />
-    <!-- 全屏按钮 -->
-    <!-- <i class="ri-expand-diagonal-2-line"></i> -->
+    <!-- 音频处理按钮 -->
+    <i class="ri-equalizer-line" @click="navigateToAudioProcessing"></i>
   </div>
 </template>
 
@@ -35,9 +35,13 @@
 import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { ElSwitch } from 'element-plus';
+import { useRouter } from 'vue-router';
 import { usePlayerStore, useQueueStore, useMultiPageQueueStore } from '@/stores';
 // 导入自定义组件
 import { VolumeBar } from './index';
+
+// 路由器
+const router = useRouter();
 
 // 播放器 store
 const playStore = usePlayerStore();
@@ -74,6 +78,11 @@ function toggleMute() {
 // 切换播放队列显示状态
 function toggleQueue() {
   queueStore.togglePopup();
+}
+
+// 导航到音频处理页面
+function navigateToAudioProcessing() {
+  router.push('/audio-processing');
 }
 </script>
 

@@ -220,6 +220,12 @@ function playMedia(options: PlayMediaOptions) {
     loading,
     volume,
     bufferProgress, // 缓存进度
+
+    getAudioInstance: () => audio,
+
+    // 计算属性
+    activeAudioUrl,
+
     // 方法
     replay,
     play,

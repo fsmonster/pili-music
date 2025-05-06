@@ -42,6 +42,11 @@ const router = createRouter({
       name: 'search',
       component: () => import('../views/Search.vue')
     },
+    {
+      path: '/audio-processing',
+      name: 'audio-processing',
+      component: () => import('../views/AudioProcessing.vue')
+    },
   ]
 });
 
